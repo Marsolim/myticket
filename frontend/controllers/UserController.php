@@ -1,0 +1,237 @@
+<?php
+
+namespace frontend\controllers;
+
+use common\models\User;
+use common\models\Store;
+use common\models\ManagedStore;
+use common\models\UserSearch;
+use yii\web\Controller;
+use yii\web\NotFoundHttpException;
+use yii\web\UploadedFile;
+use yii\web\Response;
+use yii\filters\VerbFilter;
+use yii\imagine\Image;
+use Yii;
+
+/**
+ * ShopController implements the CRUD actions for Shop model.
+ */
+class UserController extends Controller
+{
+    /**
+     * @inheritDoc
+     */
+    public function behaviors()
+    {
+        return array_merge(
+            parent::behaviors(),
+            [
+                'verbs' => [
+                    'class' => VerbFilter::className(),
+                    'actions' => [
+                        'delete' => ['POST'],
+                        'assign-role' => ['POST'],
+                        'assign-store' => ['POST'],
+                    ],
+                ],
+            ]
+        );
+    }
+
+    /**
+     * Lists all Shop models.
+     *
+     * @return string
+     */
+    public function actionIndex()
+    {
+        if (!Yii::$app->user->can('manageUser'))
+        {
+            $model = $this->findModel(Yii::$app->user->id);
+            return $this->render('view', [
+                'model' => $model,
+            ]);
+        }
+        else 
+        {
+            $searchModel = new UserSearch();
+            $dataProvider = $searchModel->search($this->request->queryParams);
+
+            return $this->render('index', [
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+            ]);
+        }
+    }
+
+    /**
+     * Displays a single Shop model.
+     * @param int $id ID
+     * @return string
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionView($id)
+    {
+        $model = $this->findModel(Yii::$app->user->id);
+        if (Yii::$app->user->can('manageUser'))
+        {
+            $model = $this->findModel($id);
+        }
+        return $this->render('view', [
+            'model' => $model,
+        ]);
+    }
+
+    /**
+     * Displays a single Shop model.
+     * @param int $id ID
+     * @return string
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionAssignRole($user, $role)
+    {
+        if (Yii::$app->request->isAjax) {
+            $auth = Yii::$app->authManager;
+            $prevrole = User::findOne(['id' => $user])->role;
+            $role = $auth->getRole($role);
+            
+            if (isset($prevrole) && $prevrole != $role)
+            {
+                $prevrole = $auth->getRole($prevrole);
+                $auth->revoke($prevrole, $user);
+            }
+            
+            if ($prevrole != $role)
+            {
+                $auth->assign($role, $user);
+                if ($role != User::ROLE_STORE_MANAGER && $prevrole == User::ROLE_STORE_MANAGER)
+                {
+                    $smg = ManagedStore::findOne(['user_id' => $user, 'active'=>ManagedStore::STATUS_ACTIVE]);
+                    if (isset($smg))
+                    {
+                        $smg->active = ManagedStore::STATUS_INACTIVE;
+                        $smg->save();
+                    }
+                }
+            }
+            
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return [
+                'action' => 'reload',
+                'label' => $role,
+                'role' => $role,
+                'user' => $user,
+            ];
+        }
+    }
+
+    /**
+     * Displays a single Shop model.
+     * @param int $id ID
+     * @return string
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionAssignRegion($user, $region)
+    {
+        if (Yii::$app->request->isAjax){
+            $model = $this->findModel($user);
+
+            $model->region_id = $region;
+
+            $model->save();
+
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return [
+                'action' => 'reload',
+                'label' => $model->name,
+                'value' => $region,
+                'user' => $user,
+            ];
+        }
+    }
+
+    // /**
+    //  * Creates a new Shop model.
+    //  * If creation is successful, the browser will be redirected to the 'view' page.
+    //  * @return string|\yii\web\Response
+    //  */
+    // public function actionCreate()
+    // {
+    //     $model = new Store();
+
+    //     if ($this->request->isPost) {
+    //         if ($model->load($this->request->post()) && $model->save()) {
+    //             return $this->redirect(['view', 'id' => $model->id]);
+    //         }
+    //     } else {
+    //         $model->loadDefaultValues();
+    //     }
+
+    //     return $this->render('create', [
+    //         'model' => $model,
+    //     ]);
+    // }
+
+    /**
+     * Updates an existing Shop model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param int $id ID
+     * @return string|\yii\web\Response
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionUpdate($id)
+    {
+        $model = $this->findModel($id);
+
+        $filename = isset($model->profile) ? $model->profile : 'default_profile.jpg';
+        if ($this->request->isPost && $model->load($this->request->post())) {
+            $model->avatar = UploadedFile::getInstance($model, 'avatar');
+
+            if ($model->avatar && $model->validate()) {
+                $filename = Yii::$app->security->generateRandomString() . '.' . $model->avatar->extension;
+                $filepath = 'uploads/profiles/' . $filename;
+                $model->avatar->saveAs($filepath);
+                Image::thumbnail($filepath, 100, 100)->save('uploads/profiles/thumb/'.$filename, ['quality' => 80]);
+            }
+            $model->profile = $filename;
+            if ($model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
+        }
+
+        return $this->render('update', [
+            'model' => $model,
+        ]);
+    }
+
+    // /**
+    //  * Deletes an existing Shop model.
+    //  * If deletion is successful, the browser will be redirected to the 'index' page.
+    //  * @param int $id ID
+    //  * @return \yii\web\Response
+    //  * @throws NotFoundHttpException if the model cannot be found
+    //  */
+    // public function actionDelete($id)
+    // {
+    //     $this->findModel($id)->delete();
+
+    //     return $this->redirect(['index']);
+    // }
+
+    /**
+     * Finds the Shop model based on its primary key value.
+     * If the model is not found, a 404 HTTP exception will be thrown.
+     * @param int $id ID
+     * @return Shop the loaded model
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    protected function findModel($id)
+    {
+        if (($model = User::findOne(['id' => $id, 'status' => User::STATUS_ACTIVE])) !== null) {
+            return $model;
+        }
+
+        throw new NotFoundHttpException('The requested page does not exist.');
+    }
+}
