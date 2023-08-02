@@ -3,6 +3,8 @@
 namespace common\models;
 
 use common\models\Store;
+use yii\behaviors\TimestampBehavior;
+use yii\behaviors\BlameableBehavior;
 use Yii;
 
 /**
