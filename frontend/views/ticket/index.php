@@ -3,6 +3,7 @@
 use common\models\Ticket;
 use yii\helpers\Html;
 use yii\helpers\Url;
+use frontend\helpers\TStatusHelper;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 
@@ -78,7 +79,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => 'Command',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return implode(' ', $model->commands());
+                    return TStatusHelper::createNextCommand($model);
                 }
             ],
         ],

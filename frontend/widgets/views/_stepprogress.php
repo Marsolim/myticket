@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\helpers\ArrayHelper;
 use frontend\helpers\RoleHelper;
+use frontend\helpers\TStatusHelper;
 use common\models\User;
 
 /** @var yii\web\View $this */
@@ -14,7 +15,8 @@ $steps = $model->getModels();
 $last = end($steps);
 ?>
 
-<?php foreach($steps as $index => $step) { 
+<?php foreach($steps as $index => $step) {
+  $sto = TStatusHelper::createStep($step); 
     $class = ["step"];
     $i = $index + 1;
     if ($index == (count($steps) - 1)) $class[] = 'step-active';
@@ -26,8 +28,8 @@ $last = end($steps);
     <div class="circle"><?= $i ?></div>
   </div>
   <div>
-    <div class="title"><?= date('d F Y', $step->action_date).' '.$step->status->name ?></div>
-    <div class="caption"><?= $step->action ?></div>
+    <div class="title"><?= $sto['title'] ?></div>
+    <div class="caption"><?= $sto['caption']['content'] ?></div>
   </div>
 </div>
 <?php } ?>
