@@ -6,11 +6,15 @@ use common\models\User;
 use common\models\Store;
 use common\models\Region;
 use common\models\SLAStatus;
+use common\models\Document;
 use common\models\ManagedStore;
 use common\models\StoreSearch;
+use common\models\TicketSearch;
 use yii\web\Controller;
+use yii\data\ActiveDataProvider;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\Url;
 use Yii;
 
 /**
@@ -51,13 +55,16 @@ class StoreController extends Controller
             $user = User::findOne(['id' => Yii::$app->user->id]);
             $query->andWhere(['region_id' => $user->region_id]);
         }
-
+        else if (!User::isMemberOfRole([User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR, User::ROLE_GENERAL_MANAGER])) 
+        {
+            throw new UnauthorizedHttpException();
+        }
         $dataProvider = $searchModel->search($query);
-        
+
         return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+            ]);
     }
 
     /**
@@ -68,9 +75,30 @@ class StoreController extends Controller
      */
     public function actionView($id)
     {
+        $searchModel = new TicketSearch();
+        $query = $searchModel->searchQuery($this->request->queryParams);
+        $query->andWhere(['store_id' => $id]);
+
+        $ticketProvider = $searchModel->search($query);
+
+        $docquery = Document::find();
+
+        $docquery->andWhere(['store_id' => $id]);
+        $documentProvider = new ActiveDataProvider([
+            'query' => $docquery,
+            'pagination' => [
+                'pageSize' => 20,
+            ],
+        ]);
+
+        Url::remember();
+
         return $this->render('view', [
             'model' => $this->findModel($id),
             'status' => [['id'=> 1, 'name' => 'Garansi'], ['id'=> 2, 'name' => 'Non Garansi']],
+            'searchModel' => $searchModel,
+            'ticketProvider' => $ticketProvider,
+            'documentProvider' => $documentProvider,
         ]);
     }
 
@@ -82,12 +110,11 @@ class StoreController extends Controller
     public function actionCreate()
     {
         $model = new Store();
-        $regions = Region::find();
+
         if (User::isMemberOfRole(User::ROLE_STORE_MANAGER))
         {
             $user = User::findOne(['id' => Yii::$app->user->id]);
             $model->region_id = $user->region_id;
-            $regions->andWhere(['region_id' => $user->region_id]);
         }
 
         if ($this->request->isPost) {
@@ -100,7 +127,7 @@ class StoreController extends Controller
 
         return $this->render('create', [
             'model' => $model,
-            'regions' => $regions->all(),
+            'regions' => Region::find()->all(),
             'status' => SLAStatus::find()->all(),
         ]);
     }
@@ -115,22 +142,20 @@ class StoreController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
-        $regions = Region::find();
+        
         if (User::isMemberOfRole(User::ROLE_STORE_MANAGER))
         {
             $user = User::findOne(['id' => Yii::$app->user->id]);
             $model->region_id = $user->region_id;
-            $regions->andWhere(['region_id' => $user->region_id]);
         }
-
+        
         if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
         return $this->render('update', [
             'model' => $model,
-            'regions' => $regions->all(),
+            'regions' => Region::find()->all(),
             'status' => SLAStatus::find()->all(),
         ]);
     }
@@ -147,32 +172,6 @@ class StoreController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
-    }
-
-    /**
-     * Deletes an existing Shop model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionAssign($store, $mgr)
-    {
-        $model = $this->findModel($store);
-
-        $mgs = ManagedStore::findOne(['store_id' => $store, 'active'=>ManagedStore::STATUS_ACTIVE]);
-        $mgs->active = ManagedStore::STATUS_INACTIVE;
-        $mgs->save();
-        $mgs = new ManagedStore();
-        $mgs->store_id = $store;
-        $mgs->user_id = $mgr;
-        $mgs->active = ManagedStore::STATUS_ACTIVE;
-        $mgs->save();
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return [
-            'value' => $store,
-            'user' => $mgr,
-        ];
     }
 
     /**

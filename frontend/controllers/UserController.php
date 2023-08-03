@@ -93,36 +93,26 @@ class UserController extends Controller
     {
         if (Yii::$app->request->isAjax) {
             $auth = Yii::$app->authManager;
-            $prevrole = User::findOne(['id' => $user])->role;
+            $user = User::findOne(['id' => $user]);
+            $prevrole = $user->role;
             $role = $auth->getRole($role);
             
             if (isset($prevrole) && $prevrole != $role)
             {
                 $prevrole = $auth->getRole($prevrole);
-                $auth->revoke($prevrole, $user);
+                $auth->revoke($prevrole, $user->id);
             }
             
             if ($prevrole != $role)
             {
-                $auth->assign($role, $user);
-                if ($role != User::ROLE_STORE_MANAGER && $prevrole == User::ROLE_STORE_MANAGER)
-                {
-                    $smg = ManagedStore::findOne(['user_id' => $user, 'active'=>ManagedStore::STATUS_ACTIVE]);
-                    if (isset($smg))
-                    {
-                        $smg->active = ManagedStore::STATUS_INACTIVE;
-                        $smg->save();
-                    }
-                }
+                $auth->assign($role, $user->id);
             }
             
             Yii::$app->response->format = Response::FORMAT_JSON;
-            return [
-                'action' => 'reload',
-                'label' => $role,
-                'role' => $role,
-                'user' => $user,
-            ];
+            return $this->renderAjax('_assignrole', [
+                'model' => $user,
+                'showtext' => true
+            ]);
         }
     }
 
@@ -132,20 +122,39 @@ class UserController extends Controller
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionAssignRegion($user, $region)
+    public function actionAssignStore($user, $store)
     {
         if (Yii::$app->request->isAjax){
-            $model = $this->findModel($user);
+            $model = Store::findOne(['id' => $store]);
 
-            $model->region_id = $region;
+            $mgs = ManagedStore::findOne(['store_id' => $store, 'active'=>ManagedStore::STATUS_ACTIVE]);
+            $smg = ManagedStore::findOne(['user_id' => $user, 'active'=>ManagedStore::STATUS_ACTIVE]);
+            if (isset($mgs) && $mgs->user_id != $user)
+            {
+                $mgs->active = ManagedStore::STATUS_INACTIVE;
+                $mgs->save();
 
-            $model->save();
+                if (isset($smg) && $mgs->id != $smg->id && $mgs->store_id != $store){
+                    $smg->active = ManagedStore::STATUS_INACTIVE;
+                    $smg->save();
+                }
+            }
+            
+            if (!(isset($mgs) && $mgs->active == ManagedStore::STATUS_ACTIVE) &&
+                !(isset($smg) && $smg->active == ManagedStore::STATUS_ACTIVE))
+            {
+                $nmgs = new ManagedStore();
+                $nmgs->store_id = $store;
+                $nmgs->user_id = $user;
+                $nmgs->active = ManagedStore::STATUS_ACTIVE;
+                $nmgs->save();
+            }
 
             Yii::$app->response->format = Response::FORMAT_JSON;
             return [
                 'action' => 'reload',
                 'label' => $model->name,
-                'value' => $region,
+                'value' => $store,
                 'user' => $user,
             ];
         }

@@ -273,9 +273,10 @@ class User extends ActiveRecord implements IdentityInterface
         return $filename;
     }
 
-    public static function getCurrentUserRoleName()
+    public static function getUserRoleName($user = null)
     {
-        $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->id);
+        if (!isset($user)) $user = Yii::$app->user->id;
+        $roles = Yii::$app->authManager->getRolesByUser($user);
         if (!$roles) {
             return null;
         }
@@ -308,9 +309,10 @@ class User extends ActiveRecord implements IdentityInterface
         return in_array($role, $rolenames);
     }
 
-    public static function getCurrentUserRole()
+    public static function getUserRole($user = null)
     {
-        $roles = Yii::$app->authManager->getRolesByUser(Yii::$app->user->id);
+        if (!isset($user)) $user = Yii::$app->user->id;
+        $roles = Yii::$app->authManager->getRolesByUser($user);
         if (!$roles) {
             return null;
         }

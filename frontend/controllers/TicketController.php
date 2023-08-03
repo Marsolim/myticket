@@ -11,10 +11,13 @@ use common\models\TicketAction;
 use common\models\TicketStatus;
 use common\models\TicketActionSearch;
 use common\models\TicketSearch;
+use frontend\models\DocumentUploadForm;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\UnauthorizedHttpException;
+use yii\web\UploadedFile;
 use yii\helpers\Url;
+use yii\helpers\ArrayHelper;
 use yii\filters\VerbFilter;
 
 /**
@@ -61,8 +64,10 @@ class TicketController extends Controller
         }
         if (User::isMemberOfRole(User::ROLE_STORE_MANAGER))
         {
-            $mgs = ManagedStore::findOne(['user_id' => Yii::$app->user->id, 'active' => ManagedStore::STATUS_ACTIVE]);
-            $query->andWhere(['store_id' => $mgs->store_id]);
+            $user = User::findOne(['id' => Yii::$app->user->id]);
+            $stores = Store::findAll(['region_id' => $user->region_id]);
+            $stores = ArrayHelper::getColumn($stores, 'id');
+            $query->andWhere(['store_id' => $stores]);
         }
 
         $dataProvider = $searchModel->search($query);
@@ -105,12 +110,22 @@ class TicketController extends Controller
     public function actionCreate()
     {
         $model = new Ticket();
-        $engineers = User::find()->all();
-        $stores = Store::find()->all();
+        
+        $engineers = User::findByRole(User::ROLE_ENGINEER)->all();
+        $stores = Store::find();
+
+        if (User::isMemberOfRole(User::ROLE_STORE_MANAGER))
+        {
+            $user = User::findOne(['id' => Yii::$app->user->id]);
+            $stores->andWhere(['region_id' => $user->region_id]);
+        }
 
         if ($this->request->isPost) {
             $model->issuer_id = Yii::$app->user->id;
-            if ($model->load($this->request->post()) && $model->save()) {
+
+            if ($model->load($this->request->post()) && $model->save())
+            {
+                $model->notify();
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         } else {
@@ -119,7 +134,7 @@ class TicketController extends Controller
 
         return $this->render('create', [
             'model' => $model,
-            'stores' => $stores,
+            'stores' => $stores->all(),
             'engineers' => $engineers
         ]);
     }
@@ -182,12 +197,23 @@ class TicketController extends Controller
         
         if ($this->request->isPost) 
         {
-            if ($ticketaction->load($this->request->post()) && $ticketaction->save()) {
-                $ticketaction->refresh();
-                $model->last_action_id = $ticketaction->id;
-                $model->last_status_id = $ticketaction->status_override;
-                $model->updateAttributes(['last_action_id', 'last_status_id']);
-                return $this->redirect(Url::previous());
+            if ($ticketaction->load($this->request->post())){
+                $duf = new DocumentUploadForm();
+                $ticketaction->attachments = UploadedFile::getInstances($ticketaction, 'attachments');
+                $duf->files = $ticketaction->attachments;
+                if ($ticketaction->validate() && $ticketaction->save()) {
+                    $ticketaction->refresh();
+                    $model->last_action_id = $ticketaction->id;
+                    $model->last_status_id = $ticketaction->status_override;
+                    $duf->owner_id = Yii::$app->user->id;
+                    $duf->store_id = $model->store_id;
+                    $duf->ticket_id = $model->id;
+                    $duf->action_id = $ticketaction->id;
+                    $duf->upload();
+                    $model->updateAttributes(['last_action_id', 'last_status_id']);
+                    $ticketaction->notify();
+                    return $this->redirect(Url::previous());
+                }
             }
         }
 
@@ -299,6 +325,15 @@ class TicketController extends Controller
             'engineers' => $engineers,
             'stores' => $stores
         ]);
+    }
+
+    public function actionNotify($id)
+    {
+        $model = TicketAction::findOne(['id' => $id]);
+
+        $model->notify();
+
+        return $this->redirect(Url::previous());
     }
 
     /**

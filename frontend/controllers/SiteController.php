@@ -272,32 +272,39 @@ class SiteController extends Controller
 
     public function actionUploadDocument()
     {
-        //if ($this->request->isAjax){
+        if ($this->request->isAjax){
             Yii::$app->response->format = Response::FORMAT_JSON;
             $model = new DocumentUploadForm();
             if ($model->load($this->request->post(), '')) 
             {
                 $model->owner_id = Yii::$app->user->id;
-                $model->files = UploadedFile::getInstances($model, 'files');
-                if ($model->upload()) 
+                $model->files = UploadedFile::getInstancesByName('files');
+                $docs = $model->upload();
+                if (isset($docs) && $docs) 
                 {
+                    $prev = [];
+                    $cprev = [];
+                    foreach($docs as $doc)
+                    {
+                        $prev[] = 'uploads/documents/'.$doc->filename;
+                        
+                        $cprev[] = [
+                            'caption' => $doc->uploadname, 
+                            //width: '120px', 
+                            'downloadUrl' => Url::to(['document/download/', 'id' => $doc->id]),
+                            'showRemove' => false,
+                            'showMove' => false,
+                        ];
+                    }
                     return [
-                        'initialPreview' => [
-                            'uploads/documents/'.$model->filename,
-                        ],
-                        'initialPreviewConfig' => [
-                            [
-                                'caption' => $model->uploadname, 
-                                //width: '120px', 
-                                'downloadUrl' => 'uploads/documents/'.$model->filename,
-                            ]
-                        ],
+                        'initialPreview' => $prev,
+                        'initialPreviewConfig' => $cprev,
                     ];
                 }
                 return ['error' => implode(';', $model->getFirstErrors())];
             }
             return ['error' => 'Document failed to upload 2.'];
-        //}
+        }
     }
 
     public function actionUploadSpk()

@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use yii\widgets\DetailView;
+use frontend\widgets\StepProgress;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use common\models\Ticket;
@@ -120,53 +121,5 @@ $this->params['breadcrumbs'][] = $model->number;
         ],
     ]) ?>
     <h1><?= Html::encode('Tindakan / Kunjungan') ?></h1>
-    <?= GridView::widget([
-        'dataProvider' => $dataProvider,
-        //'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-            [
-                'attribute' => 'action',
-                //'label' => 'You Label Name ',
-                'format' => 'raw',
-                'value' => function ($model) {         
-                    return isset($model->action) ? Html::a($model->action, ['ticket-action/view', 'id' => $model->id]) : ''; // your url here
-                },
-                'filter'=>ArrayHelper::map(User::find()->all(), 'id', 'full_name'),
-            ],
-            [
-                'attribute' => 'engineer_id',
-                //'label' => 'You Label Name ',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    return isset($model->engineer_id) ? Html::a($model->engineer->full_name, ['user/view', 'id' => $model->engineer_id]) : ''; // your url here
-                },
-                'filter'=>ArrayHelper::map(User::find()->all(), 'id', 'full_name'),
-            ],
-            [
-                'attribute' => 'action_date',
-                //'label' => 'You Label Name ',
-                'format' => 'raw',
-                'value' => function ($model){
-                    return $model->action_date ? date('d F Y', $model->action_date) : ''; // your url here
-                } 
-            ],
-            [
-                'attribute' => 'status_override',
-                //'label' => 'You Label Name ',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    
-                    return isset($model->status_override) ? Html::a($model->status->code.'-'.$model->status->name, ['status/view', 'id' => $model->status_override]) : ''; // your url here
-                },
-                'filter'=>ArrayHelper::map(TicketStatus::find()->all(), 'id', 'name'),
-            ],
-            /* [
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, TicketAction $model, $key, $index, $column) {
-                    return Url::toRoute(['ticket-action/'.$action, 'id' => $model->id]);
-                 }
-            ], */
-        ],
-    ]); ?>
+    <?= StepProgress::widget(['model' => $dataProvider ]) ?>
 </div>
