@@ -5,7 +5,7 @@ namespace frontend\widgets;
 
 use yii\web\AssetBundle;
 
-class StepProgressAsset extends AssetBundle
+class TActionThreadAsset extends AssetBundle
 {
     public $css = [
          // CDN lib

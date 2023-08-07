@@ -4,7 +4,8 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use yii\widgets\DetailView;
-use frontend\widgets\StepProgress;
+use frontend\widgets\TActionThread;
+use frontend\widgets\TActionInput;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use common\models\Ticket;
@@ -121,5 +122,6 @@ $this->params['breadcrumbs'][] = $model->number;
         ],
     ]) ?>
     <h1><?= Html::encode('Tindakan / Kunjungan') ?></h1>
-    <?= StepProgress::widget(['model' => $dataProvider ]) ?>
+    <?= TActionInput::widget(['model' => $model ]) ?>
+    <?= TActionThread::widget(['model' => $dataProvider ]) ?>
 </div>

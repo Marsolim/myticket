@@ -18,7 +18,7 @@ class TStatusHelper
 
     private static $statuses = [
         self::OPEN => [
-            'icon' => '<i class="fa-solid fa-door-open fa-fw text-primary"></i>', 
+            'icon' => '<i class="fa-solid fa-unlock fa-fw text-primary"></i>', 
             'label' => 'Open',
             'group' => 'Open',
             'tooltip' => 'Buka tiket servis No. %number$s.',
@@ -36,7 +36,7 @@ class TStatusHelper
             'next_status' => [self::OPEN, self::CLOSED_NA]
         ],
         self::PROGRESSING => [
-            'icon' => '<i class="fa-solid fa-list fa-fw"></i>', 
+            'icon' => '<i class="fa-solid fa-list fa-fw text-primary"></i>', 
             'label' => 'Progress',
             'group' => 'Progress',
             'tooltip' => 'Buat laporan progress tiket servis No. %number$s.',
@@ -63,7 +63,7 @@ class TStatusHelper
             'next_status' => [self::SUSPENDED, self::CLOSED_RESOLVED]
         ],
         self::CLOSED_NA => [
-            'icon' => '<i class="fa-solid fa-circle-xmark fa-fw text-danger"></i>', 
+            'icon' => '<i class="fa-solid fa-calendar-xmark fa-fw text-danger"></i>', 
             'label' => 'Closed (no Action)',
             'group' => 'Closed',
             'tooltip' => 'Tutup tiket servis No. %number$s karena tidak ada tindakan.',
@@ -71,7 +71,7 @@ class TStatusHelper
             'url' => ['report', 'id' => null, 'cmd' => self::CLOSED_NA]
         ],
         self::CLOSED_DOUBLE => [
-            'icon' => '<i class="fa-solid fa-circle-xmark fa-fw text-warning"></i>', 
+            'icon' => '<i class="fa-solid fa-clone fa-fw text-warning"></i>', 
             'label' => 'Closed (duplicate Ticket)',
             'group' => 'Closed',
             'tooltip' => 'Tutup tiket servis No. %number$s karena double input.',
@@ -95,7 +95,7 @@ class TStatusHelper
         'Closed' => [self::CLOSED_NA, self::CLOSED_DOUBLE, self::CLOSED_RESOLVED],
     ];
 
-    public static function createNextCommand($ticket)
+    public static function getNextCommand($ticket)
     {
         $role = User::getUserRoleName();
         $ts = TicketStatus::findOne(['id' => $ticket->last_status_id]);
@@ -112,7 +112,34 @@ class TStatusHelper
                     if (in_array($role, $st['role']))
                     {
                         $st['url']['id'] = $ticket->id;
-                        $nextsts[] = Html::a($st['icon'], $st['url'], 
+                        $nextsts[] = $st;
+                    }
+                }
+                return $nextsts;
+            }
+        }
+        else if (in_array($role, $open['role'])) return [$open];
+        return [];
+    }
+
+    public static function createNextCommands($ticket)
+    {
+        $role = User::getUserRoleName();
+        $ts = TicketStatus::findOne(['id' => $ticket->last_status_id]);
+        $open = self::$statuses[self::OPEN];
+        if (isset($ts))
+        {
+            $status = self::$statuses[$ts->code];
+            if (isset($status['next_status']))
+            {
+                $nextsts = [];
+                foreach($status['next_status'] as $st)
+                {
+                    $st = self::$statuses[$st];
+                    if (in_array($role, $st['role']))
+                    {
+                        $st['url']['id'] = $ticket->id;
+                        $nextsts[] = Html::button($st['icon'], $st['url'], 
                         [
                             'class' => 'text-decoration-none',
                             'arial-label' => $st['label'],
@@ -123,7 +150,7 @@ class TStatusHelper
                 return implode('  ', $nextsts);
             }
         }
-        else return Html::a($open['icon'], $open['url'], 
+        else return Html::button($open['icon'], $open['url'], 
         [
             'class' => 'text-decoration-none',
             'arial-label' => $open['label'],

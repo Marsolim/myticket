@@ -7,7 +7,7 @@ use yii\base\Widget;
 use yii\helpers\Html;
 use Yii;
 
-class StepProgress extends Widget
+class TActionThread extends Widget
 {
     public $model;
 
@@ -21,8 +21,8 @@ class StepProgress extends Widget
     public function run()
     {
         // Register AssetBundle
-        StepProgressAsset::register($this->getView());
-        return $this->render('_stepprogress', 
+        TActionThreadAsset::register($this->getView());
+        return $this->render('_tactionthread', 
         ['model' => $this->model, 'options' => $this->options, 'id' => Yii::$app->security->generateRandomString()]);
     }
 }
