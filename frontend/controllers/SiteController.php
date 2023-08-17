@@ -226,6 +226,13 @@ class SiteController extends Controller
         ]);
     }
 
+    public function actionCalendar()
+    {        
+        return $this->render('calendar', [
+            //'model' => $model,
+        ]);
+    }
+
     /**
      * Verify email address
      *
