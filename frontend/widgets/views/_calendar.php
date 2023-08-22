@@ -40,14 +40,33 @@ use common\models\Document;
       select: function(start, end, allDay) {
         var title = prompt('Event Title:');
         if (title) {
-          calendar.renderEvent({
-              title: title,
-              start: start,
-              end: end,
-              allDay: allDay
-            },
-            true // make the event "stick"
-          );
+var data = new FormData();
+data.append( "json", JSON.stringify( {
+            'title': title,
+            'start': start.start,
+            'end': start.end
+} ) );
+
+fetch("<?= Url::toRoute("calendar/add-holiday") ?>", {
+  method: 'POST',
+  headers: {
+    'Accept':'application/json',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify( {
+            'title': title,
+            'start': start.start,
+            'end': start.end
+} ),
+}).then(response => {
+  if (response.ok) {
+    response.text().then(response => {
+      calendar.refetchEvents();
+  calendar.render();
+    });
+  }
+});
+          
         }
         calendar.unselect();
       },

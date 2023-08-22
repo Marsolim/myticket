@@ -14,6 +14,7 @@ use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\LoginForm;
 use common\models\Holiday;
+use frontend\models\HolidayForm;
 use common\models\Ticket;
 use frontend\helpers\CalendarHelper;
 
@@ -92,19 +93,56 @@ class CalendarController extends Controller
         return $this->asJSON(CalendarHelper::getWeekends($start, $end));
     }
 
-    public function actionAddHoliday($start, $end, $title)
+    public function beforeAction($action)
     {
-        $model => new Holiday();
-        $model->title = $title;
-        $model->start = CalendarHelper::toTimeStamp($start);
-        $model->end = CalendarHelper::toTimeStamp($end);
-        $model->save();
+        $this->enableCsrfValidation = false; 
+        return parent::beforeAction($action); 
+    }
+
+    public function actionAddHoliday()
+    {
+        //if (Yii::$app->request->isAjax) 
+        //{
+            $model = Yii::$app->request->getBodyParams();
+            $holi = new Holiday();
+            $holi->title = $model["title"];
+            $holi->start = CalendarHelper::toTimeStamp($model["start"]);
+            $holi->end = CalendarHelper::toTimeStamp($model["end"]);
+            
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            if ($holi->validate())
+            {
+                //return $this->asJSON(['holi' => $holi]);
+                if ($holi->save())
+                return $this->asJSON(['holi' => $holi]);
+            }
+            return $this->asJSON(['model' => $model,
+            'post' => Yii::$app->request->post(),
+            'body' => Yii::$app->request->getBodyParams()
+        ]);
+        //}
+        //throw new NotFoundHttpException();
     }
 
     public function actionHoliday($start, $end)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        return $this->asJSON(CalendarHelper::getWeekends($start, $end));
+        $tickets = Holiday::find()
+            ->where(['>=', 'start', CalendarHelper::toTimeStamp($start)])
+            ->andWhere(['<=', 'start', CalendarHelper::toTimeStamp($end)])
+            ->all();
+        $ticketevent = [];
+        date_default_timezone_set("Asia/Jakarta");
+        foreach($tickets as $key => $value)
+        {
+            $ticketevent[] = [
+                'title' => $value->title,
+                'start' => date(DATE_ISO8601, $value->start),
+                'end' => date(DATE_ISO8601, $value->end),
+                'allDay' => true
+            ];
+        }
+        return $this->asJSON($ticketevent);
     }
 
     public function actionTickets($start, $end)
