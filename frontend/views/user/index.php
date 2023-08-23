@@ -127,11 +127,9 @@ $columns[] = [
 <div class="user-profile-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
-    <!--
     <p>
         <?= Html::a('Create User Profile', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
-    -->
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([

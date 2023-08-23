@@ -79,7 +79,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => 'Command',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return TStatusHelper::createNextCommand($model);
+                    return TStatusHelper::createNextCommands($model);
                 }
             ],
         ],

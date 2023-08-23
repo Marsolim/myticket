@@ -23,19 +23,25 @@ FontAwesomeAsset::register($this);
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
     </div>
 
-    <?= $form->field($model, 'username')->textInput(['class' => 'form-control class-content-title_series', 'placeholder' => 'Generated', 'disabled' => true]) ?>
+    <?= $form->field($model, 'username')->textInput(['class' => 'form-control class-content-title_series', 'placeholder' => 'User name']) ?>
     
-    <?= $form->field($model, 'email')->textInput(['class' => 'form-control class-content-title_series', 'placeholder' => 'Generated']) ?>
+    <?= $form->field($model, 'email')->textInput(['class' => 'form-control class-content-title_series', 'placeholder' => 'Email']) ?>
 
     <?= $form->field($model, 'full_name')->textInput(['maxlength' => true]) ?>
     
     <?= $form->field($model, 'phone')->textInput(['maxlength' => true]) ?>
 
+    <?= $form->field($model, 'role')->textInput(['maxlength' => true]) ?>
+    
+    <?= $form->field($model, 'company_id')->textInput(['maxlength' => true]) ?>
+    
+    <?= $form->field($model, 'region_id')->textInput(['maxlength' => true]) ?>
+    
     <?= $form->field($model, 'avatar')->widget(FileInput::classname(), [
         'options' => ['accept' => 'image/*'],
         'pluginOptions' => [
             'initialPreview'=>[
-                "uploads/profiles/thumb/".$model->profile,
+                "uploads/profiles/thumb/default_profile.jpg",
             ],
             'initialPreviewAsData'=>true,
             'initialCaption'=>"Profile",
@@ -43,15 +49,15 @@ FontAwesomeAsset::register($this);
                 [
                     'caption' => '',
                     'showRemove' => false,
-    'showUpload' => false, // will be always false for resumable uploads
-    'showDownload' => true,
-    'showZoom' => false,
-    'showDrag' => false,
-    'showRotate' => false,
+                    'showUpload' => false, // will be always false for resumable uploads
+                    'showDownload' => true,
+                    'showZoom' => false,
+                    'showDrag' => false,
+                    'showRotate' => false,
                 ],
             ],
             'overwriteInitial'=>true,
-            'initialPreviewDownloadUrl' => "uploads/profiles/thumb/".$model->profile,
+            'initialPreviewDownloadUrl' => "uploads/profiles/thumb/default_profile.jpg",
             //'showPreview' => false,
             'showCaption' => true,
             'showRemove' => true,

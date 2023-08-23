@@ -13,8 +13,12 @@ class SignupForm extends Model
 {
     public $username;
     public $email;
-    public $password;
-
+    public $full_name;
+    public $phone;
+    public $role;
+    public $region_id;
+    public $company_id;
+    public $avatar;
 
     /**
      * {@inheritdoc}
@@ -22,19 +26,41 @@ class SignupForm extends Model
     public function rules()
     {
         return [
+            ['avatar', 'file'],
+            
             ['username', 'trim'],
             ['username', 'required'],
             ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
             ['username', 'string', 'min' => 2, 'max' => 255],
 
+            ['full_name', 'trim'],
+            ['full_name', 'required'],
+            ['full_name', 'string', 'min' => 2, 'max' => 255],
+            
             ['email', 'trim'],
             ['email', 'required'],
             ['email', 'email'],
             ['email', 'string', 'max' => 255],
             ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This email address has already been taken.'],
+            
+            ['phone', 'trim'],
+            ['phone', 'string', 'max' => 255],
+            
+            ['role', 'trim'],
+            ['role', 'required'],
+            ['role', 'string'],
+            ['role', 'default', 'value' => User::ROLE_ENGINEER],
+            ['role', 'in', 'range' => [User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR, User::ROLE_STORE_MANAGER, User::ROLE_GENERAL_MANAGER, User::ROLE_ENGINEER]],
 
-            ['password', 'required'],
-            ['password', 'string', 'min' => Yii::$app->params['user.passwordMinLength']],
+            ['region_id', 'required', 'when' => function($model) {
+                return $model->role == User::ROLE_STORE_MANAGER || $model->role == User::ROLE_GENERAL_MANAGER;
+            }],
+            [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::class, 'targetAttribute' => ['engineer_id' => 'id']],
+            
+            ['company_id', 'required', 'when' => function($model) {
+                return $model->role == User::ROLE_STORE_MANAGER || $model->role == User::ROLE_GENERAL_MANAGER;
+            }],
+            [['company_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['engineer_id' => 'id']],
         ];
     }
 
@@ -52,11 +78,34 @@ class SignupForm extends Model
         $user = new User();
         $user->username = $this->username;
         $user->email = $this->email;
-        $user->setPassword($this->password);
+        $user->full_name = $this->full_name;
+        $user->phone = $this->phone;
+        $user->setPassword("hardcode123");
         $user->generateAuthKey();
-        $user->generateEmailVerificationToken();
+        $user->status = User::STATUS_ACTIVE;
+        //$user->generateEmailVerificationToken();
+        if ($this->role == User::ROLE_STORE_MANAGER || $this->role == User::ROLE_GENERAL_MANAGER)
+        {
+            $user->region_id = $this->region_id;
+            $user->company_id = $this->company_id;
+        }
 
-        return $user->save() && $this->sendEmail($user);
+        $filename = 'default_profile.jpg';
+        if ($this->avatar) 
+        {
+            $filename = Yii::$app->security->generateRandomString() . '.' . $this->avatar->extension;
+            $filepath = 'uploads/profiles/' . $filename;
+            $this->avatar->saveAs($filepath);
+            Image::thumbnail($filepath, 100, 100)->save('uploads/profiles/thumb/'.$filename, ['quality' => 80]);
+        }
+        $user->profile = $filename;
+
+        if ($user->save())
+        {
+            $user->refresh();
+            $user->role = $this->role;
+        }
+        return $user->save();
     }
 
     /**

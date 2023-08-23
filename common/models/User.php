@@ -66,7 +66,13 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             ['avatar', 'file'],
+
+            //['role', 'string'],
+            //['role', 'default', 'value' => self::ROLE_ENGINEER],
+            //['role', 'in', 'range' => [self::ROLE_SYSTEM_ADMINISTRATOR, self::ROLE_ADMINISTRATOR, self::ROLE_STORE_MANAGER, self::ROLE_GENERAL_MANAGER, self::ROLE_ENGINEER]],
+            
             ['phone', 'string'],
+            
             ['status', 'default', 'value' => self::STATUS_INACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
         ];
@@ -263,6 +269,21 @@ class User extends ActiveRecord implements IdentityInterface
         $role = current($roles);
 
         return $role->name;
+    }
+
+    public function setRole($role)
+    {
+        if (isset($this->id))
+        {
+            $auth = Yii::$app->authManager;
+            $prevrole = $this->role;
+            if ($prevrole == $role) return true;
+            if (isset($prevrole))
+                $auth->revoke($auth->getRole($prevrole), $this->id);
+            $auth->assign($auth->getRole($role), $this->id);
+            return true;
+        }
+        return false;
     }
 
     public function getProfileThumbnail()

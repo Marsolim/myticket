@@ -3,6 +3,7 @@
 namespace frontend\controllers;
 
 use common\models\User;
+use frontend\models\SignupForm;
 use common\models\Store;
 use common\models\ManagedStore;
 use common\models\UserSearch;
@@ -160,27 +161,25 @@ class UserController extends Controller
         }
     }
 
-    // /**
-    //  * Creates a new Shop model.
-    //  * If creation is successful, the browser will be redirected to the 'view' page.
-    //  * @return string|\yii\web\Response
-    //  */
-    // public function actionCreate()
-    // {
-    //     $model = new Store();
+    /**
+     * Creates a new Shop model.
+     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @return string|\yii\web\Response
+     */
+    public function actionCreate()
+    {
+        $model = new SignupForm();
 
-    //     if ($this->request->isPost) {
-    //         if ($model->load($this->request->post()) && $model->save()) {
-    //             return $this->redirect(['view', 'id' => $model->id]);
-    //         }
-    //     } else {
-    //         $model->loadDefaultValues();
-    //     }
+        if ($this->request->isPost) {
+            if ($model->load($this->request->post()) && $model->signup()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
+        }
 
-    //     return $this->render('create', [
-    //         'model' => $model,
-    //     ]);
-    // }
+        return $this->render('create', [
+            'model' => $model,
+        ]);
+    }
 
     /**
      * Updates an existing Shop model.

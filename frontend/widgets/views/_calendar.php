@@ -26,7 +26,7 @@ use common\models\Document;
   var calendarEl = document.querySelector('#<?= $id ?>');
   var calendar = new FullCalendar.Calendar(calendarEl, {
     //initialView: 'dayGridMonth',
-    initialDate: '2023-07-07',
+    initialDate: new Date(),
     //editable: true,
       firstDay: 1, //  1(Monday) this can be changed to 0(Sunday) for the USA system
       selectable: true,
@@ -61,7 +61,7 @@ fetch("<?= Url::toRoute("calendar/add-holiday") ?>", {
 }).then(response => {
   if (response.ok) {
     response.text().then(response => {
-      calendar.refetchEvents();
+      calendar.getEventSourceById('HOLIDAY').refetch();
   calendar.render();
     });
   }
@@ -85,6 +85,7 @@ fetch("<?= Url::toRoute("calendar/add-holiday") ?>", {
   textColor: 'red' // a non-ajax option
 },
 {
+  id:'HOLIDAY',
   url: '<?= Url::toRoute('calendar/holiday') ?>',
   method: 'GET',
   failure: function() {
@@ -96,6 +97,7 @@ fetch("<?= Url::toRoute("calendar/add-holiday") ?>", {
   textColor: 'red' // a non-ajax option
 },
 {
+  id:'TICKETS',
   url: '<?= Url::toRoute('calendar/tickets') ?>',
   method: 'GET',
   failure: function() {
