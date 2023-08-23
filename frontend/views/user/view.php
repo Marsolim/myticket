@@ -5,7 +5,6 @@ use common\models\Store;
 use common\models\ManagedStore;
 use yii\helpers\Html;
 use yii\widgets\DetailView;
-use yii\bootstrap5\ButtonDropdown;
 use kartik\editable\Editable;
 
 /** @var yii\web\View $this */
@@ -16,98 +15,98 @@ $this->params['breadcrumbs'][] = ['label' => 'User Profiles', 'url' => ['index']
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 
-$attributes = [
-    'username',
-    'email',
-    'full_name',
-    [
-        'attribute' => 'phone',
-        'format' => 'raw',
-        'value' => function ($model) {
-            return isset($model->phone) ? '<a href="https://wa.me/'.$model->waphone.'" title="Click to send whatsapp message to this number." class="text-decoration-none">'.$model->phone.' <i class="fa-brands fa-whatsapp"></i></a>' : '';
-        }
-    ],
-    [
-        'attribute' => 'profile',
-        'format' => 'raw',
-        'value' => function ($model) {
-            return Html::img('uploads/profiles/thumb/'.$model->profile, ['alt'=>'profile','width'=>'50','height'=>'50']);
-        }
-    ],
-    [
-        'label' => 'Role',
-        'format' => 'raw',
-        'value' => function ($model) {
-            $dropdownlabel = Yii::$app->user->can('manageUser') ? (!$model->role ? 'Assign Role' : $model->role) : (!$model->role ? '' : $model->role);
+// $attributes = [
+//     'username',
+//     'email',
+//     'full_name',
+//     [
+//         'attribute' => 'phone',
+//         'format' => 'raw',
+//         'value' => function ($model) {
+//             return isset($model->phone) ? '<a href="https://wa.me/'.$model->waphone.'" title="Click to send whatsapp message to this number." class="text-decoration-none">'.$model->phone.' <i class="fa-brands fa-whatsapp"></i></a>' : '';
+//         }
+//     ],
+//     [
+//         'attribute' => 'profile',
+//         'format' => 'raw',
+//         'value' => function ($model) {
+//             return Html::img('uploads/profiles/thumb/'.$model->profile, ['alt'=>'profile','width'=>'50','height'=>'50']);
+//         }
+//     ],
+//     [
+//         'label' => 'Role',
+//         'format' => 'raw',
+//         'value' => function ($model) {
+//             $dropdownlabel = Yii::$app->user->can('manageUser') ? (!$model->role ? 'Assign Role' : $model->role) : (!$model->role ? '' : $model->role);
             
-            $ddroleitems = [
-                [
-                    'label' => User::ROLE_GENERAL_MANAGER,
-                    'url' => ['assign-role', 'user' => $model->id, 'role' => User::ROLE_GENERAL_MANAGER],
-                ],
-                [
-                    'label' => User::ROLE_STORE_MANAGER,
-                    'url' => ['assign-role', 'user' => $model->id, 'role' => User::ROLE_STORE_MANAGER],
-                ],
-                [
-                    'label' => User::ROLE_ENGINEER,
-                    'url' => ['assign-role', 'user' => $model->id, 'role' => User::ROLE_ENGINEER],
-                ]
-            ];
+//             $ddroleitems = [
+//                 [
+//                     'label' => User::ROLE_GENERAL_MANAGER,
+//                     'url' => ['assign-role', 'user' => $model->id, 'role' => User::ROLE_GENERAL_MANAGER],
+//                 ],
+//                 [
+//                     'label' => User::ROLE_STORE_MANAGER,
+//                     'url' => ['assign-role', 'user' => $model->id, 'role' => User::ROLE_STORE_MANAGER],
+//                 ],
+//                 [
+//                     'label' => User::ROLE_ENGINEER,
+//                     'url' => ['assign-role', 'user' => $model->id, 'role' => User::ROLE_ENGINEER],
+//                 ]
+//             ];
 
-            if (User::isMemberOfRole(User::ROLE_SYS_ADMINISTRATOR))
-            {
-                $ddroleitems[] = [
-                    'label' => User::ROLE_ADMINISTRATOR,
-                    'url' => ['assign-role', 'user' => $model->id, 'role' => User::ROLE_ADMINISTRATOR],
-                ];
-            }
+//             if (User::isMemberOfRole(User::ROLE_SYS_ADMINISTRATOR))
+//             {
+//                 $ddroleitems[] = [
+//                     'label' => User::ROLE_ADMINISTRATOR,
+//                     'url' => ['assign-role', 'user' => $model->id, 'role' => User::ROLE_ADMINISTRATOR],
+//                 ];
+//             }
 
-            return Yii::$app->user->can('manageUser') ? ButtonDropdown::widget([
-                'label' => $dropdownlabel,
-                'dropdown' => [
-                    'items' => $ddroleitems,
-                ],
-                'options' => ['class' => 'ajax-dropdown']
-            ]) : $dropdownlabel;
-        }
-    ],
-];
+//             return Yii::$app->user->can('manageUser') ? ButtonDropdown::widget([
+//                 'label' => $dropdownlabel,
+//                 'dropdown' => [
+//                     'items' => $ddroleitems,
+//                 ],
+//                 'options' => ['class' => 'ajax-dropdown']
+//             ]) : $dropdownlabel;
+//         }
+//     ],
+// ];
 
-if (User::isMemberOfRole(User::ROLE_STORE_MANAGER, $model->id))
-{
-    $attributes[] = [
-        'label' => 'Managed Store',
-        'format' => 'raw',
-        'value' => function ($model) {
-            $cstore = ManagedStore::findOne(['user_id' => $model->id, 'active' => ManagedStore::STATUS_ACTIVE])->store;
+// if (User::isMemberOfRole(User::ROLE_STORE_MANAGER, $model->id))
+// {
+//     $attributes[] = [
+//         'label' => 'Managed Store',
+//         'format' => 'raw',
+//         'value' => function ($model) {
+//             $cstore = ManagedStore::findOne(['user_id' => $model->id, 'active' => ManagedStore::STATUS_ACTIVE])->store;
                 
-            if (Yii::$app->user->can('manageUser'))
-            {
-                $stores = Store::find()->all();
-                $items = [];
-                foreach($stores as $store)
-                {
-                    $items[] = [
-                        'label' => $store->name, 
-                        'url' => ['assign-store', 'store' => $store->id, 'mgr' => $model->id],
-                    ];
-                }
-                return ButtonDropdown::widget([
-                    'label' => isset($cstore) ? $cstore->name : 'Manage Store',
-                    'dropdown' => [
-                        'items' => $items,
-                    ],
-                    'options' => ['class' => 'ajax-dropdown']
-                ]);
-            }
-            else
-            {
-                return isset($cstore) ? Html::a($cstore->name, ['store/view', 'id' => $cstore->id]) : '';
-            }
-        }
-    ];
-}
+//             if (Yii::$app->user->can('manageUser'))
+//             {
+//                 $stores = Store::find()->all();
+//                 $items = [];
+//                 foreach($stores as $store)
+//                 {
+//                     $items[] = [
+//                         'label' => $store->name, 
+//                         'url' => ['assign-store', 'store' => $store->id, 'mgr' => $model->id],
+//                     ];
+//                 }
+//                 return ButtonDropdown::widget([
+//                     'label' => isset($cstore) ? $cstore->name : 'Manage Store',
+//                     'dropdown' => [
+//                         'items' => $items,
+//                     ],
+//                     'options' => ['class' => 'ajax-dropdown']
+//                 ]);
+//             }
+//             else
+//             {
+//                 return isset($cstore) ? Html::a($cstore->name, ['store/view', 'id' => $cstore->id]) : '';
+//             }
+//         }
+//     ];
+// }
 
 ?>
 <div class="user-view">
@@ -129,10 +128,7 @@ if (User::isMemberOfRole(User::ROLE_STORE_MANAGER, $model->id))
         ?>
     </p>
 
-    <!-- <?= DetailView::widget([
-        'model' => $model,
-        'attributes' => $attributes,
-    ]) ?> -->
+    
     <?= Html::beginTag('section', ['class'=>'vh-100', 'style'=>'background-color: #f4f5f7;']) ?>
     <?= Html::beginTag('div', ['class'=>'container py-5 h-100']) ?>
     <?= Html::beginTag('div', ['class'=>"row d-flex justify-content-center align-items-center h-100"]) ?>
@@ -143,13 +139,13 @@ if (User::isMemberOfRole(User::ROLE_STORE_MANAGER, $model->id))
         'style'=>"border-top-left-radius: .5rem; border-bottom-left-radius: .5rem;"]) ?>
     <?= Html::img('uploads/profiles/thumb/'.$model->profile, ['alt'=>'profile', 'class'=>"img-fluid my-5", 'style'=>"width: 80px;"]) ?>
     <?= Editable::widget([
-    'name'=>'full_name', 
-    'asPopover' => false,
-    'value' => $model->full_name,
-    'header' => 'Name',
-    'size'=>'md',
-    'options' => ['class'=>'form-control', 'placeholder'=>'Enter user full name...']
-]) ?>
+        'model' => $model,
+        'attribute' => 'full_name',
+        'asPopover' => false,
+        'header' => 'Name',
+        'size'=>'md',
+        'options' => ['class'=>'form-control', 'placeholder'=>'Enter user full name...']
+    ]) ?>
     <?= Html::tag('p', $model->role)?>
                     <i class="far fa-edit mb-5"></i>
     <?= Html::endTag('div') ?>
