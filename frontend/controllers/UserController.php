@@ -6,6 +6,7 @@ use common\models\User;
 use frontend\models\SignupForm;
 use common\models\Store;
 use common\models\ManagedStore;
+use common\models\Region;
 use common\models\UserSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -84,13 +85,22 @@ class UserController extends Controller
 
             // store old value of the attribute
             $oldValue = $model->$key;
-            
+            if ($key == 'region_id')
+            {
+                $region = Region::findOne(['id' => $model->$key]);
+                if (isset($region)) $oldValue = $region->toString();
+            }
             // read your posted model attributes
             if ($model->load($_POST)) {
                 
                 // read or convert your posted information
                 $value = $model->$key;
-                
+                if ($key == 'region_id')
+                {
+                    //$model->$key = $value + 0;
+                    $region = Region::findOne(['id' => $model->$key]);
+                    if (isset($region)) $value = $region->toString();
+                }
                 // validate if any errors
                 if ($model->validate() && $model->save()) {
                     // return JSON encoded output in the below format on success with an empty `message`

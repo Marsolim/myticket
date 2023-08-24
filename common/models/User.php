@@ -8,6 +8,7 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use yii\helpers\ArrayHelper;
+use common\models\Region;
 
 /**
  * User model
@@ -73,6 +74,14 @@ class User extends ActiveRecord implements IdentityInterface
             //['role', 'default', 'value' => self::ROLE_ENGINEER],
             //['role', 'in', 'range' => [self::ROLE_SYSTEM_ADMINISTRATOR, self::ROLE_ADMINISTRATOR, self::ROLE_STORE_MANAGER, self::ROLE_GENERAL_MANAGER, self::ROLE_ENGINEER]],
             
+            ['region_id', 'integer'],
+            ['region_id', 'default', 'value' => null],
+            [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::class, 'targetAttribute' => ['region_id' => 'id']],
+
+            ['company_id', 'integer'],
+            ['company_id', 'default', 'value' => null],
+            [['company_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['company_id' => 'id']],
+
             ['phone', 'string'],
             
             ['status', 'default', 'value' => self::STATUS_INACTIVE],
@@ -286,6 +295,16 @@ class User extends ActiveRecord implements IdentityInterface
             return true;
         }
         return false;
+    }
+
+    public function getRegion()
+    {
+        return $this->hasOne(Region::class, ['id' => 'region_id']);
+    }
+
+    public function getCompany()
+    {
+        return $this->hasOne(Company::class, ['id' => 'company_id']);
     }
 
     public function getProfileThumbnail()

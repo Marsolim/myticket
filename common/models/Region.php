@@ -74,4 +74,9 @@ class Region extends \yii\db\ActiveRecord
     {
         return $this->hasMany(Store::class, ['region' => 'id']);
     }
+
+    public function toString()
+    {
+        return implode('-', [$this->code, $this->name]);
+    }
 }

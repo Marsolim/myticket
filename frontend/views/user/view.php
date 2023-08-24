@@ -7,8 +7,8 @@ use yii\web\JsExpression;
 use yii\web\View;
 use yii\helpers\Html;
 use yii\helpers\Url;
-use yii\widgets\DetailView;
 use kartik\editable\Editable;
+use kartik\select2\Select2;
 
 /** @var yii\web\View $this */
 /** @var common\models\Store $model */
@@ -119,11 +119,8 @@ var formatRepo = function (repo) {
     var markup =
 '<div class="row">' + 
     '<div class="col-sm-5">' +
-        '<img src="' + repo.owner.avatar_url + '" class="img-rounded" style="width:30px" />' +
-        '<b style="margin-left:5px">' + repo.full_name + '</b>' + 
+        '<p style="margin-left:5px">' + repo.text + '</p>' + 
     '</div>' +
-    '<div class="col-sm-3"><i class="fa fa-code-fork"></i> ' + repo.forks_count + '</div>' +
-    '<div class="col-sm-3"><i class="fa fa-star"></i> ' + repo.stargazers_count + '</div>' +
 '</div>';
     if (repo.description) {
       markup += '<p>' + repo.description + '</p>';
@@ -131,7 +128,7 @@ var formatRepo = function (repo) {
     return '<div style="overflow:hidden;">' + markup + '</div>';
 };
 var formatRepoSelection = function (repo) {
-    return repo.full_name || repo.text;
+    return repo.text || repo.text;
 }
 JS;
  
@@ -143,7 +140,7 @@ $resultsJs = <<< JS
 function (data, params) {
     params.page = params.page || 1;
     return {
-        results: data.items,
+        results: data.results,
         pagination: {
             more: (params.page * 30) < data.total_count
         }
@@ -158,23 +155,14 @@ JS;
 
     <p>
         <?php
-            if (Yii::$app->user->can('manageUser'))
-            {
-                echo Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']);
-            }
-        ?>
-        <?php
-            if (Yii::$app->user->id == $model->id || User::isMemberOfRole(User::ROLE_ADMINISTRATOR, Yii::$app->user->id) || User::isMemberOfRole(User::ROLE_SYS_ADMINISTRATOR, Yii::$app->user->id))
-            {
-                echo Html::a('Reset Password', ['site/request-password-reset'], ['class' => 'btn btn-primary']);
-            }
+            
         ?>
     </p>
 
     <?= Html::beginTag('section', ['class'=>'vh-50', 'style'=>'background-color: #f4f5f7;']) ?>
     <?= Html::beginTag('div', ['class'=>'container py-5 h-50']) ?>
     <?= Html::beginTag('div', ['class'=>"row d-flex justify-content-center align-items-center h-50"]) ?>
-    <?= Html::beginTag('div', ['class'=>"col col-lg-8 mb-4 mb-lg-0"]) ?>
+    <?= Html::beginTag('div', ['class'=>"col col-lg-15 mb-4 mb-lg-0"]) ?>
     <?= Html::beginTag('div', ['class'=>"card mb-3", 'style'=>"border-radius: .5rem;"]) ?>
     <?= Html::beginTag('div', ['class'=>"row g-0"]) ?>
     <?= Html::beginTag('div', ['class'=>"col-md-4 gradient-custom text-center text-safe",
@@ -210,14 +198,8 @@ JS;
         'asPopover' => false,
         'header' => 'Role',
         'inputType' => Editable::INPUT_DROPDOWN_LIST,
-        'data' => [0 => 'pass', 1 => 'fail', 2 => 'waived', 3 => 'todo'],
+        'data' => [User::ROLE_ENGINEER, User::ROLE_GENERAL_MANAGER],
         'options' => ['class'=>'form-control', 'prompt'=>'Select status...'],
-        'displayValueConfig'=> [
-            '0' => '<i class="fas fa-thumbs-up"></i> pass',
-            '1' => '<i class="fas fa-thumbs-down"></i> fail',
-            '2' => '<i class="fas fa-hourglass"></i> waived',
-            '3' => '<i class="fas fa-flag"></i> todo',
-        ],
     ]) ?>
     <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>
@@ -257,6 +239,7 @@ JS;
     <?= Editable::widget([
         'model' => $model,
         'attribute' => 'region_id',
+        'displayValue' => isset($model->region_id) ? $model->region->toString() : null,
         'asPopover' => false,
         'header' => 'Distribution Center',
         'inputType' => Editable::INPUT_SELECT2,
@@ -264,7 +247,7 @@ JS;
             'class'=>'form-control',
             'options' => [
                 'placeholder'=>'Select distribution center...',
-                'value' => '14719648',
+                'value' => isset($model->region_id) ? $model->region->toString() : null,
                 'initValueText' => 'kartik-v/yii2-widgets',
             ],
             'pluginOptions' => [
@@ -287,7 +270,37 @@ JS;
     <?= Html::endTag('div') ?>
     <?= Html::beginTag('div', ['class'=>"col-6 mb-3"]) ?>
     <?= Html::tag('h6', 'Company') ?>
-                            <p class="text-muted">Dolor sit amet</p>
+    <?= Editable::widget([
+        'model' => $model,
+        'attribute' => 'company_id',
+        'displayValue' => isset($model->company_id) ? $model->company->toString() : null,
+        'asPopover' => false,
+        'header' => 'Company',
+        'inputType' => Editable::INPUT_SELECT2,
+        'options' => [
+            'class'=>'form-control',
+            'options' => [
+                'placeholder'=>'Select company...',
+                'value' => isset($model->company_id) ? $model->company->toString() : null,
+                'initValueText' => 'kartik-v/yii2-widgets',
+            ],
+            'pluginOptions' => [
+                'allowClear' => true,
+                'minimumInputLength' => 1,
+                'ajax' => [
+                    'url' => Url::toRoute('company/list'),
+                    'dataType' => 'json',
+                    'delay' => 250,
+                    'data' => new JsExpression('function(params) { return {q:params.term}; }'),
+                    'processResults' => new JsExpression($resultsJs),
+                    'cache' => true
+                ],
+                'escapeMarkup' => new JsExpression('function (markup) { return markup; }'),
+                'templateResult' => new JsExpression('formatRepo'),
+                'templateSelection' => new JsExpression('formatRepoSelection'),
+            ]
+        ],
+    ]) ?>
     <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>
     <?= Html::tag('h6', 'Projects') ?>
@@ -303,7 +316,8 @@ JS;
                         </div>
     <?= Html::endTag('div') ?>
     <?= Html::beginTag('div', ['class'=>"d-flex justify-content-start"]) ?>
-                        <a href="#!"><i class="fab fa-facebook-f fa-lg me-3"></i></a>
+    <?= (Yii::$app->user->id == $model->id || User::isMemberOfRole([User::ROLE_ADMINISTRATOR, User::ROLE_SYS_ADMINISTRATOR], Yii::$app->user->id)) ?
+        Html::a('Reset Password', ['site/request-password-reset'], ['class' => 'btn btn-primary']) : '' ?>
                         <a href="#!"><i class="fab fa-twitter fa-lg me-3"></i></a>
                         <a href="#!"><i class="fab fa-instagram fa-lg"></i></a>
     <?= Html::endTag('div') ?>

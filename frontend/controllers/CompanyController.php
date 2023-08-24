@@ -3,6 +3,7 @@
 namespace frontend\controllers;
 
 use common\models\Region;
+use common\models\Company;
 use common\models\RegionSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -12,7 +13,7 @@ use yii\filters\VerbFilter;
 /**
  * RegionController implements the CRUD actions for Region model.
  */
-class RegionController extends Controller
+class CompanyController extends Controller
 {
     /**
      * @inheritDoc
@@ -123,7 +124,7 @@ class RegionController extends Controller
         if (!is_null($q)) {
             $query = new Query;
             $query->select(['id', 'CONCAT(r.code, "-", r.name) AS text'])
-                ->from(['r' => 'region'])
+                ->from(['r' => 'company'])
                 ->where(['like', 'r.name', $q])
                 ->orWhere(['like', 'r.code', $q])
                 ->limit(20);
@@ -132,7 +133,7 @@ class RegionController extends Controller
             $out['results'] = array_values($data);
         }
         elseif ($id > 0) {
-            $out['results'] = ['id' => $id, 'text' => Region::find($id)->toString()];
+            $out['results'] = ['id' => $id, 'text' => Company::find($id)->toString()];
         }
         return $out;
     }
