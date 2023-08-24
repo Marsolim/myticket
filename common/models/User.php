@@ -67,6 +67,8 @@ class User extends ActiveRecord implements IdentityInterface
         return [
             ['avatar', 'file'],
 
+            ['full_name', 'string', 'max' => 255],
+            
             //['role', 'string'],
             //['role', 'default', 'value' => self::ROLE_ENGINEER],
             //['role', 'in', 'range' => [self::ROLE_SYSTEM_ADMINISTRATOR, self::ROLE_ADMINISTRATOR, self::ROLE_STORE_MANAGER, self::ROLE_GENERAL_MANAGER, self::ROLE_ENGINEER]],

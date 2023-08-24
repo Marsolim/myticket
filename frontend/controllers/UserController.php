@@ -74,10 +74,36 @@ class UserController extends Controller
      */
     public function actionView($id)
     {
-        $model = $this->findModel(Yii::$app->user->id);
-        if (Yii::$app->user->can('manageUser'))
+        $model = Yii::$app->user->can('manageUser') ? $this->findModel($id) : $this->findModel(Yii::$app->user->id);
+        if (isset($_POST['hasEditable'])) 
         {
-            $model = $this->findModel($id);
+            // use Yii's response format to encode output as JSON
+            \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+            
+            foreach ($_POST['User'] as $key => $value);
+
+            // store old value of the attribute
+            $oldValue = $model->$key;
+            
+            // read your posted model attributes
+            if ($model->load($_POST)) {
+                
+                // read or convert your posted information
+                $value = $model->$key;
+                
+                // validate if any errors
+                if ($model->validate() && $model->save()) {
+                    // return JSON encoded output in the below format on success with an empty `message`
+                    return ['output' => $value, 'message' => ''];
+                } else {
+                    // alternatively you can return a validation error (by entering an error message in `message` key)
+                    return ['output' => $oldValue, 'message' => 'Incorrect Value! Please reenter.'];
+                }
+            }
+            // else if nothing to do always return an empty JSON encoded output
+            else {
+                return ['output'=>'', 'message'=>''];
+            }
         }
         return $this->render('view', [
             'model' => $model,

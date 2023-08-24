@@ -3,7 +3,10 @@
 use common\models\User;
 use common\models\Store;
 use common\models\ManagedStore;
+use yii\web\JsExpression;
+use yii\web\View;
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\DetailView;
 use kartik\editable\Editable;
 
@@ -108,6 +111,46 @@ $this->params['breadcrumbs'][] = $this->title;
 //     ];
 // }
 
+$formatJs = <<< 'JS'
+var formatRepo = function (repo) {
+    if (repo.loading) {
+        return repo.text;
+    }
+    var markup =
+'<div class="row">' + 
+    '<div class="col-sm-5">' +
+        '<img src="' + repo.owner.avatar_url + '" class="img-rounded" style="width:30px" />' +
+        '<b style="margin-left:5px">' + repo.full_name + '</b>' + 
+    '</div>' +
+    '<div class="col-sm-3"><i class="fa fa-code-fork"></i> ' + repo.forks_count + '</div>' +
+    '<div class="col-sm-3"><i class="fa fa-star"></i> ' + repo.stargazers_count + '</div>' +
+'</div>';
+    if (repo.description) {
+      markup += '<p>' + repo.description + '</p>';
+    }
+    return '<div style="overflow:hidden;">' + markup + '</div>';
+};
+var formatRepoSelection = function (repo) {
+    return repo.full_name || repo.text;
+}
+JS;
+ 
+// Register the formatting script
+$this->registerJs($formatJs, View::POS_HEAD);
+ 
+// script to parse the results into the format expected by Select2
+$resultsJs = <<< JS
+function (data, params) {
+    params.page = params.page || 1;
+    return {
+        results: data.items,
+        pagination: {
+            more: (params.page * 30) < data.total_count
+        }
+    };
+}
+JS;
+
 ?>
 <div class="user-view">
 
@@ -128,44 +171,128 @@ $this->params['breadcrumbs'][] = $this->title;
         ?>
     </p>
 
-    
-    <?= Html::beginTag('section', ['class'=>'vh-100', 'style'=>'background-color: #f4f5f7;']) ?>
-    <?= Html::beginTag('div', ['class'=>'container py-5 h-100']) ?>
-    <?= Html::beginTag('div', ['class'=>"row d-flex justify-content-center align-items-center h-100"]) ?>
-    <?= Html::beginTag('div', ['class'=>"col col-lg-6 mb-4 mb-lg-0"]) ?>
+    <?= Html::beginTag('section', ['class'=>'vh-50', 'style'=>'background-color: #f4f5f7;']) ?>
+    <?= Html::beginTag('div', ['class'=>'container py-5 h-50']) ?>
+    <?= Html::beginTag('div', ['class'=>"row d-flex justify-content-center align-items-center h-50"]) ?>
+    <?= Html::beginTag('div', ['class'=>"col col-lg-8 mb-4 mb-lg-0"]) ?>
     <?= Html::beginTag('div', ['class'=>"card mb-3", 'style'=>"border-radius: .5rem;"]) ?>
     <?= Html::beginTag('div', ['class'=>"row g-0"]) ?>
     <?= Html::beginTag('div', ['class'=>"col-md-4 gradient-custom text-center text-safe",
         'style'=>"border-top-left-radius: .5rem; border-bottom-left-radius: .5rem;"]) ?>
-    <?= Html::img('uploads/profiles/thumb/'.$model->profile, ['alt'=>'profile', 'class'=>"img-fluid my-5", 'style'=>"width: 80px;"]) ?>
+    <?= Html::img('uploads/profiles/thumb/'.$model->profile, ['alt'=>'profile', 'class'=>"rounded-circle mx-1 my-5", 'style'=>'width:100px;height:100px']) ?>
+    
+    <?= Html::beginTag('div', ['class'=>"ms-4 mt-0 mb-1 text-start"]) ?>
+    <?= Html::tag('h6', 'Full Name') ?>
     <?= Editable::widget([
         'model' => $model,
         'attribute' => 'full_name',
         'asPopover' => false,
         'header' => 'Name',
         'size'=>'md',
-        'options' => ['class'=>'form-control', 'placeholder'=>'Enter user full name...']
+        'options' => ['class'=>'h5 form-control', 'placeholder'=>'Enter user full name...']
     ]) ?>
-    <?= Html::tag('p', $model->role)?>
-                    <i class="far fa-edit mb-5"></i>
+    <?= Html::beginTag('hr', ['class'=>"mt-1 mb-1"]) ?>
+    <?= Html::tag('h6', 'Login Name') ?>
+    <?= Editable::widget([
+        'model' => $model,
+        'attribute' => 'username',
+        'asPopover' => false,
+        'header' => 'User Name',
+        'size'=>'md',
+        'options' => ['class'=>'h5 form-control', 'placeholder'=>'Enter user name...']
+    ]) ?>
+    <?= Html::beginTag('hr', ['class'=>"mt-1 mb-1"]) ?>
+    <?= Html::tag('h6', 'Role') ?>
+    <?= !User::isMemberOfRole([User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR]) ? 
+        Html::tag('p', $model->role, ['class'=>'text-mute']) : Editable::widget([
+        'model' => $model,
+        'attribute' => 'role',
+        'asPopover' => false,
+        'header' => 'Role',
+        'inputType' => Editable::INPUT_DROPDOWN_LIST,
+        'data' => [0 => 'pass', 1 => 'fail', 2 => 'waived', 3 => 'todo'],
+        'options' => ['class'=>'form-control', 'prompt'=>'Select status...'],
+        'displayValueConfig'=> [
+            '0' => '<i class="fas fa-thumbs-up"></i> pass',
+            '1' => '<i class="fas fa-thumbs-down"></i> fail',
+            '2' => '<i class="fas fa-hourglass"></i> waived',
+            '3' => '<i class="fas fa-flag"></i> todo',
+        ],
+    ]) ?>
+    <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>
     <?= Html::beginTag('div', ['class'=>"col-md-8"]) ?>
     <?= Html::beginTag('div', ['class'=>"card-body p-4"]) ?>
-                        <h6>Information</h6>
-                        <hr class="mt-0 mb-4">
-                        <div class="row pt-1">
-                        <div class="col-6 mb-3">
-                            <h6>Email</h6>
-                            <p class="text-muted">info@example.com</p>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <h6>Phone</h6>
-                            <p class="text-muted">123 456 789</p>
-                        </div>
-                        </div>
-                        <h6>Projects</h6>
-                        <hr class="mt-0 mb-4">
-                        <div class="row pt-1">
+    <?= Html::tag('h6', 'Information') ?>
+    <?= Html::beginTag('hr', ['class'=>"mt-0 mb-4"]) ?>
+    <?= Html::beginTag('div', ['class'=>"row pt-1"]) ?>
+    <?= Html::beginTag('div', ['class'=>"col-6 mb-3"]) ?>
+    <?= Html::tag('h6', 'E-mail') ?>
+    <?= Editable::widget([
+        'model' => $model,
+        'attribute' => 'email',
+        'asPopover' => false,
+        'header' => 'E-mail',
+        'size'=>'md',
+        'options' => ['class'=>'form-control', 'placeholder'=>'Enter user e-mail...']
+    ]) ?>
+    <?= Html::endTag('div') ?>
+    <?= Html::beginTag('div', ['class'=>"col-6 mb-3"]) ?>
+    <?= Html::tag('h6', 'Phone') ?>
+    <?= Editable::widget([
+        'model' => $model,
+        'attribute' => 'phone',
+        'asPopover' => false,
+        'header' => 'Phone',
+        'size'=>'md',
+        'options' => ['class'=>'', 'placeholder'=>'Enter user phone...']
+    ]) ?>
+    <?= Html::endTag('div') ?>
+    <?= Html::endTag('div') ?>
+    <?= Html::tag('h6', 'Association') ?>
+    <?= Html::beginTag('hr', ['class'=>"mt-0 mb-4"]) ?>
+    <?= Html::beginTag('div', ['class'=>"row pt-1"]) ?>
+    <?= Html::beginTag('div', ['class'=>"col-6 mb-3 overflow-visible"]) ?>
+    <?= Html::tag('h6', 'Distribution Center') ?>
+    <?= Editable::widget([
+        'model' => $model,
+        'attribute' => 'region_id',
+        'asPopover' => false,
+        'header' => 'Distribution Center',
+        'inputType' => Editable::INPUT_SELECT2,
+        'options' => [
+            'class'=>'form-control',
+            'options' => [
+                'placeholder'=>'Select distribution center...',
+                'value' => '14719648',
+                'initValueText' => 'kartik-v/yii2-widgets',
+            ],
+            'pluginOptions' => [
+                'allowClear' => true,
+                'minimumInputLength' => 1,
+                'ajax' => [
+                    'url' => Url::toRoute('region/list'),
+                    'dataType' => 'json',
+                    'delay' => 250,
+                    'data' => new JsExpression('function(params) { return {q:params.term}; }'),
+                    'processResults' => new JsExpression($resultsJs),
+                    'cache' => true
+                ],
+                'escapeMarkup' => new JsExpression('function (markup) { return markup; }'),
+                'templateResult' => new JsExpression('formatRepo'),
+                'templateSelection' => new JsExpression('formatRepoSelection'),
+            ]
+        ],
+    ]) ?>
+    <?= Html::endTag('div') ?>
+    <?= Html::beginTag('div', ['class'=>"col-6 mb-3"]) ?>
+    <?= Html::tag('h6', 'Company') ?>
+                            <p class="text-muted">Dolor sit amet</p>
+    <?= Html::endTag('div') ?>
+    <?= Html::endTag('div') ?>
+    <?= Html::tag('h6', 'Projects') ?>
+    <?= Html::beginTag('hr', ['class'=>"mt-0 mb-4"]) ?>
+    <?= Html::beginTag('div', ['class'=>"row pt-1"]) ?>
                         <div class="col-6 mb-3">
                             <h6>Recent</h6>
                             <p class="text-muted">Lorem ipsum</p>
@@ -174,12 +301,12 @@ $this->params['breadcrumbs'][] = $this->title;
                             <h6>Most Viewed</h6>
                             <p class="text-muted">Dolor sit amet</p>
                         </div>
-                        </div>
-                        <div class="d-flex justify-content-start">
+    <?= Html::endTag('div') ?>
+    <?= Html::beginTag('div', ['class'=>"d-flex justify-content-start"]) ?>
                         <a href="#!"><i class="fab fa-facebook-f fa-lg me-3"></i></a>
                         <a href="#!"><i class="fab fa-twitter fa-lg me-3"></i></a>
                         <a href="#!"><i class="fab fa-instagram fa-lg"></i></a>
-                        </div>
+    <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>

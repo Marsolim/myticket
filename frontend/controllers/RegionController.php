@@ -6,6 +6,7 @@ use common\models\Region;
 use common\models\RegionSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\db\Query;
 use yii\filters\VerbFilter;
 
 /**
@@ -114,6 +115,26 @@ class RegionController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    public function actionList($q = null, $id = null) {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $out = ['results' => ['id' => '', 'code' => '', 'text' => '']];
+        if (!is_null($q)) {
+            $query = new Query;
+            $query->select('id, code, name AS text')
+                ->from('region')
+                ->where(['like', 'name', $q])
+                ->orWhere(['like', 'code', $q])
+                ->limit(20);
+            $command = $query->createCommand();
+            $data = $command->queryAll();
+            $out['results'] = array_values($data);
+        }
+        elseif ($id > 0) {
+            $out['results'] = ['id' => $id, 'text' => City::find($id)->name];
+        }
+        return $out;
     }
 
     /**
