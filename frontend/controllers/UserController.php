@@ -91,15 +91,29 @@ class UserController extends Controller
                 if (isset($region)) $oldValue = $region->toString();
             }
             // read your posted model attributes
-            if ($model->load($_POST)) {
+            if ($model->load($_POST)) 
+            {
+                if ($key == 'role')
+                {
+                    UserHelper::setRole($value, $model);
+                }
+                else 
+                {
+                    // read or convert your posted information
+                    $value = $model->$key;
+                }
                 
-                // read or convert your posted information
-                $value = $model->$key;
                 if ($key == 'region_id')
                 {
                     //$model->$key = $value + 0;
                     $region = Region::findOne(['id' => $model->$key]);
                     if (isset($region)) $value = $region->toString();
+                }
+                if ($key == 'company_id')
+                {
+                    //$model->$key = $value + 0;
+                    $company = Company::findOne(['id' => $model->$key]);
+                    if (isset($company)) $value = $company->toString();
                 }
                 // validate if any errors
                 if ($model->validate() && $model->save()) {
@@ -208,7 +222,8 @@ class UserController extends Controller
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->signup()) {
-                return $this->redirect(['view', 'id' => $model->id]);
+                $user = User::findOne(['username' => $model->username]);
+                return $this->redirect(['view', 'id' => $user->id]);
             }
         }
 

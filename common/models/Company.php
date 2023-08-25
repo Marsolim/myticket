@@ -63,4 +63,10 @@ class Company extends \yii\db\ActiveRecord
             'address' => 'Alamat',
         ];
     }
+
+    
+    public function toString()
+    {
+        return implode('-', [$this->code, $this->name]);
+    }
 }

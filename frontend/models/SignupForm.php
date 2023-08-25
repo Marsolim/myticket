@@ -5,6 +5,8 @@ namespace frontend\models;
 use Yii;
 use yii\base\Model;
 use common\models\User;
+use common\models\Region;
+use common\models\Company;
 
 /**
  * Signup form
@@ -19,6 +21,7 @@ class SignupForm extends Model
     public $region_id;
     public $company_id;
     public $avatar;
+    private $iid;
 
     /**
      * {@inheritdoc}
@@ -55,13 +58,18 @@ class SignupForm extends Model
             ['region_id', 'required', 'when' => function($model) {
                 return $model->role == User::ROLE_STORE_MANAGER || $model->role == User::ROLE_GENERAL_MANAGER;
             }],
-            [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::class, 'targetAttribute' => ['engineer_id' => 'id']],
+            [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::class, 'targetAttribute' => ['region_id' => 'id']],
             
             ['company_id', 'required', 'when' => function($model) {
                 return $model->role == User::ROLE_STORE_MANAGER || $model->role == User::ROLE_GENERAL_MANAGER;
             }],
-            [['company_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['engineer_id' => 'id']],
+            [['company_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['company_id' => 'id']],
         ];
+    }
+
+    public function getId()
+    {
+        return $this->iid;
     }
 
     /**
@@ -71,8 +79,9 @@ class SignupForm extends Model
      */
     public function signup()
     {
-        if (!$this->validate()) {
-            return null;
+        $validate = $this->validate();
+        if (!$validate) {
+            return $validate;
         }
         
         $user = new User();
@@ -83,6 +92,8 @@ class SignupForm extends Model
         $user->setPassword("hardcode123");
         $user->generateAuthKey();
         $user->status = User::STATUS_ACTIVE;
+        $user->company_id = $this->company_id;
+        $user->region_id = $this->region_id;
         //$user->generateEmailVerificationToken();
         if ($this->role == User::ROLE_STORE_MANAGER || $this->role == User::ROLE_GENERAL_MANAGER)
         {
@@ -100,12 +111,14 @@ class SignupForm extends Model
         }
         $user->profile = $filename;
 
-        if ($user->save())
+        $result = $user->save();
+        if ($result)
         {
             $user->refresh();
             $user->role = $this->role;
+            $this->iid == $user->id;
         }
-        return $user->save();
+        return $result;
     }
 
     /**

@@ -7,6 +7,7 @@ use yii\web\JsExpression;
 use yii\web\View;
 use yii\helpers\Html;
 use yii\helpers\Url;
+use frontend\helpers\UserHelper;
 use kartik\editable\Editable;
 use kartik\select2\Select2;
 
@@ -153,12 +154,6 @@ JS;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>
-        <?php
-            
-        ?>
-    </p>
-
     <?= Html::beginTag('section', ['class'=>'vh-50', 'style'=>'background-color: #f4f5f7;']) ?>
     <?= Html::beginTag('div', ['class'=>'container py-5 h-50']) ?>
     <?= Html::beginTag('div', ['class'=>"row d-flex justify-content-center align-items-center h-50"]) ?>
@@ -168,7 +163,6 @@ JS;
     <?= Html::beginTag('div', ['class'=>"col-md-4 gradient-custom text-center text-safe",
         'style'=>"border-top-left-radius: .5rem; border-bottom-left-radius: .5rem;"]) ?>
     <?= Html::img('uploads/profiles/thumb/'.$model->profile, ['alt'=>'profile', 'class'=>"rounded-circle mx-1 my-5", 'style'=>'width:100px;height:100px']) ?>
-    
     <?= Html::beginTag('div', ['class'=>"ms-4 mt-0 mb-1 text-start"]) ?>
     <?= Html::tag('h6', 'Full Name') ?>
     <?= Editable::widget([
@@ -177,7 +171,17 @@ JS;
         'asPopover' => false,
         'header' => 'Name',
         'size'=>'md',
-        'options' => ['class'=>'h5 form-control', 'placeholder'=>'Enter user full name...']
+        //'inlineSettings'=>['options'=>['class' => '']],
+        'buttonsTemplate'=>'',
+        'formOptions'=>[
+            'validateOnBlur'=>false,
+            'enableAjaxValidation'=>true,
+            'validateOnChange'=>false,
+        ],
+        'options' => [
+            'class'=>'form-control-plaintext text-decoration-underline', 
+            'placeholder'=>'Enter user full name...',
+        ]
     ]) ?>
     <?= Html::beginTag('hr', ['class'=>"mt-1 mb-1"]) ?>
     <?= Html::tag('h6', 'Login Name') ?>
@@ -187,19 +191,29 @@ JS;
         'asPopover' => false,
         'header' => 'User Name',
         'size'=>'md',
-        'options' => ['class'=>'h5 form-control', 'placeholder'=>'Enter user name...']
+        'buttonsTemplate'=>'',
+        'formOptions'=>[
+            'validateOnBlur'=>false,
+            'enableAjaxValidation'=>true,
+            'validateOnChange'=>false,
+        ],
+        'options' => [
+            'class'=>'form-control-plaintext text-decoration',
+            'placeholder'=>'Enter user name...'
+        ]
     ]) ?>
     <?= Html::beginTag('hr', ['class'=>"mt-1 mb-1"]) ?>
     <?= Html::tag('h6', 'Role') ?>
-    <?= !User::isMemberOfRole([User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR]) ? 
+    <?= !UserHelper::isAdministrator() ? 
         Html::tag('p', $model->role, ['class'=>'text-mute']) : Editable::widget([
         'model' => $model,
         'attribute' => 'role',
         'asPopover' => false,
         'header' => 'Role',
         'inputType' => Editable::INPUT_DROPDOWN_LIST,
-        'data' => [User::ROLE_ENGINEER, User::ROLE_GENERAL_MANAGER],
-        'options' => ['class'=>'form-control', 'prompt'=>'Select status...'],
+        'data' => [User::ROLE_ENGINEER => User::ROLE_ENGINEER, User::ROLE_GENERAL_MANAGER => User::ROLE_GENERAL_MANAGER],
+        'buttonsTemplate'=>'{submit}',
+        'options' => ['class'=>'form-control-plaintext', 'prompt'=>'Select role...'],
     ]) ?>
     <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>
@@ -316,10 +330,8 @@ JS;
                         </div>
     <?= Html::endTag('div') ?>
     <?= Html::beginTag('div', ['class'=>"d-flex justify-content-start"]) ?>
-    <?= (Yii::$app->user->id == $model->id || User::isMemberOfRole([User::ROLE_ADMINISTRATOR, User::ROLE_SYS_ADMINISTRATOR], Yii::$app->user->id)) ?
+    <?= (UserHelper::isSelf($model->id) || UserHelper::isAdministrator()) ?
         Html::a('Reset Password', ['site/request-password-reset'], ['class' => 'btn btn-primary']) : '' ?>
-                        <a href="#!"><i class="fab fa-twitter fa-lg me-3"></i></a>
-                        <a href="#!"><i class="fab fa-instagram fa-lg"></i></a>
     <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>

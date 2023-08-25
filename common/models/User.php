@@ -330,27 +330,6 @@ class User extends ActiveRecord implements IdentityInterface
         return $role->name;
     }
 
-    /**
-     * @var string $role
-     * @var int $userid
-     */
-    public static function isMemberOfRole($role, $userid = null)
-    {
-        $userid = isset($userid) ? $userid : Yii::$app->user->id;
-        $roles = Yii::$app->authManager->getRolesByUser($userid);
-        $rolenames = ArrayHelper::getColumn($roles, 'name');
-        if (is_array($role))
-        {
-            $result = false;
-            foreach($role as $r)
-            {
-                $result |= in_array($r, $rolenames);
-            }
-            return $result;
-        }
-        return in_array($role, $rolenames);
-    }
-
     public static function getUserRole($user = null)
     {
         if (!isset($user)) $user = Yii::$app->user->id;
