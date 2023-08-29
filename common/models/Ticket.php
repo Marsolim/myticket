@@ -59,6 +59,7 @@ class Ticket extends \yii\db\ActiveRecord
             [['problem'], 'string', 'max' => 255],
             [['problem_description'], 'string'],
             [['number'], 'unique'],
+            [['number'], 'autonumber', 'format'=>'TS.Y.m.????'],
             ['issued_at', 'default', 'value' => time()],
             //['issued_at', 'date', 'timestampAttribute' => 'issued_at'],
             [['engineer_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['engineer_id' => 'id']],
@@ -178,99 +179,5 @@ EOD;
     public function getActions()
     {
         return $this->hasMany(TicketAction::class, ['ticket_id' => 'id']);
-    }
-
-    
-
-    public function commands()
-    {
-        $status = TicketStatus::findOne(['id' => $this->last_status_id]);
-
-        $allcommands = [
-            'open' => Html::a('', ['report', 'id' => $this->id, 'cmd' => 'Open'], 
-            [
-                'class' => 'fa-solid fa-door-open text-decoration-none',
-                'arial-label' => 'Open',
-                'title' => 'Buka service no. '.$this->number.'.'
-            ]),
-            'close' => Html::a('', ['report', 'id' => $this->id, 'cmd' => 'Close'], 
-            [
-                'class' => 'fa-solid fa-circle-xmark text-decoration-none',
-                'arial-label' => 'Open',
-                'title' => 'Tutup service no. '.$this->number.'.'
-            ]),
-            'progress' => Html::a('', ['report', 'id' => $this->id, 'cmd' => 'Progress'], 
-            [
-                'class' => 'fa-solid fa-list-check text-decoration-none',
-                'arial-label' => 'Progress',
-                'title' => 'Laporan proses service no. '.$this->number.'.'
-            ]),
-            'suspend' => Html::a('', ['report', 'id' => $this->id, 'cmd' => 'Suspend'], 
-            [
-                'class' => 'fa-solid fa-lock text-decoration-none',
-                'arial-label' => 'Progress',
-                'title' => 'Suspend service no. '.$this->number.'.'
-            ]),
-        ];
-        
-        $commands = [];
-        if (!isset($status))
-        {
-            if(Yii::$app->user->can('issueTicket'))
-            {
-                $commands[] = $allcommands['open'];
-            }
-        }
-        if (isset($status) && in_array($status->code, ['S']))
-        {
-            if(User::isMemberOfRole([User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR]))
-            {
-                $commands[] = $allcommands['open'];
-            }
-            if(Yii::$app->user->can('closeTicket'))
-            {
-                $commands[] = $allcommands['close'];
-            }
-        }
-        if (isset($status) && in_array($status->code, ['O']))
-        {
-            if(Yii::$app->user->can('issueTicket') && 
-                User::isMemberOfRole([User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR]))
-            {
-                $commands[] = $allcommands['suspend'];
-            }
-            if(Yii::$app->user->can('manageProgress'))
-            {
-                $commands[] = $allcommands['progress'];
-            }
-            if(Yii::$app->user->can('closeTicket'))
-            {
-                $commands[] = $allcommands['close'];
-            }
-        }
-        if (isset($status) && in_array($status->code, ['PR']))
-        {
-            if(Yii::$app->user->can('issueTicket') && 
-                User::isMemberOfRole([User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR]))
-            {
-                $commands[] = $allcommands['suspend'];
-            }
-            if(Yii::$app->user->can('manageProgress'))
-            {
-                $commands[] = $allcommands['progress'];
-            }
-            if(Yii::$app->user->can('closeTicket'))
-            {
-                $commands[] = $allcommands['close'];
-            }
-        }
-        if (isset($status) && in_array($status->code, ['RNI', 'RIT']))
-        {
-            if(Yii::$app->user->can('closeTicket'))
-            {
-                $commands[] = $allcommands['close'];
-            }
-        }
-        return $commands;
     }
 }

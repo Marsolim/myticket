@@ -2,19 +2,17 @@
 
 namespace frontend\controllers;
 
-use common\models\Document;
-use common\models\User;
-use common\models\ManagedStore;
+use common\models\Item;
+use common\models\ItemSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\db\Query;
 use yii\filters\VerbFilter;
-use frontend\helpers\UserHelper;
-use Yii;
 
 /**
  * RegionController implements the CRUD actions for Region model.
  */
-class DocumentController extends Controller
+class ItemController extends Controller
 {
     /**
      * @inheritDoc
@@ -41,23 +39,50 @@ class DocumentController extends Controller
      */
     public function actionIndex()
     {
-        $query = Document::find();
-        if (!UserHelper::isAdministrator())
-        {
-            $query->orWhere(['owner_id' => Yii::$app->user->id]);
-        }
-        if (UserHelper::isGeneralManager())
-        {
-            $store = ManagedStore::findOne(['user_id' => Yii::$app->user->id]);
-            $query->orWhere(['store_id' => $store->id]);
+        $searchModel = new ItemSearch();
+        $dataProvider = $searchModel->search($this->request->queryParams);
+
+        return $this->render('index', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+
+    /**
+     * Displays a single Region model.
+     * @param int $id ID
+     * @return string
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionView($id)
+    {
+        return $this->render('view', [
+            'model' => $this->findModel($id),
+        ]);
+    }
+
+    /**
+     * Creates a new Region model.
+     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @return string|\yii\web\Response
+     */
+    public function actionCreate()
+    {
+        $model = new Item();
+
+        if ($this->request->isPost) {
+            if ($model->load($this->request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
+        } else {
+            $model->loadDefaultValues();
         }
 
-        $model = $query->all();
-        return $this->render('index', [
+        return $this->render('create', [
             'model' => $model,
         ]);
     }
-    
+
     /**
      * Updates an existing Region model.
      * If update is successful, the browser will be redirected to the 'view' page.
@@ -92,22 +117,36 @@ class DocumentController extends Controller
         return $this->redirect(['index']);
     }
 
-    public function actionDownload($id)
-    {
-        $model = $this->findModel($id);
-        return Yii::$app->response->sendFile('uploads/documents/'.$model->filename, $model->uploadname, ['inline' => false])->send();
+    public function actionList($q = null, $id = null) {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $out = ['results' => ['id' => 0, 'code' => '', 'text' => '']];
+        if (!is_null($q)) {
+            $query = new Query;
+            $query->select(['id', 'CONCAT(r.code, "-", r.name) AS text'])
+                ->from(['r' => 'item'])
+                ->where(['like', 'r.name', $q])
+                ->orWhere(['like', 'r.code', $q])
+                ->limit(20);
+            $command = $query->createCommand();
+            $data = $command->queryAll();
+            $out['results'] = array_values($data);
+        }
+        elseif ($id > 0) {
+            $out['results'] = ['id' => $id, 'text' => Region::find($id)->toString()];
+        }
+        return $out;
     }
 
     /**
      * Finds the Region model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return Region the loaded model
+     * @return Item the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Document::findOne(['id' => $id])) !== null) {
+        if (($model = Item::findOne(['id' => $id])) !== null) {
             return $model;
         }
 

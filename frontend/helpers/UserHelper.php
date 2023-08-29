@@ -115,7 +115,9 @@ class UserHelper
 
     public static function findEngineers()
     {
-        return User::find()->where(['role' => User::ROLE_ENGINEER]);
+        return User::find()
+            ->join('INNER JOIN',['a' => 'auth_assignment'], 'user.id = a.user_id')
+            ->where(['a.item_name' => User::ROLE_ENGINEER]);
     }
 
     public static function isSelf($user)

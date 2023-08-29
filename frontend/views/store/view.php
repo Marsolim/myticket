@@ -137,7 +137,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 //'label' => 'You Label Name ',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return isset($model->engineer_id) ? Html::a($model->engineer->full_name, ['user-profile/view/', 'id' => $model->engineer->id]) : ''; // your url here
+                    return isset($model->engineer_id) ? Html::a($model->engineer->full_name, ['user/view/', 'id' => $model->engineer->id]) : ''; // your url here
                 }
             ],
             [
@@ -146,14 +146,6 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw',
                 'value' => function ($model) {
                     return nl2br($model->statusSummary);
-                }
-            ],
-            [
-                //'class' => ActionColumn::className(),
-                'label' => 'Command',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    return implode(' ', $model->commands());
                 }
             ],
         ],

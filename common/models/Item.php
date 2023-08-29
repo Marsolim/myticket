@@ -60,7 +60,7 @@ class Item extends \yii\db\ActiveRecord
             'id' => 'ID',
             'name' => 'Nama',
             'code' => 'Kode',
-            'address' => 'Alamat',
+            'serial' => 'Ada S/N',
         ];
     }
 }

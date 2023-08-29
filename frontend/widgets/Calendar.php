@@ -24,7 +24,7 @@ class Calendar extends Widget
         [
             //'model' => $this->model->model, 
             //'options' => $this->model->options, 
-            'id' => Yii::$app->security->generateRandomString()
+            'id' => 'ca'.Yii::$app->security->generateRandomString()
         ]);
     }
 }

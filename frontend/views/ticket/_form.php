@@ -25,7 +25,7 @@ FontAwesomeAsset::register($this);
         ), ['prompt' => '']
     ) ?>
 
-    <?= $form->field($model, 'number')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'number')->textInput(['maxlength' => true, 'disabled' => true]) ?>
 
     <?= $form->field($model, 'engineer_id')->dropDownList(ArrayHelper::map(
             $engineers,

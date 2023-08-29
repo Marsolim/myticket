@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
+use kartik\helpers\Enum;
 use frontend\helpers\RoleHelper;
 use frontend\helpers\TStatusHelper;
 use common\models\User;
@@ -20,8 +21,8 @@ ArrayHelper::multisort($steps, ['action_date'], [SORT_DESC]);
 <?= Html::beginTag('div', ['id' => $id]) ?>
 <?php foreach($steps as $index => $step) {
   $sto = TStatusHelper::getLabel($step); 
-  $date = new DateTime('@'.$step->action_date);
-  $diff = $date->diff(new DateTime('now'));
+  //$date = new DateTime('@'.$step->action_date);
+  //$diff = $date->diff(new DateTime('now'));
   $documents = Document::findAll(['action_id' => $step->id]);
 ?>
 <div class="d-flex p-3 border-bottom">
@@ -38,8 +39,8 @@ ArrayHelper::multisort($steps, ['action_date'], [SORT_DESC]);
           'class' => 'bd-highlight text-body align-self-baseline'
         ]) ?>
       <?= Html::tag('span', ' • ', ['class' => 'bd-highlight align-self-baseline small text-muted font-weight-normal']) ?>
-      <?= Html::tag('span', $diff->format('%R%a'), ['class' => 'align-self-baseline bd-highlight small text-muted font-weight-normal']) ?>
-      <?= Html::tag('span', $date->format('d F Y H:i.s'), ['class' => 'align-self-baseline ms-auto bd-highlight small text-muted font-weight-normal']) ?> 
+      <?= Html::tag('span', Enum::timeElapsed(date('Y-F-d H:i:s', $step->action_date)), ['class' => 'align-self-baseline bd-highlight small text-muted font-weight-normal']) ?>
+      <?= Html::tag('span', date('d F Y H:i.s', $step->action_date), ['class' => 'align-self-baseline ms-auto bd-highlight small text-muted font-weight-normal']) ?> 
       <?= Html::endTag('h6') ?> 
       <?= Html::tag('h6', $step->action) ?>
       <?= Html::tag('p', $step->summary, ['style'=>'line-height: 1.2;']) ?>

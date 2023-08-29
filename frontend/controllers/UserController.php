@@ -4,9 +4,11 @@ namespace frontend\controllers;
 
 use common\models\User;
 use frontend\models\SignupForm;
+use frontend\models\AvatarUploadForm;
 use common\models\Store;
 use common\models\ManagedStore;
 use common\models\Region;
+use common\models\Company;
 use common\models\UserSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -132,6 +134,46 @@ class UserController extends Controller
         return $this->render('view', [
             'model' => $model,
         ]);
+    }
+
+    /**
+     * Displays a single Shop model.
+     * @param int $id ID
+     * @return string
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionUploadAvatar()
+    {
+        if (Yii::$app->request->isAjax) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            $model = new AvatarUploadForm();
+            if ($model->load($this->request->post(), '')) 
+            {
+                $model->avatar = UploadedFile::getInstanceByName('avatar');
+                if ($model->upload())
+                {
+                    $doc = User::findOne(['id' => $model->userid]);
+                    $prev = [];
+                    $cprev = [];
+                    $prev[] = 'uploads/profiles/thumb/'.$doc->profile;
+                        
+                    $cprev[] = [
+                            'caption' => $doc->profile, 
+                            //width: '120px', 
+                            'downloadUrl' => 'uploads/profiles/'.$doc->profile,
+                            'showRemove' => false,
+                            'showMove' => false,
+                        ];
+                    
+                    return [
+                        'initialPreview' => $prev,
+                        'initialPreviewConfig' => $cprev,
+                    ];
+                }
+                return ['error' => implode(';', $model->getFirstErrors())];
+            }
+            return ['error' => 'Document failed to upload 2.'];
+        }
     }
 
     /**

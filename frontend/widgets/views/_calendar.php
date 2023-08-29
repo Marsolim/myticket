@@ -1,7 +1,8 @@
 <?php
 
-use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use yii\web\View;
+use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use frontend\helpers\RoleHelper;
@@ -16,14 +17,15 @@ use common\models\Document;
 //$steps = $model->getModels();
 //ArrayHelper::multisort($steps, ['action_date'], [SORT_DESC]);
 //$last = end($steps);
-?>
-<?= Html::beginTag('div',  ['id'=>'wrap']) ?>
-    <?= Html::tag('div', '', ['id'=>$id, 'class'=>'calendar']) ?>
-    <?= Html::tag('div', '', ['style'=>'clear:both']) ?>
-<?= Html::endTag('div') ?>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-  var calendarEl = document.querySelector('#<?= $id ?>');
+$addholiday = Url::toRoute('calendar/add-holiday');
+$nonworkingday = Url::toRoute('calendar/nonworkingday');
+$holiday = Url::toRoute('calendar/holiday');
+$ticket = Url::toRoute('calendar/tickets');
+
+$calendarinitjs = <<<JS
+document.addEventListener('DOMContentLoaded', function() {
+  var calendarEl = document.querySelector('#{$id}');
+  console.log(calendarEl);
   var calendar = new FullCalendar.Calendar(calendarEl, {
     //initialView: 'dayGridMonth',
     initialDate: new Date(),
@@ -47,7 +49,7 @@ data.append( "json", JSON.stringify( {
             'end': start.end
 } ) );
 
-fetch("<?= Url::toRoute("calendar/add-holiday") ?>", {
+fetch('{$addholiday}', {
   method: 'POST',
   headers: {
     'Accept':'application/json',
@@ -74,7 +76,7 @@ fetch("<?= Url::toRoute("calendar/add-holiday") ?>", {
 
 // your event source
 {
-  url: '<?= Url::toRoute('calendar/nonworkingday') ?>',
+  url: '{$nonworkingday}',
   method: 'GET',
   failure: function() {
     alert('there was an error while fetching events!');
@@ -86,7 +88,7 @@ fetch("<?= Url::toRoute("calendar/add-holiday") ?>", {
 },
 {
   id:'HOLIDAY',
-  url: '<?= Url::toRoute('calendar/holiday') ?>',
+  url: '{$holiday}',
   method: 'GET',
   failure: function() {
     alert('there was an error while fetching events!');
@@ -98,7 +100,7 @@ fetch("<?= Url::toRoute("calendar/add-holiday") ?>", {
 },
 {
   id:'TICKETS',
-  url: '<?= Url::toRoute('calendar/tickets') ?>',
+  url: '{$ticket}',
   method: 'GET',
   failure: function() {
     alert('there was an error while fetching events!');
@@ -116,4 +118,10 @@ fetch("<?= Url::toRoute("calendar/add-holiday") ?>", {
 
   calendar.render();
 });
-</script>
+JS;
+$this->registerJs($calendarinitjs, View::POS_END);
+?>
+<?= Html::beginTag('div',  ['id'=>'wrap']) ?>
+    <?= Html::tag('div', '', ['id'=>$id, 'class'=>'calendar']) ?>
+    <?= Html::tag('div', '', ['style'=>'clear:both']) ?>
+<?= Html::endTag('div') ?>

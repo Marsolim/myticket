@@ -114,14 +114,13 @@ class TicketSummary extends \yii\db\ActiveRecord
     public static function renderLegends()
     {
         return $xml = <<<EOD
-O  : Belum dikunjungi (baru Input).
-S  : Dihentikan.
-PR : Sudah kunjungan.
-RNI: Selesai (oleh teknisi).
-RIT: Selesai dan menunggu remote IT (oleh teknisi).
-CNA: Ditutup karena tidak ada tindakan.
-CDT: Ditutup karena double input.
-CRA: Konfirmasi selesai (oleh Manajer Cabang).
+S: Selesai
+B: Belum dikunjungi
+R: Selesai (Butuh Diremote IT)
+P: Pending
+N: No Problem
+D: Double AHO
+T: Total Masalah CCTV per Cabang
 EOD;
     }
 }

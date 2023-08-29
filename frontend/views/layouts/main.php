@@ -5,6 +5,7 @@
 
 use common\widgets\Alert;
 use frontend\assets\AppAsset;
+use frontend\helpers\UserHelper;
 use yii\bootstrap5\Breadcrumbs;
 use yii\bootstrap5\Html;
 use yii\bootstrap5\Nav;
@@ -58,36 +59,34 @@ AppAsset::register($this);
         ['label' => 'Home', 'url' => ['/site/index']],
     ];
     
+    if (UserHelper::isAdministrator())
+        $menuItems[] = ['label' => 'Calendar', 'url' => ['/calendar/index']];
+
     if (!Yii::$app->user->isGuest){
         $menuItems[] = ['label' => 'User', 'url' => ['/user/index']];
         
-        if (Yii::$app->user->can('manageStore'))
+        if (UserHelper::isAdministrator() || UserHelper::isManager())
         {
             $menuItems[] = ['label' => 'Store', 'url' => ['/store/index']];
         }
 
-        if (Yii::$app->user->can('issueTicket') || 
-            Yii::$app->user->can('closeTicket') || 
-            Yii::$app->user->can('manageProgress') || 
-            Yii::$app->user->can('viewTicket'))
+        if (UserHelper::isAdministrator() || UserHelper::isEngineer())
         {
             $menuItems[] = ['label' => 'Servis', 'url' => ['/ticket/index']];
         }
         
-        if (Yii::$app->user->can('manageRegion'))
+        if (UserHelper::isAdministrator())
         {
+            $menuItems[] = ['label' => 'Items', 'url' => ['/item/index']];
             $menuItems[] = ['label' => 'Region', 'url' => ['/region/index']];
+            $menuItems[] = ['label' => 'Company', 'url' => ['/company/index']];
         }
-        
+
         $menuItems[] = ['label' => 'Documents', 'url' => ['/document/index']];
     }
     
     $menuItems[] = ['label' => 'About', 'url' => ['/site/about']];
     
-    if (Yii::$app->user->isGuest) {
-        $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
-    }
-
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav me-auto mb-2 mb-md-0'],
         'items' => $menuItems,

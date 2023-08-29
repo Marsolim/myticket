@@ -1,9 +1,12 @@
 <?php
 
 use common\models\Ticket;
+use common\models\Store;
 use yii\helpers\Html;
 use yii\helpers\Url;
+use yii\helpers\ArrayHelper;
 use frontend\helpers\TStatusHelper;
+use frontend\helpers\UserHelper;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 
@@ -13,6 +16,17 @@ use yii\grid\GridView;
 
 $this->title = 'Servis';
 $this->params['breadcrumbs'][] = $this->title;
+
+$stores = Store::find();
+
+if (UserHelper::isManager())
+    $stores = $stores
+        ->join('LEFT JOIN', ['u'=>'user'], 'store.region_id = isnull(u.region_id, store.region_id)')
+        ->where(['u.id' => Yii::$app->user->id]);
+
+$stores = $stores->all();
+;
+
 ?>
 <div class="ticket-index">
 
@@ -46,6 +60,12 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'store_id',
                 //'label' => '',
                 'format' => 'raw',
+                'filter' => Html::dropDownList('TicketSearch[store_id]', '', ArrayHelper::map(
+                    $stores,
+                    'id',
+                    'name'
+                ), ['prompt' => '--LIST ALL--', 'class' => 'form-control']
+            ),
                 'value' => function ($model) {
                     return isset($model->store_id) ? Html::a($model->store->code . ' - ' . $model->store->name, ['store/view/', 'id' => $model->store->id]) : ''; // your url here
                 }

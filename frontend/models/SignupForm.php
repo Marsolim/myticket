@@ -56,13 +56,19 @@ class SignupForm extends Model
             ['role', 'in', 'range' => [User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR, User::ROLE_STORE_MANAGER, User::ROLE_GENERAL_MANAGER, User::ROLE_ENGINEER]],
 
             ['region_id', 'required', 'when' => function($model) {
-                return $model->role == User::ROLE_STORE_MANAGER || $model->role == User::ROLE_GENERAL_MANAGER;
-            }],
+                    return in_array($model->role, [User::ROLE_STORE_MANAGER, User::ROLE_GENERAL_MANAGER]);
+                },
+                'whenClient' => "function (attribute, value) {
+                    return $('#signupform-role').value == 'Store Manager' || $('#signupform-role').value == 'General Manager';
+                }",
+            ],
             [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::class, 'targetAttribute' => ['region_id' => 'id']],
             
             ['company_id', 'required', 'when' => function($model) {
-                return $model->role == User::ROLE_STORE_MANAGER || $model->role == User::ROLE_GENERAL_MANAGER;
-            }],
+                return in_array($model->role, [User::ROLE_STORE_MANAGER, User::ROLE_GENERAL_MANAGER]);
+            }, 'whenClient' => "function (attribute, value) {
+                return $('#signupform-role').value == 'Store Manager' || $('#signupform-role').value == 'General Manager';
+            }",],
             [['company_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['company_id' => 'id']],
         ];
     }

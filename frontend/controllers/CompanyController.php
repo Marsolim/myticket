@@ -2,9 +2,8 @@
 
 namespace frontend\controllers;
 
-use common\models\Region;
 use common\models\Company;
-use common\models\RegionSearch;
+use common\models\CompanySearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\db\Query;
@@ -40,7 +39,7 @@ class CompanyController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new RegionSearch();
+        $searchModel = new CompanySearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
         return $this->render('index', [
@@ -69,7 +68,7 @@ class CompanyController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Region();
+        $model = new Company();
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->save()) {
@@ -142,12 +141,12 @@ class CompanyController extends Controller
      * Finds the Region model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return Region the loaded model
+     * @return Company the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = Region::findOne(['id' => $id])) !== null) {
+        if (($model = Company::findOne(['id' => $id])) !== null) {
             return $model;
         }
 

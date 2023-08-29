@@ -10,6 +10,7 @@ use yii\helpers\Url;
 use frontend\helpers\UserHelper;
 use kartik\editable\Editable;
 use kartik\select2\Select2;
+use kartik\file\FileInput;
 
 /** @var yii\web\View $this */
 /** @var common\models\Store $model */
@@ -149,6 +150,19 @@ function (data, params) {
 }
 JS;
 
+$roles = [
+    User::ROLE_ENGINEER => User::ROLE_ENGINEER,
+    User::ROLE_GENERAL_MANAGER => User::ROLE_GENERAL_MANAGER,
+];
+if (UserHelper::isAdministrator())
+    $roles[User::ROLE_ADMINISTRATOR] = User::ROLE_ADMINISTRATOR;
+
+$uploadevent = <<<JS
+    $('#fi-user-avatar').on('filebatchselected', function(event) {
+        $(this).fileinput('upload');
+    });
+JS;
+$this->registerJs($uploadevent, View::POS_READY);
 ?>
 <div class="user-view">
 
@@ -162,29 +176,54 @@ JS;
     <?= Html::beginTag('div', ['class'=>"row g-0"]) ?>
     <?= Html::beginTag('div', ['class'=>"col-md-4 gradient-custom text-center text-safe",
         'style'=>"border-top-left-radius: .5rem; border-bottom-left-radius: .5rem;"]) ?>
-    <?= Html::img('uploads/profiles/thumb/'.$model->profile, ['alt'=>'profile', 'class'=>"rounded-circle mx-1 my-5", 'style'=>'width:100px;height:100px']) ?>
-    <?= Html::beginTag('div', ['class'=>"ms-4 mt-0 mb-1 text-start"]) ?>
-    <?= Html::tag('h6', 'Full Name') ?>
-    <?= Editable::widget([
-        'model' => $model,
-        'attribute' => 'full_name',
-        'asPopover' => false,
-        'header' => 'Name',
-        'size'=>'md',
-        //'inlineSettings'=>['options'=>['class' => '']],
-        'buttonsTemplate'=>'',
-        'formOptions'=>[
-            'validateOnBlur'=>false,
-            'enableAjaxValidation'=>true,
-            'validateOnChange'=>false,
-        ],
-        'options' => [
-            'class'=>'form-control-plaintext text-decoration-underline', 
-            'placeholder'=>'Enter user full name...',
+    <div class='ms-4 my-5'>
+    <?= FileInput::widget([
+        'name' => 'avatar',
+        'options' => ['multiple'=> false, 'accept' => 'image/*', 'id' => 'fi-user-avatar'],
+        'pluginOptions' => [
+            'initialPreview'=>[
+                "uploads/profiles/thumb/".$model->profile,
+            ],
+            'minFileCount' => 1,
+            'maxFileCount'=> 1,
+            'initialPreviewAsData'=>true,
+            'initialCaption'=>"Profile",
+            'initialPreviewConfig' => [
+                [
+                    'caption' => '',
+                    'showRemove' => false,
+                    'showUpload' => false, // will be always false for resumable uploads
+                    'showDownload' => true,
+                    'showZoom' => false,
+                    'showDrag' => false,
+                    'showRotate' => false,
+                ],
+            ],
+            'overwriteInitial'=>true,
+            'initialPreviewDownloadUrl' => "uploads/profiles/thumb/".$model->profile,
+            //'showPreview' => false,
+            'showCaption' => true,
+            'showRemove' => true,
+            'showUpload' => false,
+            'showDownload' => true,
+            'browseIcon' => '<i class="fas fa-camera"></i> ',
+            'uploadUrl' => Url::to(['user/upload-avatar']),
+            //'uploadUrl' => "index.php?r=site%2Fupload-document",
+            'encodeUrl' => false,
+            'uploadExtraData' => [
+                'userid'=>$model->id,
+            ],
         ]
-    ]) ?>
-    <?= Html::beginTag('hr', ['class'=>"mt-1 mb-1"]) ?>
-    <?= Html::tag('h6', 'Login Name') ?>
+    ]); ?>
+    </div>
+    <?= Html::endTag('div') ?>
+    <?= Html::beginTag('div', ['class'=>"col-md-8"]) ?>
+    <?= Html::beginTag('div', ['class'=>"card-body p-4"]) ?>
+    <?= Html::tag('h6', 'Login') ?>
+    <?= Html::beginTag('hr', ['class'=>"mt-0 mb-4"]) ?>
+    <?= Html::beginTag('div', ['class'=>"row pt-1"]) ?>
+    <?= Html::beginTag('div', ['class'=>"col-6 mb-3 overflow-visible"]) ?>
+    <?= Html::tag('h6', 'User Name') ?>
     <?= Editable::widget([
         'model' => $model,
         'attribute' => 'username',
@@ -202,7 +241,8 @@ JS;
             'placeholder'=>'Enter user name...'
         ]
     ]) ?>
-    <?= Html::beginTag('hr', ['class'=>"mt-1 mb-1"]) ?>
+    <?= Html::endTag('div') ?>
+    <?= Html::beginTag('div', ['class'=>"col-6 mb-3"]) ?>
     <?= Html::tag('h6', 'Role') ?>
     <?= !UserHelper::isAdministrator() ? 
         Html::tag('p', $model->role, ['class'=>'text-mute']) : Editable::widget([
@@ -211,17 +251,36 @@ JS;
         'asPopover' => false,
         'header' => 'Role',
         'inputType' => Editable::INPUT_DROPDOWN_LIST,
-        'data' => [User::ROLE_ENGINEER => User::ROLE_ENGINEER, User::ROLE_GENERAL_MANAGER => User::ROLE_GENERAL_MANAGER],
+        'data' => $roles,
         'buttonsTemplate'=>'{submit}',
         'options' => ['class'=>'form-control-plaintext', 'prompt'=>'Select role...'],
     ]) ?>
     <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>
-    <?= Html::beginTag('div', ['class'=>"col-md-8"]) ?>
-    <?= Html::beginTag('div', ['class'=>"card-body p-4"]) ?>
     <?= Html::tag('h6', 'Information') ?>
     <?= Html::beginTag('hr', ['class'=>"mt-0 mb-4"]) ?>
     <?= Html::beginTag('div', ['class'=>"row pt-1"]) ?>
+    <?= Html::beginTag('div', ['class'=>"col-12 mb-3"]) ?>
+    <?= Html::tag('h6', 'Full Name') ?>
+    <?= Editable::widget([
+        'model' => $model,
+        'attribute' => 'full_name',
+        'asPopover' => false,
+        'header' => 'Name',
+        'size'=>'md',
+        'inlineSettings'=>['options'=>['class' => 'col-auto card panel panel-default']],
+        'buttonsTemplate'=>'',
+        'formOptions'=>[
+            'validateOnBlur'=>false,
+            'enableAjaxValidation'=>true,
+            'validateOnChange'=>false,
+        ],
+        'options' => [
+            'class'=>'col-auto form-control-plaintext text-decoration-underline', 
+            'placeholder'=>'Enter user full name...',
+        ]
+    ]) ?>
+    <?= Html::endTag('div') ?>
     <?= Html::beginTag('div', ['class'=>"col-6 mb-3"]) ?>
     <?= Html::tag('h6', 'E-mail') ?>
     <?= Editable::widget([
@@ -230,6 +289,8 @@ JS;
         'asPopover' => false,
         'header' => 'E-mail',
         'size'=>'md',
+        'inlineSettings' => ['options'=>['class'=>'col card panel panel-default']],
+        'buttonsTemplate'=>'{submit}',
         'options' => ['class'=>'form-control', 'placeholder'=>'Enter user e-mail...']
     ]) ?>
     <?= Html::endTag('div') ?>
@@ -241,6 +302,7 @@ JS;
         'asPopover' => false,
         'header' => 'Phone',
         'size'=>'md',
+        'buttonsTemplate'=>'{submit}',
         'options' => ['class'=>'', 'placeholder'=>'Enter user phone...']
     ]) ?>
     <?= Html::endTag('div') ?>
@@ -316,18 +378,6 @@ JS;
         ],
     ]) ?>
     <?= Html::endTag('div') ?>
-    <?= Html::endTag('div') ?>
-    <?= Html::tag('h6', 'Projects') ?>
-    <?= Html::beginTag('hr', ['class'=>"mt-0 mb-4"]) ?>
-    <?= Html::beginTag('div', ['class'=>"row pt-1"]) ?>
-                        <div class="col-6 mb-3">
-                            <h6>Recent</h6>
-                            <p class="text-muted">Lorem ipsum</p>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <h6>Most Viewed</h6>
-                            <p class="text-muted">Dolor sit amet</p>
-                        </div>
     <?= Html::endTag('div') ?>
     <?= Html::beginTag('div', ['class'=>"d-flex justify-content-start"]) ?>
     <?= (UserHelper::isSelf($model->id) || UserHelper::isAdministrator()) ?

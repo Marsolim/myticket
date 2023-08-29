@@ -15,6 +15,7 @@ use yii\data\ActiveDataProvider;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\helpers\Url;
+use frontend\helpers\UserHelper;
 use Yii;
 
 /**
@@ -50,12 +51,12 @@ class StoreController extends Controller
     {
         $searchModel = new StoreSearch();
         $query = $searchModel->searchQuery($this->request->queryParams);
-        if (User::isMemberOfRole(User::ROLE_STORE_MANAGER))
+        if (UserHelper::isGeneralManager())
         {
             $user = User::findOne(['id' => Yii::$app->user->id]);
             $query->andWhere(['region_id' => $user->region_id]);
         }
-        else if (!User::isMemberOfRole([User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR, User::ROLE_GENERAL_MANAGER])) 
+        else if (!(UserHelper::isAdministrator() || UserHelper::isGeneralManager())) 
         {
             throw new UnauthorizedHttpException();
         }

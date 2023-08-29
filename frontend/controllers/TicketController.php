@@ -19,6 +19,8 @@ use yii\web\UploadedFile;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use yii\filters\VerbFilter;
+use frontend\helpers\UserHelper;
+use mdm\autonumber\AutoNumber;
 
 /**
  * TicketController implements the CRUD actions for Ticket model.
@@ -54,15 +56,15 @@ class TicketController extends Controller
     {
         $searchModel = new TicketSearch();
         $query = $searchModel->searchQuery($this->request->queryParams);
-        if (!User::isMemberOfRole([User::ROLE_ADMINISTRATOR, User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ENGINEER, User::ROLE_STORE_MANAGER]))
+        if (!(UserHelper::isAdministrator() || UserHelper::isEngineer() || UserHelper::isGeneralManager()))
         {
             throw new UnauthorizedHttpException();
         }
-        if (User::isMemberOfRole(User::ROLE_ENGINEER))
+        if (UserHelper::isEngineer())
         {
             $query->andWhere(['engineer_id' => Yii::$app->user->id]);
         }
-        if (User::isMemberOfRole(User::ROLE_STORE_MANAGER))
+        if (UserHelper::isGeneralManager())
         {
             $user = User::findOne(['id' => Yii::$app->user->id]);
             $stores = Store::findAll(['region_id' => $user->region_id]);
@@ -111,10 +113,12 @@ class TicketController extends Controller
     {
         $model = new Ticket();
         
-        $engineers = User::findByRole(User::ROLE_ENGINEER)->all();
+        $engineers = UserHelper::findEngineers()->all();
         $stores = Store::find();
 
-        if (User::isMemberOfRole(User::ROLE_STORE_MANAGER))
+        $model->number = AutoNumber::generate('TS.{Y.m}.????');
+
+        if (UserHelper::isStoreManager())
         {
             $user = User::findOne(['id' => Yii::$app->user->id]);
             $stores->andWhere(['region_id' => $user->region_id]);
@@ -125,7 +129,7 @@ class TicketController extends Controller
 
             if ($model->load($this->request->post()) && $model->save())
             {
-                $model->notify();
+                //$model->notify();
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         } else {
@@ -173,7 +177,7 @@ class TicketController extends Controller
             }
             $parameters = $this->createOpenParameter($laststatus);
         }
-        if ($cmd == 'Suspend' && User::isMemberOfRole(User::ROLE_ADMINISTRATOR, User::ROLE_SYS_ADMINISTRATOR))
+        if ($cmd == 'Suspend' && UserHelper::isAdministrator())
         {
             if (isset($laststatus) && !in_array($laststatus->code, ['O', 'PR']))
             {

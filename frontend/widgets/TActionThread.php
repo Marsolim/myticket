@@ -5,6 +5,7 @@ namespace frontend\widgets;
 
 use yii\base\Widget;
 use yii\helpers\Html;
+use kartik\helpers\Enum;
 use Yii;
 
 class TActionThread extends Widget

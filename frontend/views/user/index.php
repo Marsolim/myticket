@@ -6,6 +6,7 @@ use common\models\Store;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
+use frontend\helpers\UserHelper;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use yii\bootstrap5\ButtonDropdown;
@@ -64,7 +65,7 @@ if (Yii::$app->user->can('manageUser'))
                 ]
             ];
 
-            if (User::isMemberOfRole(User::ROLE_SYS_ADMINISTRATOR))
+            if (UserHelper::isSystemAdmin(User::ROLE_SYS_ADMINISTRATOR))
             {
                 $ddroleitems[] = [
                     'label' => User::ROLE_ADMINISTRATOR,
@@ -85,7 +86,7 @@ if (Yii::$app->user->can('manageUser'))
         'label' => 'Managed Store',
         'format' => 'raw',
         'value' => function ($model) {
-            if (User::isMemberOfRole(User::ROLE_STORE_MANAGER, $model->id))
+            if (UserHelper::isStoreManager($model->id))
             {
                 if (Yii::$app->user->can('manageUser')){
                     $stores = Store::find()->all();
