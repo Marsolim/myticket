@@ -2,7 +2,6 @@
 
 namespace common\models;
 
-use common\models\Store;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use Yii;
@@ -14,10 +13,14 @@ use Yii;
  * @property string $name
  * @property string $code
  *
- * @property Store[] $stores
  */
-class Region extends \yii\db\ActiveRecord
+abstract class Customer extends \yii\db\ActiveRecord
 {
+    const TYPE_NULL = 0;
+    const TYPE_STORE = 1;
+    const TYPE_POINT = 2;
+    const TYPE_COMPANY = 3;
+
     /**
      * {@inheritdoc}
      */
@@ -34,7 +37,7 @@ class Region extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'region';
+        return 'customer';
     }
 
     /**
@@ -47,8 +50,11 @@ class Region extends \yii\db\ActiveRecord
             [['name'], 'string', 'max' => 100],
             [['code'], 'string', 'max' => 10],
             [['address'], 'string', 'max' => 500],
+            [['phone'], 'string', 'max' => 100],
             [['code'], 'unique'],
             [['name'], 'unique'],
+            [['type'], 'default', 'value' => self::TYPE_NULL],
+            [['type'], 'in', 'range' => [self::TYPE_STORE, self::TYPE_POINT, self::TYPE_COMPANY]],
         ];
     }
 
@@ -63,16 +69,6 @@ class Region extends \yii\db\ActiveRecord
             'code' => 'Kode',
             'address' => 'Alamat',
         ];
-    }
-
-    /**
-     * Gets query for [[Stores]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStores()
-    {
-        return $this->hasMany(Store::class, ['region' => 'id']);
     }
 
     public function toString()

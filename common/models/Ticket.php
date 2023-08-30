@@ -80,10 +80,9 @@ class Ticket extends \yii\db\ActiveRecord
             'store_id' => 'Toko',
             'number' => 'No. Servis',
             'problem' => 'Kendala',
-            'problem_description' => 'Kronologis',
-            'engineer_id' => 'Teknisi',
-            'issuer_id' => 'Dibuat Oleh',
-            'issued_at' => 'Dibuat Tgl.',
+            'reason' => 'Alasan Tidak Tercover MC',
+            'created_by' => 'Dibuat Oleh',
+            'created_at' => 'Dibuat Tgl.',
             'last_action_id' => 'T/K Terakhir',
             'last_status_id' => 'Status',
         ];

@@ -2,10 +2,10 @@
 
 namespace common\models;
 
-use common\models\Region;
-use common\models\SLAStatus;
-use yii\behaviors\TimestampBehavior;
-use yii\behaviors\BlameableBehavior;
+use common\models\Customer;
+use common\models\Company;
+use common\models\Point;
+use common\models\Ticket;
 use Yii;
 
 /**
@@ -26,38 +26,20 @@ class Store extends \yii\db\ActiveRecord
     /**
      * {@inheritdoc}
      */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-            BlameableBehavior::class,
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'store';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
-            [['name', 'code', 'region_id'], 'required'],
-            [['region_id', 'status_id'], 'integer'],
+            [['name', 'code', 'point_id'], 'required'],
+            [['depot_id', 'sla'], 'integer'],
             [['name'], 'string', 'max' => 100],
             [['code'], 'string', 'max' => 20],
-            [['phone'], 'string', 'max' => 255],
-            [['email'], 'string', 'max' => 255],
+            [['phone', 'email'], 'string', 'max' => 255],
             [['address'], 'string', 'max' => 500],
             [['code'], 'unique'],
-            [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::class, 'targetAttribute' => ['region_id' => 'id']],
-            [['status_id'], 'exist', 'skipOnError' => true, 'targetClass' => SLAStatus::class, 'targetAttribute' => ['status_id' => 'id']],
+            [['name'], 'unique'],
+            [['type'], 'default', Customer::TYPE_STORE],
+            [['sla'], 'default', 14],
+            [['depot_id'], 'exist', 'skipOnError' => true, 'targetClass' => Depot::class, 'targetAttribute' => ['depot_id' => 'id']],
         ];
     }
 
@@ -71,37 +53,40 @@ class Store extends \yii\db\ActiveRecord
             'name' => 'Nama Toko',
             'code' => 'Kode',
             'phone' => 'Telepon',
-            'email' => 'e-Mail',
+            'email' => 'E-mail',
             'address' => 'Alamat',
-            'region_id' => 'DC',
-            'status_id' => 'Status SLA',
+            'depot_id' => 'Depot (DC)',
         ];
     }
 
     /**
-     * Gets query for [[Region]].
+     * Gets query for [[Depot]].
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getRegion()
+    public function getDepot()
     {
-        return $this->hasOne(Region::class, ['id' => 'region_id']);
+        return $this->hasOne(Region::class, ['id' => 'depot_id']);
     }
 
     /**
-     * Gets query for [[Status]].
+     * Gets query for [[Company]].
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getStatus()
+    public function getCompany()
     {
-        return $this->hasOne(SLAStatus::class, ['id' => 'status_id']);
+        return $this->hasOne(Company::class, ['id' => 'company_id'])
+            ->via('depot');
     }
 
-    public function getManager()
+    /**
+     * Gets query for [[Tickets]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getTickets()
     {
-        $mgs = ManagedStore::findOne(['store_id' => $this->id, 'active' => ManagedStore::STATUS_ACTIVE]);
-        $user = isset($mgs) ? $mgs->user : null;
-        return $user;
+        return $this->hasMany(Ticket::class, ['store_id' => 'id']);
     }
 }

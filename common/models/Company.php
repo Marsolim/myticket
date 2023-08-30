@@ -2,8 +2,10 @@
 
 namespace common\models;
 
-use yii\behaviors\TimestampBehavior;
-use yii\behaviors\BlameableBehavior;
+use common\models\Customer;
+use common\models\Depot;
+use common\models\Store;
+use common\models\Ticket;
 use Yii;
 
 /**
@@ -15,25 +17,14 @@ use Yii;
  * @property string $address
  *
  */
-class Company extends \yii\db\ActiveRecord
+class Company extends Customer
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-            BlameableBehavior::class,
-        ];
-    }
-
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'company';
+        return 'customer';
     }
 
     /**
@@ -46,8 +37,11 @@ class Company extends \yii\db\ActiveRecord
             [['name'], 'string', 'max' => 100],
             [['code'], 'string', 'max' => 10],
             [['address'], 'string', 'max' => 500],
+            [['phone'], 'string', 'max' => 100],
+            [['email'], 'string', 'max' => 255],
             [['code'], 'unique'],
             [['name'], 'unique'],
+            [['type'], 'default', Customer::TYPE_COMPANY],
         ];
     }
 
@@ -58,15 +52,28 @@ class Company extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Nama',
             'code' => 'Kode',
+            'name' => 'Nama Perusahaan',
+            'phone' => 'Telepon',
+            'email' => 'E-mail',
             'address' => 'Alamat',
         ];
     }
 
-    
-    public function toString()
+    public function getTickets()
     {
-        return implode('-', [$this->code, $this->name]);
+        return $this->hasMany(Ticket::class, ['store_id' => 'id'])
+            ->via('stores');
+    }
+
+    public function getStores()
+    {
+        return $this->hasMany(Store::class, ['depot_id' => 'id'])
+            ->via('depots');
+    }
+
+    public function getDepots()
+    {
+        return $this->hasMany(Depot::class, ['company_id' => 'id']);
     }
 }
