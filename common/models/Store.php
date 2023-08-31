@@ -6,6 +6,7 @@ use common\models\Customer;
 use common\models\Company;
 use common\models\Point;
 use common\models\Ticket;
+use common\db\StoreQuery;
 use Yii;
 
 /**
@@ -57,6 +58,22 @@ class Store extends \yii\db\ActiveRecord
             'address' => 'Alamat',
             'depot_id' => 'Depot (DC)',
         ];
+    }
+
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+    
+        $this->type = Customer::TYPE_STORE;
+
+        return true;
+    }
+
+    public static function find()
+    {
+        return new StoreQuery(get_called_class());
     }
 
     /**

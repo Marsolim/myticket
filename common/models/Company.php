@@ -6,6 +6,7 @@ use common\models\Customer;
 use common\models\Depot;
 use common\models\Store;
 use common\models\Ticket;
+use common\db\CompanyQuery;
 use Yii;
 
 /**
@@ -58,6 +59,22 @@ class Company extends Customer
             'email' => 'E-mail',
             'address' => 'Alamat',
         ];
+    }
+
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+    
+        $this->type = Customer::TYPE_COMPANY;
+
+        return true;
+    }
+    
+    public static function find()
+    {
+        return new CompanyQuery(get_called_class());
     }
 
     public function getTickets()

@@ -14,7 +14,7 @@ use Yii;
  * @property int $status_override
  * @property string|null $summary
  */
-class TicketAction extends \yii\db\ActiveRecord
+class Action extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
@@ -46,11 +46,13 @@ class TicketAction extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'action' => 'Tindakan',
+            'action' => 'Pekerjaan',
             'ticket_id' => 'No. Servis',
             'engineer_id' => 'Teknisi',
-            'action_date' => 'Tgl. Tindakan',
-            'status_override' => 'Perubahan Status',
+            'item_id' => 'Barang',
+            'serial' => 'S/N',
+            'created_at' => 'Tgl. Pekerjaan',
+            'created_by' => 'Penginput',
             'summary' => 'Laporan lengkap',
         ];
     }

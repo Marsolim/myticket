@@ -6,6 +6,7 @@ use common\models\Customer;
 use common\models\Company;
 use common\models\Store;
 use common\models\Ticket;
+use common\db\DepotQuery;
 use Yii;
 
 /**
@@ -50,6 +51,22 @@ class Depot extends Customer
             'phone' => 'Telepon',
             'address' => 'Alamat',
         ];
+    }
+
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+    
+        $this->type = Customer::TYPE_DEPOT;
+
+        return true;
+    }
+
+    public static function find()
+    {
+        return new DepotQuery(get_called_class());
     }
 
     /**

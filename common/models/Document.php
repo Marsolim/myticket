@@ -19,7 +19,8 @@ use Yii;
 class Document extends \yii\db\ActiveRecord
 {
     const FILE_INVOICE = 1;
-    const FILE_BAP_SPK = 2;
+    const FILE_BAP = 2;
+    const FILE_SPK = 2;
     const FILE_UNCATEGORIZED = 3;
 
     /**
@@ -47,13 +48,16 @@ class Document extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['category', 'owner_id', 'filename'], 'required'],
+            [['category', 'filename', 'number'], 'required'],
             [['filename', 'uploadname'], 'string', 'max' => 255],
-            [['file_type'], 'string', 'max' => 50],
+            [['file_type', 'number'], 'string', 'max' => 50],
             [['category', 'ticket_id', 'store_id', 'action_id', 'file_size'], 'integer'],
-            ['category', 'default', 'value' => self::FILE_UNCATEGORIZED],
-            ['category', 'in', 'range' => [self::FILE_INVOICE, self::FILE_BAP_SPK, self::FILE_UNCATEGORIZED]],
+            [['category'], 'default', 'value' => self::FILE_UNCATEGORIZED],
+            [['category'], 'in', 'range' => [self::FILE_INVOICE, self::FILE_BAP, self::FILE_SPK, self::FILE_UNCATEGORIZED]],
             [['filename'], 'unique'],
+            [['ticket_id'], 'exist', 'skipOnError' => true, 'targetClass' => Ticket::class, 'targetAttribute' => ['ticket_id' => 'id']],
+            [['store_id'], 'exist', 'skipOnError' => true, 'targetClass' => Store::class, 'targetAttribute' => ['store_id' => 'id']],
+            [['action_id'], 'exist', 'skipOnError' => true, 'targetClass' => TicketAction::class, 'targetAttribute' => ['action_id' => 'id']],
         ];
     }
 
@@ -65,24 +69,43 @@ class Document extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'uploadname' => 'Name',
-            'filename' => 'Code',
+            'number' => 'Doc. Number',
         ];
     }
 
     /**
-     * Gets query for [[Stores]].
+     * Gets query for [[Action]].
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getStores()
+    public function getAction()
     {
-        return $this->hasMany(Store::class, ['store_id' => 'id']);
+        return $this->hasOne(TicketAction::class, ['action_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[Ticket]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getTicket()
+    {
+        return $this->hasOne(Ticket::class, ['ticket_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[Store]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStore()
+    {
+        return $this->hasOne(Store::class, ['store_id' => 'id']);
     }
 
     public function getFileIcon()
     {
-
-        $icons = [
+        static $icons = [
             'doc' => function($file) {
                 if (preg_match("/^.*\.(doc|docx)$/i", $file))
                 {

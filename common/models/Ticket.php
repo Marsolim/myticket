@@ -7,7 +7,10 @@ use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use yii\helpers\Html;
 use common\models\User;
-use common\models\TicketAction;
+use common\models\Store;
+use common\models\Depot;
+use common\models\Company;
+use common\models\Action;
 
 /**
  * This is the model class for table "ticket".
@@ -24,10 +27,17 @@ use common\models\TicketAction;
  * @property User $engineer
  * @property User $issuer
  * @property Store $store
- * @property TicketAction[] $actions
+ * @property Action[] $actions
  */
 class Ticket extends \yii\db\ActiveRecord
 {
+    const STATUS_OPEN = 1;
+    const STATUS_PENDING = 2;
+    const STATUS_CLOSED_NOPROBLEM = 3;
+    const STATUS_CLOSED_NORMAL = 4;
+    const STATUS_CLOSED_DOUBLE_AHO = 5;
+    const STATUS_CLOSED_NORMAL_IT = 7;
+
     /**
      * {@inheritdoc}
      */
@@ -53,17 +63,26 @@ class Ticket extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['store_id', 'number', 'issuer_id'], 'required'],
+            [['store_id', 'number', 'issuer_id', 'status'], 'required'],
             [['store_id', 'engineer_id', 'issuer_id', 'last_action_id', 'last_status_id'], 'integer'],
             [['number'], 'string', 'max' => 20],
             [['problem'], 'string', 'max' => 255],
             [['problem_description'], 'string'],
             [['number'], 'unique'],
-            [['number'], 'autonumber', 'format'=>'TS.Y.m.????'],
+            [['number'], 'autonumber', 'format'=>'TS.{Y.m}.????'],
+            [['status'], 'default', 'value' => self::STATUS_OPEN],
+            [['status'], 'in', 'range' => [
+                self::STATUS_OPEN,
+                self::STATUS_PENDING,
+                self::STATUS_CLOSED_NOPROBLEM,
+                self::STATUS_CLOSED_NORMAL,
+                self::STATUS_CLOSED_DOUBLE_AHO,
+                self::STATUS_CLOSED_NORMAL_IT
+            ]],
             ['issued_at', 'default', 'value' => time()],
             //['issued_at', 'date', 'timestampAttribute' => 'issued_at'],
             [['engineer_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['engineer_id' => 'id']],
-            [['issuer_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['issuer_id' => 'id']],
+            [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['created_by' => 'id']],
             [['store_id'], 'exist', 'skipOnError' => true, 'targetClass' => Store::class, 'targetAttribute' => ['store_id' => 'id']],
             [['last_action_id'], 'exist', 'skipOnError' => true, 'targetClass' => TicketAction::class, 'targetAttribute' => ['last_action_id' => 'id']],
             [['last_status_id'], 'exist', 'skipOnError' => true, 'targetClass' => TicketStatus::class, 'targetAttribute' => ['last_status_id' => 'id']],
@@ -79,6 +98,7 @@ class Ticket extends \yii\db\ActiveRecord
             'id' => 'ID',
             'store_id' => 'Toko',
             'number' => 'No. Servis',
+            'external_number' => 'No. AHO',
             'problem' => 'Kendala',
             'reason' => 'Alasan Tidak Tercover MC',
             'created_by' => 'Dibuat Oleh',
@@ -88,21 +108,17 @@ class Ticket extends \yii\db\ActiveRecord
         ];
     }
 
-    public function afterSave($insert, $changedAttributes){
-        if ($insert){
+    public function afterSave($insert, $changedAttributes)
+    {
+        if ($insert)
+        {
             $this->refresh();
-            $status = TicketStatus::findOne(['code' => 'O']);
-            $newaction = new TicketAction();
+            $newaction = new Action();
             $newaction->ticket_id = $this->id;
-            $newaction->engineer_id = $this->issuer_id;
-            $newaction->action_date = time();
-            $newaction->status_override = isset($status) ? $status->id : 1;
+            $newaction->engineer_id = $this->created_by;
             $newaction->action = 'Open ticket baru.';
             $newaction->save();
             $newaction->refresh();
-            $this->last_action_id = $newaction->id;
-            $this->last_status_id = isset($status) ? $status->id : 1;
-            $this->updateAttributes(['last_action_id', 'last_status_id']);
         }
     }
 
@@ -123,7 +139,7 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getIssuer()
     {
-        return $this->hasOne(User::class, ['id' => 'issuer_id']);
+        return $this->hasOne(User::class, ['id' => 'created_by']);
     }
 
     /**
@@ -136,9 +152,38 @@ class Ticket extends \yii\db\ActiveRecord
         return $this->hasOne(Store::class, ['id' => 'store_id']);
     }
 
+    /**
+     * Gets query for [[Depot]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getDepot()
+    {
+        return $this->hasOne(Depot::class, ['id' => 'depot_id'])
+            ->via('store');
+    }
+    
+    public function getManagers()
+    {
+        return $this->hasMany(User::class, ['association_id' => 'id'])
+            ->via('depot')
+            ->where(['status' => User::STATUS_ACTIVE]);
+    }
+
+    /**
+     * Gets query for [[Company]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCompany()
+    {
+        return $this->hasOne(Company::class, ['id' => 'company_id'])
+            ->via('depot');
+    }
+
     public function getStatusSummary()
     {
-        $last_action = TicketAction::findOne(['id' => $this->last_action_id]);
+        $last_action = Action::findOne(['id' => $this->last_action_id]);
         if (isset($last_action)){
             $scode = $last_action->status->code . ' - ' . $last_action->status->name;
             $engineer = $last_action->engineer->full_name;
@@ -170,6 +215,17 @@ EOD;
         return '';
     }
 
+    public function getBarcodes()
+    {
+        $actions = $this->getActionsWithItem()->andWhere(['not', ['serial' => null]])->all();
+        $barcodes = [];
+        foreach($actions as $action)
+        {
+            $barcodes[] = $action->serial;
+        }
+        return implode(', ', $barcodes);
+    }
+
     /**
      * Gets query for [[Actions]].
      *
@@ -177,6 +233,27 @@ EOD;
      */
     public function getActions()
     {
-        return $this->hasMany(TicketAction::class, ['ticket_id' => 'id']);
+        return $this->hasMany(Action::class, ['ticket_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[ActionsWithItem]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getActionsWithItem()
+    {
+        return $this->hasMany(Action::class, ['ticket_id' => 'id'])->where(['not', ['action.item_id' => null]]);
+    }
+
+    /**
+     * Gets query for [[Items]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getItems()
+    {
+        return $this->hasMany(Item::class, ['id' => 'item_id'])
+            ->via('actionsWithItem');
     }
 }
