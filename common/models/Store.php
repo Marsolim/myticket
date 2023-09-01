@@ -31,7 +31,7 @@ class Store extends \yii\db\ActiveRecord
     {
         return [
             [['name', 'code', 'point_id'], 'required'],
-            [['depot_id', 'sla'], 'integer'],
+            [['parent_id'], 'integer'],
             [['name'], 'string', 'max' => 100],
             [['code'], 'string', 'max' => 20],
             [['phone', 'email'], 'string', 'max' => 255],
@@ -39,8 +39,7 @@ class Store extends \yii\db\ActiveRecord
             [['code'], 'unique'],
             [['name'], 'unique'],
             [['type'], 'default', Customer::TYPE_STORE],
-            [['sla'], 'default', 14],
-            [['depot_id'], 'exist', 'skipOnError' => true, 'targetClass' => Depot::class, 'targetAttribute' => ['depot_id' => 'id']],
+            [['parent_id'], 'exist', 'skipOnError' => true, 'targetClass' => Depot::class, 'targetAttribute' => ['parent_id' => 'id']],
         ];
     }
 
@@ -83,7 +82,7 @@ class Store extends \yii\db\ActiveRecord
      */
     public function getDepot()
     {
-        return $this->hasOne(Region::class, ['id' => 'depot_id']);
+        return $this->hasOne(Region::class, ['id' => 'parent_id']);
     }
 
     /**
@@ -93,8 +92,18 @@ class Store extends \yii\db\ActiveRecord
      */
     public function getCompany()
     {
-        return $this->hasOne(Company::class, ['id' => 'company_id'])
+        return $this->hasOne(Company::class, ['id' => 'parent_id'])
             ->via('depot');
+    }
+
+    /**
+     * Gets query for [[Contract]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getContract()
+    {
+        return $this->hasOne(CustomerContract::class, ['customer_id' => 'id'])
     }
 
     /**
@@ -104,6 +113,6 @@ class Store extends \yii\db\ActiveRecord
      */
     public function getTickets()
     {
-        return $this->hasMany(Ticket::class, ['store_id' => 'id']);
+        return $this->hasMany(Ticket::class, ['customer_id' => 'id']);
     }
 }

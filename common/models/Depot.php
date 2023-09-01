@@ -34,8 +34,8 @@ class Depot extends Customer
             [['name'], 'unique'],
             [['phone'], 'string', 'max' => 255],
             [['type'], 'default', Customer::TYPE_POINT],
-            [['company_id'], 'required'],
-            [['company_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['company_id' => 'id']],
+            [['parent_id'], 'required'],
+            [['parent_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['parent_id' => 'id']],
         ];
     }
 
@@ -76,7 +76,7 @@ class Depot extends Customer
      */
     public function getCompany()
     {
-        return $this->hasOne(Company::class, ['id' => 'company_id']);
+        return $this->hasOne(Company::class, ['id' => 'parent_id']);
     }
 
     /**
@@ -86,7 +86,7 @@ class Depot extends Customer
      */
     public function getStores()
     {
-        return $this->hasMany(Store::class, ['depot_id' => 'id']);
+        return $this->hasMany(Store::class, ['parent_id' => 'id']);
     }
     
     /**
@@ -96,7 +96,7 @@ class Depot extends Customer
      */
     public function getTickets()
     {
-        return $this->hasMany(Ticket::class, ['store_id' => 'id'])
+        return $this->hasMany(Ticket::class, ['customer_id' => 'id'])
             ->via('stores');
     }
 }

@@ -65,9 +65,8 @@ class Ticket extends \yii\db\ActiveRecord
         return [
             [['store_id', 'number', 'issuer_id', 'status'], 'required'],
             [['store_id', 'engineer_id', 'issuer_id', 'last_action_id', 'last_status_id'], 'integer'],
-            [['number'], 'string', 'max' => 20],
+            [['number'. 'external_number'], 'string', 'max' => 20],
             [['problem'], 'string', 'max' => 255],
-            [['problem_description'], 'string'],
             [['number'], 'unique'],
             [['number'], 'autonumber', 'format'=>'TS.{Y.m}.????'],
             [['status'], 'default', 'value' => self::STATUS_OPEN],
@@ -79,13 +78,11 @@ class Ticket extends \yii\db\ActiveRecord
                 self::STATUS_CLOSED_DOUBLE_AHO,
                 self::STATUS_CLOSED_NORMAL_IT
             ]],
-            ['issued_at', 'default', 'value' => time()],
+            //['issued_at', 'default', 'value' => time()],
             //['issued_at', 'date', 'timestampAttribute' => 'issued_at'],
             [['engineer_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['engineer_id' => 'id']],
             [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['created_by' => 'id']],
-            [['store_id'], 'exist', 'skipOnError' => true, 'targetClass' => Store::class, 'targetAttribute' => ['store_id' => 'id']],
-            [['last_action_id'], 'exist', 'skipOnError' => true, 'targetClass' => TicketAction::class, 'targetAttribute' => ['last_action_id' => 'id']],
-            [['last_status_id'], 'exist', 'skipOnError' => true, 'targetClass' => TicketStatus::class, 'targetAttribute' => ['last_status_id' => 'id']],
+            [['customer_id'], 'exist', 'skipOnError' => true, 'targetClass' => Store::class, 'targetAttribute' => ['customer_id' => 'id']],
         ];
     }
 
@@ -103,23 +100,7 @@ class Ticket extends \yii\db\ActiveRecord
             'reason' => 'Alasan Tidak Tercover MC',
             'created_by' => 'Dibuat Oleh',
             'created_at' => 'Dibuat Tgl.',
-            'last_action_id' => 'T/K Terakhir',
-            'last_status_id' => 'Status',
         ];
-    }
-
-    public function afterSave($insert, $changedAttributes)
-    {
-        if ($insert)
-        {
-            $this->refresh();
-            $newaction = new Action();
-            $newaction->ticket_id = $this->id;
-            $newaction->engineer_id = $this->created_by;
-            $newaction->action = 'Open ticket baru.';
-            $newaction->save();
-            $newaction->refresh();
-        }
     }
 
     /**
@@ -149,7 +130,7 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getStore()
     {
-        return $this->hasOne(Store::class, ['id' => 'store_id']);
+        return $this->hasOne(Store::class, ['id' => 'customer_id']);
     }
 
     /**
@@ -159,13 +140,13 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getDepot()
     {
-        return $this->hasOne(Depot::class, ['id' => 'depot_id'])
+        return $this->hasOne(Depot::class, ['id' => 'parent_id'])
             ->via('store');
     }
     
     public function getManagers()
     {
-        return $this->hasMany(User::class, ['association_id' => 'id'])
+        return $this->hasMany(User::class, ['customer_id' => 'id'])
             ->via('depot')
             ->where(['status' => User::STATUS_ACTIVE]);
     }
@@ -177,8 +158,38 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getCompany()
     {
-        return $this->hasOne(Company::class, ['id' => 'company_id'])
+        return $this->hasOne(Company::class, ['id' => 'parent_id'])
             ->via('depot');
+    }
+
+    /**
+     * Gets query for [[Documents]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getDocuments()
+    {
+        return $this->hasMany(Document::class, ['ticket_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[Invoices]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getInvoices()
+    {
+        return $this->getDocuments()->where(['category' => self::FILE_INVOICE]);
+    }
+
+    /**
+     * Gets query for [[BAPs]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getBaps()
+    {
+        return $this->getDocuments()->where(['category' => self::FILE_INVOICE]);
     }
 
     public function getStatusSummary()
