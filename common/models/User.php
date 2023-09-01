@@ -8,7 +8,8 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use yii\helpers\ArrayHelper;
-use common\models\Region;
+use common\models\Customer;
+use common\db\UserQuery;
 
 /**
  * User model
@@ -38,11 +39,6 @@ class User extends ActiveRecord implements IdentityInterface
     const ROLE_GENERAL_MANAGER = 'General Manager';
 
     /**
-     * @var UploadedFile avatar attribute
-     */
-    public $avatar;
-
-    /**
      * {@inheritdoc}
      */
     public static function tableName()
@@ -66,26 +62,20 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            ['avatar', 'file'],
-
-            ['full_name', 'string', 'max' => 255],
+            [['username', 'email', 'full_name', 'phone'], 'string', 'max' => 255],
+            [['username', 'email', 'full_name', 'phone'], 'trim'],
+            [['email'], 'email'],
             
             //['role', 'string'],
             //['role', 'default', 'value' => self::ROLE_ENGINEER],
             //['role', 'in', 'range' => [self::ROLE_SYSTEM_ADMINISTRATOR, self::ROLE_ADMINISTRATOR, self::ROLE_STORE_MANAGER, self::ROLE_GENERAL_MANAGER, self::ROLE_ENGINEER]],
             
-            ['region_id', 'integer'],
-            ['region_id', 'default', 'value' => null],
-            [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::class, 'targetAttribute' => ['region_id' => 'id']],
-
-            ['company_id', 'integer'],
-            ['company_id', 'default', 'value' => null],
-            [['company_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['company_id' => 'id']],
-
-            ['phone', 'string'],
+            [['associate_id'], 'integer'],
+            [['associate_id'], 'default', 'value' => null],
+            [['associate_id'], 'exist', 'skipOnError' => true, 'targetClass' => Customer::class, 'targetAttribute' => ['associate_id' => 'id']],
             
-            ['status', 'default', 'value' => self::STATUS_INACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
+            [['status'], 'default', 'value' => self::STATUS_INACTIVE],
+            [['status'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
         ];
     }
 
@@ -105,6 +95,11 @@ class User extends ActiveRecord implements IdentityInterface
             'profile' => 'Profile',
             'avatar' => 'Profile',
         ];
+    }
+
+    public static function find()
+    {
+        return new UserQuery(get_called_class());
     }
 
     /**
@@ -297,14 +292,15 @@ class User extends ActiveRecord implements IdentityInterface
         return false;
     }
 
-    public function getRegion()
+    public function getAssociate()
     {
-        return $this->hasOne(Region::class, ['id' => 'region_id']);
+        return $this->hasOne(Customer::class, ['id' => 'associate_id']);
     }
 
     public function getCompany()
     {
-        return $this->hasOne(Company::class, ['id' => 'company_id']);
+        return $this->hasOne(Company::class, ['id' => 'parent_id'])
+            ->via('associate');
     }
 
     public function getProfileThumbnail()
