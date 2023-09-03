@@ -23,6 +23,14 @@ class Depot extends Customer
     /**
      * {@inheritdoc}
      */
+    public static function tableName()
+    {
+        return 'customer';
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
     public function rules()
     {
         return [

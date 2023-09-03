@@ -1,7 +1,7 @@
 <?php
 
 use common\models\Store;
-use common\models\Region;
+use common\models\Depot;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
@@ -23,8 +23,6 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a('Create Store', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
-
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
@@ -35,19 +33,28 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw',
                 'value' => function ($model) {
                     
-                    return !empty($model->name) ? Html::a($model->name, ['store/view/', 'id' => $model->id]) : ''; // your url here
+                    return !empty($model->name) ? Html::a($model->name, ['customer/view/', 'id' => $model->id]) : ''; // your url here
                 },
             ],
             'code',
             'address',
             [
-                'attribute' => 'region_id',
+                'attribute' => 'parent_id',
+                'label' => 'DC',
                 'format' => 'raw',
                 'value' => function ($model) {
                     
-                    return !empty($model->region_id) ? Html::a($model->region->name, ['region/view/', 'id' => $model->region_id]) : ''; // your url here
+                    return !empty($model->parent_id) ? Html::a($model->depot->name, ['customer/view/', 'id' => $model->parent_id]) : ''; // your url here
                 },
-                'filter'=>ArrayHelper::map(Region::find()->asArray()->all(), 'id', 'name'),
+                'filter'=>ArrayHelper::map(Depot::find()->asArray()->all(), 'id', 'name'),
+            ],
+            [
+                'label' => 'Company',
+                'format' => 'raw',
+                'value' => function ($model) {
+                    return !empty($model->company) ? Html::a($model->company->name, ['customer/view/', 'id' => $model->company->id]) : ''; // your url here
+                },
+                'filter'=>ArrayHelper::map(Depot::find()->asArray()->all(), 'id', 'name'),
             ],
             //'status_id',
             [
@@ -58,5 +65,4 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
         ],
     ]); ?>
-
 </div>

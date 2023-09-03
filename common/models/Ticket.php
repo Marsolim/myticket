@@ -63,8 +63,8 @@ class Ticket extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['store_id', 'number', 'issuer_id', 'status'], 'required'],
-            [['store_id', 'engineer_id', 'issuer_id', 'last_action_id', 'last_status_id'], 'integer'],
+            [['customer_id', 'number', 'status'], 'required'],
+            [['customer_id'], 'integer'],
             [['number'. 'external_number'], 'string', 'max' => 20],
             [['problem'], 'string', 'max' => 255],
             [['number'], 'unique'],
@@ -80,7 +80,7 @@ class Ticket extends \yii\db\ActiveRecord
             ]],
             //['issued_at', 'default', 'value' => time()],
             //['issued_at', 'date', 'timestampAttribute' => 'issued_at'],
-            [['engineer_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['engineer_id' => 'id']],
+            //[['engineer_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['engineer_id' => 'id']],
             [['created_by'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['created_by' => 'id']],
             [['customer_id'], 'exist', 'skipOnError' => true, 'targetClass' => Store::class, 'targetAttribute' => ['customer_id' => 'id']],
         ];
@@ -97,10 +97,16 @@ class Ticket extends \yii\db\ActiveRecord
             'number' => 'No. Servis',
             'external_number' => 'No. AHO',
             'problem' => 'Kendala',
+            'recommendation' => 'Rekomendasi',
             'reason' => 'Alasan Tidak Tercover MC',
             'created_by' => 'Dibuat Oleh',
             'created_at' => 'Dibuat Tgl.',
         ];
+    }
+
+    public function init()
+    {
+        base::init();
     }
 
     /**
@@ -108,7 +114,7 @@ class Ticket extends \yii\db\ActiveRecord
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getEngineer()
+    public function getEngineers()
     {
         return $this->hasOne(User::class, ['id' => 'engineer_id']);
     }
@@ -146,7 +152,7 @@ class Ticket extends \yii\db\ActiveRecord
     
     public function getManagers()
     {
-        return $this->hasMany(User::class, ['customer_id' => 'id'])
+        return $this->hasMany(User::class, ['associate_id' => 'id'])
             ->via('depot')
             ->where(['status' => User::STATUS_ACTIVE]);
     }

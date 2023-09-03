@@ -10,6 +10,7 @@ class UserQuery extends ActiveQuery
     // conditions appended by default (can be skipped)
     public function init()
     {
+        $this->with('associate', 'company');
         parent::init();
     }
 
@@ -24,7 +25,7 @@ class UserQuery extends ActiveQuery
     {
         $q = $this->active()
             ->innerJoin('auth_assignment a', 'user.id = a.user_id')
-            ->where('a.item_name' => User::ROLE_ENGINEER);
+            ->where(['a.item_name' => User::ROLE_ENGINEER]);
         if (isset($id))
             $q = $q->where(['user.id' => $id]);
         return $q;
@@ -34,7 +35,7 @@ class UserQuery extends ActiveQuery
     {
         $q = $this->active()->with('associate', 'company')
             ->innerJoin('auth_assignment a', 'user.id = a.user_id')
-            ->where('a.item_name' => [User::ROLE_GENERAL_MANAGER, User::ROLE_STORE_MANAGER]);
+            ->where(['a.item_name' => [User::ROLE_GENERAL_MANAGER, User::ROLE_STORE_MANAGER]]);
         if (isset($id))
             $q = $q->where(['user.id' => $id]);
         return $q;
@@ -44,7 +45,7 @@ class UserQuery extends ActiveQuery
     {
         $q = $this->active()->with('associate', 'company')
             ->innerJoin('auth_assignment a', 'user.id = a.user_id')
-            ->where('a.item_name' => [User::ROLE_STORE_MANAGER]);
+            ->where(['a.item_name' => [User::ROLE_STORE_MANAGER]]);
         if (isset($id))
             $q = $q->where(['user.id' => $id]);
         return $q;
@@ -54,7 +55,7 @@ class UserQuery extends ActiveQuery
     {
         $q = $this->active()->with('associate', 'company')
             ->innerJoin('auth_assignment a', 'user.id = a.user_id')
-            ->where('a.item_name' => [User::ROLE_GENERAL_MANAGER]);
+            ->where(['a.item_name' => [User::ROLE_GENERAL_MANAGER]]);
         if (isset($id))
             $q = $q->where(['user.id' => $id]);
         return $q;
@@ -64,7 +65,7 @@ class UserQuery extends ActiveQuery
     {
         $q = $this->active()->with('associate', 'company')
             ->innerJoin('auth_assignment a', 'user.id = a.user_id')
-            ->where('a.item_name' => [User::ROLE_ADMINISTRATOR, User::ROLE_SYS_ADMINISTRATOR]);
+            ->where(['a.item_name' => [User::ROLE_ADMINISTRATOR, User::ROLE_SYS_ADMINISTRATOR]]);
         if (isset($id))
             $q = $q->where(['user.id' => $id]);
         return $q;

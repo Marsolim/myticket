@@ -7,6 +7,7 @@ use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use frontend\helpers\TStatusHelper;
 use frontend\helpers\UserHelper;
+use frontend\widgets\TicketHeader;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 
@@ -17,6 +18,8 @@ use yii\grid\GridView;
 $this->title = 'Servis';
 $this->params['breadcrumbs'][] = $this->title;
 
+$tickets = $model->getModels();
+
 $stores = Store::find();
 
 if (UserHelper::isManager())
@@ -26,6 +29,13 @@ if (UserHelper::isManager())
 
 $stores = $stores->all();
 ;
+
+foreach($tickets as $ticket)
+{
+    echo TicketHeader::widget([
+        'model' => $ticket
+    ]);
+}
 
 ?>
 <div class="ticket-index">
@@ -42,6 +52,8 @@ $stores = $stores->all();
     </p>
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+
+
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,

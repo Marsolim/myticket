@@ -11,6 +11,7 @@ class DepotQuery extends ActiveQuery
     public function init()
     {
         $this->andOnCondition(['type' => Customer::TYPE_DEPOT]);
+        $this->with('company');
         parent::init();
     }
 

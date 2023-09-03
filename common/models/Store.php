@@ -4,7 +4,7 @@ namespace common\models;
 
 use common\models\Customer;
 use common\models\Company;
-use common\models\Point;
+use common\models\Depot;
 use common\models\Ticket;
 use common\db\StoreQuery;
 use Yii;
@@ -24,6 +24,14 @@ use Yii;
  */
 class Store extends \yii\db\ActiveRecord
 {
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'customer';
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -59,6 +67,12 @@ class Store extends \yii\db\ActiveRecord
         ];
     }
 
+    public function init()
+    {
+        parent::init();
+        $this->type = Customer::TYPE_STORE;
+    }
+
     public function beforeSave($insert)
     {
         if (!parent::beforeSave($insert)) {
@@ -82,7 +96,7 @@ class Store extends \yii\db\ActiveRecord
      */
     public function getDepot()
     {
-        return $this->hasOne(Region::class, ['id' => 'parent_id']);
+        return $this->hasOne(Depot::class, ['id' => 'parent_id']);
     }
 
     /**
@@ -103,7 +117,7 @@ class Store extends \yii\db\ActiveRecord
      */
     public function getContract()
     {
-        return $this->hasOne(CustomerContract::class, ['customer_id' => 'id'])
+        return $this->hasOne(CustomerContract::class, ['customer_id' => 'id']);
     }
 
     /**
