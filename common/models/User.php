@@ -66,6 +66,9 @@ class User extends ActiveRecord implements IdentityInterface
             [['username', 'email', 'full_name', 'phone'], 'trim'],
             [['email'], 'email'],
             
+            [['type'], 'string', 'max' => 255],
+            [['type'], 'required'],
+
             //['role', 'string'],
             //['role', 'default', 'value' => self::ROLE_ENGINEER],
             //['role', 'in', 'range' => [self::ROLE_SYSTEM_ADMINISTRATOR, self::ROLE_ADMINISTRATOR, self::ROLE_STORE_MANAGER, self::ROLE_GENERAL_MANAGER, self::ROLE_ENGINEER]],
@@ -100,6 +103,23 @@ class User extends ActiveRecord implements IdentityInterface
     public static function find()
     {
         return new UserQuery(get_called_class());
+    }
+
+    public function init()
+    {
+        $this->type = self::class;
+        parent::init();
+    }
+
+    public function beforeSave($insert)
+    {
+        $this->type = self::class;
+        parent::beforeSave($insert);
+    }
+
+    public static function instantiate($row)
+    {
+        return new $row['type']();
     }
 
     /**

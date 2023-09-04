@@ -5,21 +5,17 @@ namespace common\db;
 use common\models\User;
 use yii\db\ActiveQuery;
 
-class UserQuery extends ActiveQuery
+class StoreManagerQuery extends ActiveQuery
 {
-    public $type;
-    public $tableName;
-
-    public function prepare($builder)
+    // conditions appended by default (can be skipped)
+    public function init()
     {
-        if ($this->type !== null) {
-            $this->andWhere(["$this->tableName.type" => $this->type]);
-        }
         $this->with('associate', 'company');
-        return parent::prepare($builder);
+        parent::init();
     }
 
-    
+    // ... add customized query methods here ...
+
     public function active($state = User::STATUS_ACTIVE)
     {
         return $this->andOnCondition(['status' => $state]);

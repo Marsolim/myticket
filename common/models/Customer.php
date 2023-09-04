@@ -5,7 +5,6 @@ namespace common\models;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use common\db\CustomerQuery;
-use common\db\CustomerQuery;
 use Yii;
 
 /**
@@ -57,7 +56,7 @@ class Customer extends \yii\db\ActiveRecord
             [['code'], 'unique'],
             [['name'], 'unique'],
             [['type'], 'default', 'value' => self::TYPE_NULL],
-            [['type'], 'in', 'range' => [self::TYPE_STORE, self::TYPE_POINT, self::TYPE_COMPANY]],
+            [['type'], 'in', 'range' => [self::TYPE_STORE, self::TYPE_DEPOT, self::TYPE_COMPANY]],
         ];
     }
 

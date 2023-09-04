@@ -8,6 +8,7 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\db\Query;
 use yii\filters\VerbFilter;
+use Yii;
 
 /**
  * RegionController implements the CRUD actions for Region model.
@@ -41,7 +42,7 @@ class CompanyController extends Controller
     {
         $searchModel = new CompanySearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
-
+        
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,

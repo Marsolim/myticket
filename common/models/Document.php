@@ -105,7 +105,7 @@ class Document extends \yii\db\ActiveRecord
 
     public function getFileIcon()
     {
-        static $icons = [
+        $icons = [
             'doc' => function($file) {
                 if (preg_match("/^.*\.(doc|docx)$/i", $file))
                 {

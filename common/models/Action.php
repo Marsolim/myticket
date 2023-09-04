@@ -9,7 +9,7 @@ use Yii;
  *
  * @property int $id
  * @property int $ticket
- * @property int $engineer
+ * @property int $engineer_id
  * @property string $action_date
  * @property int $status_override
  * @property string|null $summary

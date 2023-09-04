@@ -194,7 +194,7 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getInvoices()
     {
-        return $this->getDocuments()->where(['category' => self::FILE_INVOICE]);
+        return $this->getDocuments()->where(['category' => Document::FILE_INVOICE]);
     }
 
     /**
@@ -204,7 +204,17 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getBaps()
     {
-        return $this->getDocuments()->where(['category' => self::FILE_INVOICE]);
+        return $this->getDocuments()->where(['category' => Document::FILE_BAP]);
+    }
+
+    /**
+     * Gets query for [[SPKs]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getSPKs()
+    {
+        return $this->getDocuments()->where(['category' => Document::FILE_SPK]);
     }
 
     public function getStatusSummary()
