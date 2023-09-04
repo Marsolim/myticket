@@ -17,7 +17,7 @@ class StoreSearch extends Store
     public function rules()
     {
         return [
-            [['id', 'region_id', 'status_id'], 'integer'],
+            [['id'], 'integer'],
             [['name', 'code', 'address'], 'safe'],
         ];
     }
@@ -73,8 +73,6 @@ class StoreSearch extends Store
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'region_id' => $this->region_id,
-            'status_id' => $this->status_id,
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name])

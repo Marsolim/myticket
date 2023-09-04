@@ -11,6 +11,7 @@ class StoreQuery extends ActiveQuery
     public function init()
     {
         $this->andOnCondition(['type' => Customer::TYPE_STORE]);
+        $this->with('depot', 'company');
         parent::init();
     }
 

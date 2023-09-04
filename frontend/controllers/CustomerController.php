@@ -21,7 +21,7 @@ use Yii;
 /**
  * ShopController implements the CRUD actions for Shop model.
  */
-class StoreController extends Controller
+class CustomerController extends Controller
 {
     /**
      * @inheritDoc

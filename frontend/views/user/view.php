@@ -314,8 +314,8 @@ $this->registerJs($uploadevent, View::POS_READY);
     <?= Html::tag('h6', 'Distribution Center') ?>
     <?= Editable::widget([
         'model' => $model,
-        'attribute' => 'region_id',
-        'displayValue' => isset($model->region_id) ? $model->region->toString() : null,
+        'attribute' => 'associate_id',
+        'displayValue' => empty($model->associate) ? $model->associate->toString() : null,
         'asPopover' => false,
         'header' => 'Distribution Center',
         'inputType' => Editable::INPUT_SELECT2,
@@ -323,7 +323,7 @@ $this->registerJs($uploadevent, View::POS_READY);
             'class'=>'form-control',
             'options' => [
                 'placeholder'=>'Select distribution center...',
-                'value' => isset($model->region_id) ? $model->region->toString() : null,
+                'value' => empty($model->associate) ? $model->associate->toString() : null,
                 'initValueText' => 'kartik-v/yii2-widgets',
             ],
             'pluginOptions' => [

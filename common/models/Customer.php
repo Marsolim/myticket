@@ -5,6 +5,7 @@ namespace common\models;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use common\db\CustomerQuery;
+use common\db\CustomerQuery;
 use Yii;
 
 /**
@@ -15,11 +16,11 @@ use Yii;
  * @property string $code
  *
  */
-abstract class Customer extends \yii\db\ActiveRecord
+class Customer extends \yii\db\ActiveRecord
 {
     const TYPE_NULL = 0;
     const TYPE_STORE = 1;
-    const TYPE_POINT = 2;
+    const TYPE_DEPOT = 2;
     const TYPE_COMPANY = 3;
 
     /**
@@ -51,7 +52,8 @@ abstract class Customer extends \yii\db\ActiveRecord
             [['name'], 'string', 'max' => 100],
             [['code'], 'string', 'max' => 10],
             [['address'], 'string', 'max' => 500],
-            [['phone'], 'string', 'max' => 100],
+            [['phone', 'email'], 'string', 'max' => 100],
+            [['email'], 'email'],
             [['code'], 'unique'],
             [['name'], 'unique'],
             [['type'], 'default', 'value' => self::TYPE_NULL],
@@ -70,22 +72,6 @@ abstract class Customer extends \yii\db\ActiveRecord
             'code' => 'Kode',
             'address' => 'Alamat',
         ];
-    }
-
-    public static function find()
-    {
-        return new CustomerQuery(get_called_class());
-    }
-
-    public static function isType(Customer $object = null, $type = self::TYPE_NULL)
-    {
-        if (!isset($object)) return false;
-        return $object->type == $type;
-    }
-
-    public function isType($type = self::TYPE_NULL)
-    {
-        return self::isType($this, $type);
     }
 
     public function toString()
