@@ -7,6 +7,17 @@ use yii\db\ActiveQuery;
 
 class CustomerQuery extends ActiveQuery
 {
+    public $type;
+    public $tableName;
+
+    public function prepare($builder)
+    {
+        if ($this->type !== null) {
+            $this->andWhere(["$this->tableName.type" => $this->type]);
+        }
+        return parent::prepare($builder);
+    }
+
     // conditions appended by default (can be skipped)
     public function init()
     {
@@ -18,20 +29,5 @@ class CustomerQuery extends ActiveQuery
     public function active($state = true)
     {
         return $this->andOnCondition(['active' => $state]);
-    }
-
-    public function companies()
-    {
-        return $this->andOnCondition(['type' => Customer::TYPE_COMPANY]);
-    }
-    
-    public function depots()
-    {
-        return $this->andOnCondition(['type' => Customer::TYPE_DEPOT]);
-    }
-    
-    public function stores()
-    {
-        return $this->andOnCondition(['type' => Customer::TYPE_STORE]);
     }
 }

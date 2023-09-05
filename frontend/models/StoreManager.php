@@ -1,48 +1,27 @@
 <?php
 
+namespace frontend\models;
+
+use common\db\UserQuery;
 use common\models\Depot;
 use common\models\User;
-use frontend\db\StoreManagerQuery;
 use Yii;
+use yii\helpers\ArrayHelper;
 
 class StoreManager extends User
 {
     /**
      * {@inheritdoc}
      */
-    public static function tableName()
-    {
-        return '{{%user}}';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
-        return [
-            [['username', 'email', 'full_name', 'phone'], 'string', 'max' => 255],
-            [['username', 'email', 'full_name', 'phone'], 'trim'],
-            [['email'], 'email'],
-            
+        $rules = parent::rules();
+        return ArrayHelper::merge($rules, [
             [['associate_id'], 'integer'],
             [['associate_id'], 'required'],
             [['associate_id'], 'default', 'value' => null],
             [['associate_id'], 'exist', 'skipOnError' => true, 'targetClass' => Depot::class, 'targetAttribute' => ['associate_id' => 'id']],
-            
-            [['status'], 'default', 'value' => self::STATUS_INACTIVE],
-            [['status'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
-        ];
+        ]);
     }
 
     /**
@@ -67,9 +46,34 @@ class StoreManager extends User
         return User::ROLE_STORE_MANAGER;
     }
 
+    public function getDepot()
+    {
+        return $this->hasOne(Depot::class, ['id' => 'associate_id']);
+    }
+
+    public function getCompany()
+    {
+        return $this->hasOne(Company::class, ['id' => 'parent_id'])
+            ->via('depot');
+    }
+
+    public function init()
+    {
+        $this->type = self::class;
+        parent::init();
+    }
+
+    public function beforeSave($insert)
+    {
+        $this->type = self::class;
+        return parent::beforeSave($insert);
+    }
+
     public static function find()
     {
-        return new StoreManagerQuery(get_called_class());
+        $query = new UserQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = $query->with('depot.company');
+        return $query;
     }
 
     public function afterSave($insert, $changedAttributes)

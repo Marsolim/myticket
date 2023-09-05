@@ -6,8 +6,9 @@ use common\models\Customer;
 use common\models\Depot;
 use common\models\Store;
 use common\models\Ticket;
-use common\db\CompanyQuery;
+use common\db\CustomerQuery;
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "region".
@@ -23,27 +24,12 @@ class Company extends Customer
     /**
      * {@inheritdoc}
      */
-    public static function tableName()
-    {
-        return 'customer';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
-        return [
-            [['name', 'code'], 'required'],
-            [['name'], 'string', 'max' => 100],
-            [['code'], 'string', 'max' => 10],
-            [['address'], 'string', 'max' => 500],
-            [['phone'], 'string', 'max' => 100],
-            [['email'], 'string', 'max' => 255],
-            [['code'], 'unique'],
-            [['name'], 'unique'],
-            [['type'], 'default', Customer::TYPE_COMPANY],
-        ];
+        $rules = parent::rules();
+        return ArrayHelper::merge($rules, [
+
+        ]);
     }
 
     /**
@@ -61,20 +47,23 @@ class Company extends Customer
         ];
     }
 
+    public function init()
+    {
+        $this->type = self::class;
+        parent::init();
+    }
+
     public function beforeSave($insert)
     {
-        if (!parent::beforeSave($insert)) {
-            return false;
-        }
-    
-        $this->type = Customer::TYPE_COMPANY;
-
-        return true;
+        $this->type = self::class;
+        return parent::beforeSave($insert);
     }
     
     public static function find()
     {
-        return new CompanyQuery(get_called_class());
+        $query = new CustomerQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = $query->with('depots', 'stores');
+        return $query;
     }
 
     public function getTickets()
@@ -91,6 +80,6 @@ class Company extends Customer
 
     public function getDepots()
     {
-        return $this->hasMany(Depot::class, ['company_id' => 'id']);
+        return $this->hasMany(Depot::class, ['company_id' => 'id'])->inverseOf('company');
     }
 }

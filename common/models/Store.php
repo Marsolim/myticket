@@ -2,12 +2,13 @@
 
 namespace common\models;
 
+use common\db\CustomerQuery;
 use common\models\Customer;
 use common\models\Company;
 use common\models\Depot;
 use common\models\Ticket;
-use common\db\StoreQuery;
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "shop".
@@ -22,33 +23,18 @@ use Yii;
  * @property Region $region
  * @property SLAStatus $status
  */
-class Store extends \yii\db\ActiveRecord
+class Store extends Customer
 {
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'customer';
-    }
-
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
-        return [
-            [['name', 'code', 'point_id'], 'required'],
-            [['parent_id'], 'integer'],
-            [['name'], 'string', 'max' => 100],
-            [['code'], 'string', 'max' => 20],
-            [['phone', 'email'], 'string', 'max' => 255],
-            [['address'], 'string', 'max' => 500],
-            [['code'], 'unique'],
-            [['name'], 'unique'],
-            [['type'], 'default', Customer::TYPE_STORE],
+        $rules = parent::rules();
+        return ArrayHelper::merge($rules, [
+            [['parent_id'], 'required'],
             [['parent_id'], 'exist', 'skipOnError' => true, 'targetClass' => Depot::class, 'targetAttribute' => ['parent_id' => 'id']],
-        ];
+        ]);
     }
 
     /**
@@ -69,24 +55,22 @@ class Store extends \yii\db\ActiveRecord
 
     public function init()
     {
+        $this->type = self::class;
         parent::init();
-        $this->type = Customer::TYPE_STORE;
     }
 
     public function beforeSave($insert)
     {
-        if (!parent::beforeSave($insert)) {
-            return false;
-        }
-    
-        $this->type = Customer::TYPE_STORE;
-
-        return true;
+        
+        $this->type = self::class;
+        return parent::beforeSave($insert);
     }
 
     public static function find()
     {
-        return new StoreQuery(get_called_class());
+        $query = new CustomerQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = $query->with('depot.company');
+        return $query;
     }
 
     /**
@@ -96,7 +80,7 @@ class Store extends \yii\db\ActiveRecord
      */
     public function getDepot()
     {
-        return $this->hasOne(Region::class, ['id' => 'depot_id']);
+        return $this->hasOne(Depot::class, ['id' => 'depot_id']);
     }
 
     /**
@@ -127,6 +111,6 @@ class Store extends \yii\db\ActiveRecord
      */
     public function getTickets()
     {
-        return $this->hasMany(Ticket::class, ['customer_id' => 'id']);
+        return $this->hasMany(Ticket::class, ['customer_id' => 'id'])->inverseOf('customer');
     }
 }

@@ -8,20 +8,15 @@ use common\db\CustomerQuery;
 use Yii;
 
 /**
- * This is the model class for table "region".
+ * This is the model class for table "customer".
  *
  * @property int $id
  * @property string $name
  * @property string $code
  *
  */
-class Customer extends \yii\db\ActiveRecord
+abstract class Customer extends \yii\db\ActiveRecord
 {
-    const TYPE_NULL = 0;
-    const TYPE_STORE = 1;
-    const TYPE_DEPOT = 2;
-    const TYPE_COMPANY = 3;
-
     /**
      * {@inheritdoc}
      */
@@ -38,7 +33,7 @@ class Customer extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'customer';
+        return '{{%customer%}}';
     }
 
     /**
@@ -48,15 +43,13 @@ class Customer extends \yii\db\ActiveRecord
     {
         return [
             [['name', 'code'], 'required'],
-            [['name'], 'string', 'max' => 100],
+            [['name', 'phone', 'email'], 'string', 'max' => 255],
             [['code'], 'string', 'max' => 10],
             [['address'], 'string', 'max' => 500],
-            [['phone', 'email'], 'string', 'max' => 100],
+            [['code', 'name', 'phone', 'email'], 'trim'],
             [['email'], 'email'],
             [['code'], 'unique'],
             [['name'], 'unique'],
-            [['type'], 'default', 'value' => self::TYPE_NULL],
-            [['type'], 'in', 'range' => [self::TYPE_STORE, self::TYPE_DEPOT, self::TYPE_COMPANY]],
         ];
     }
 
@@ -71,6 +64,24 @@ class Customer extends \yii\db\ActiveRecord
             'code' => 'Kode',
             'address' => 'Alamat',
         ];
+    }
+
+    // public function init()
+    // {
+    //     $this->type = self::class;
+    //     parent::init();
+    // }
+
+    // public function beforeSave($insert)
+    // {
+    //     $this->type = self::class;
+    //     parent::beforeSave($insert);
+    // }
+
+    public static function instantiate($row)
+    {
+        $type = $row['type'];
+        return new $type();
     }
 
     public function toString()

@@ -119,7 +119,8 @@ class User extends ActiveRecord implements IdentityInterface
 
     public static function instantiate($row)
     {
-        return new $row['type']();
+        $type = $row['type'];
+        return new $type();
     }
 
     /**

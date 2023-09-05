@@ -14,14 +14,14 @@ use Yii;
  * @property int $status_override
  * @property string|null $summary
  */
-class Action extends \yii\db\ActiveRecord
+abstract class Action extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'ticket_action';
+        return '{{%action%}}';
     }
 
     /**
@@ -30,12 +30,10 @@ class Action extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['ticket_id', 'engineer_id', 'status_override'], 'required'],
-            [['ticket_id', 'engineer_id', 'status_override'], 'integer'],
-            [['action'], 'string', 'max' => 255],
-            ['action_date', 'default', 'value' => time()],
-            //['action_date', 'date', 'timestampAttribute' => 'action_date'],
-            [['summary'], 'string'],
+            [['ticket_id', 'user_id', 'type'], 'required'],
+            [['ticket_id', 'user_id', 'item_id'], 'integer'],
+            [['action', 'type'], 'string', 'max' => 255],
+            [['summary'], 'string', 'max' => 500],
         ];
     }
 
