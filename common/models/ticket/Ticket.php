@@ -264,13 +264,13 @@ class Ticket extends \yii\db\ActiveRecord
     }
 
     /**
-     * Gets query for [[Reason]].
+     * Gets query for [[Discretion]].
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getReason()
+    public function getDiscretion()
     {
-        return $this->hasOne(Reason::class, ['ticket_id' => 'id'])->inverseOf('ticket');
+        return $this->hasOne(Discretion::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
     public function getCovered()

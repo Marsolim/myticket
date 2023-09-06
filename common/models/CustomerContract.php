@@ -5,6 +5,7 @@ namespace common\models;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use common\db\CustomerQuery;
+use common\models\actors\Customer;
 use Yii;
 
 /**
@@ -70,7 +71,7 @@ class CustomerContract extends \yii\db\ActiveRecord
 
     public function getCustomer()
     {
-        return $this->hasOne(Customer::class, ['id' => 'customer_id']))
+        return $this->hasOne(Customer::class, ['id' => 'customer_id']);
     }
 
     public function toString()
