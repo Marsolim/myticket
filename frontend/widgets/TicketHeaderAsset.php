@@ -5,7 +5,7 @@ namespace frontend\widgets;
 
 use yii\web\AssetBundle;
 
-class TActionThreadAsset extends AssetBundle
+class TicketHeaderAsset extends AssetBundle
 {
     public $css = [
         // CDN lib

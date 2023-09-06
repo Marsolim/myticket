@@ -7,7 +7,7 @@ use yii\helpers\Url;
 use yii\web\JsExpression;
 use yii\web\View;
 use frontend\helpers\UserHelper;
-use common\models\User;
+use common\models\actors\User;
 //use kartik\widgets\FileInput;
 use kartik\file\FileInput;
 use kartik\select2\Select2;
@@ -80,7 +80,7 @@ if (UserHelper::isAdministrator())
     <?= Html::beginTag('div', ['class'=>"col-md-4 gradient-custom text-center text-safe",
         'style'=>"border-top-left-radius: .5rem; border-bottom-left-radius: .5rem;"]) ?>
     <?= $form->field($model, 'avatar', ['labelOptions' => ['style' => 'display: none'], 'options' => ['class' => 'ms-4 my-5']])
-        ->widget(FileInput::classname(), [
+        ->widget(FileInput::class, [
         'options' => ['accept' => 'image/*'],
         'pluginOptions' => [
             'initialPreview'=>[
@@ -151,7 +151,7 @@ if (UserHelper::isAdministrator())
     <?= Html::beginTag('div', ['class'=>"col-6 mb-3 overflow-visible"]) ?>
     <?= Html::tag('h6', 'Distribution Center') ?>
     <?= $form->field($model, 'region_id', ['labelOptions' => ['style' => 'display: none']])
-        ->widget(Select2::classname(), [
+        ->widget(Select2::class, [
             'class'=>'form-control',
             'options' => [
                 'placeholder'=>'Select distribution center...',
@@ -177,7 +177,7 @@ if (UserHelper::isAdministrator())
     <?= Html::beginTag('div', ['class'=>"col-6 mb-3"]) ?>
     <?= Html::tag('h6', 'Company') ?>
     <?= $form->field($model, 'company_id', ['labelOptions' => ['style' => 'display: none']])
-        ->widget(Select2::classname(), [
+        ->widget(Select2::class, [
             'class'=>'form-control',
             'options' => [
                 'placeholder'=>'Select company...',

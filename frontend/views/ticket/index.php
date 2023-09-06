@@ -1,11 +1,10 @@
 <?php
 
-use common\models\Ticket;
-use common\models\Store;
+use common\models\ticket\Ticket;
+use common\models\actors\Store;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
-use frontend\helpers\TStatusHelper;
 use frontend\helpers\UserHelper;
 use frontend\widgets\TicketHeader;
 use yii\grid\ActionColumn;
@@ -18,7 +17,7 @@ use yii\grid\GridView;
 $this->title = 'Servis';
 $this->params['breadcrumbs'][] = $this->title;
 
-$tickets = $model->getModels();
+$tickets = $dataProvider->getModels();
 
 $stores = Store::find();
 
@@ -111,7 +110,7 @@ foreach($tickets as $ticket)
                 'label' => 'Command',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return TStatusHelper::createNextCommands($model);
+                    return '';
                 }
             ],
         ],

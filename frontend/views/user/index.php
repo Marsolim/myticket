@@ -1,17 +1,17 @@
 <?php
 
-use common\models\User;
-use common\models\ManagedStore;
-use common\models\Store;
+use common\models\actors\User;
+use common\models\actors\Store;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use frontend\helpers\UserHelper;
-use yii\grid\ActionColumn;
 use yii\grid\GridView;
+use yii\grid\ActionColumn;
 use yii\bootstrap5\ButtonDropdown;
 //use kartik\grid\GridView;
 use kartik\icons\FontAwesomeAsset;
+//use Yii;
 
 /** @var yii\web\View $this */
 /** @var common\models\UserSearch $searchModel */
@@ -98,8 +98,8 @@ if (Yii::$app->user->can('manageUser'))
                             'url' => ['assign-store', 'store' => $store->id, 'user' => $model->id],
                         ];
                     }
-                    $cstore = ManagedStore::findOne(['user_id' => $model->id, 'active' => ManagedStore::STATUS_ACTIVE]);
-                    if (isset($cstore)) $cstore = $cstore->store;
+                    //$cstore = ManagedStore::findOne(['user_id' => $model->id, 'active' => ManagedStore::STATUS_ACTIVE]);
+                    //if (isset($cstore)) $cstore = $cstore->store;
                     return ButtonDropdown::widget([
                         'label' => isset($cstore) ? $cstore->name : 'Manage Store',
                         'dropdown' => [

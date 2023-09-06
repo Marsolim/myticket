@@ -6,9 +6,9 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use kartik\helpers\Enum;
 use frontend\helpers\RoleHelper;
-use frontend\helpers\TStatusHelper;
-use common\models\Ticket;
-use common\models\Store;
+use common\models\ticket\Ticket;
+use common\models\actors\Store;
+use common\models\doc\Document;
 
 /** @var yii\web\View $this */
 /** @var common\models\Ticket $model */
@@ -19,7 +19,7 @@ $store = $model->getStore();
 ?>
 <?= Html::beginTag('div', ['id' => $id]) ?>
 <?php foreach($steps as $index => $step) {
-  $sto = TStatusHelper::getLabel($step); 
+  //$sto = TStatusHelper::getLabel($step); 
   //$date = new DateTime('@'.$step->action_date);
   //$diff = $date->diff(new DateTime('now'));
   $documents = Document::findAll(['action_id' => $step->id]);
