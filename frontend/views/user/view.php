@@ -1,8 +1,7 @@
 <?php
 
-use common\models\User;
-use common\models\Store;
-use common\models\ManagedStore;
+use common\models\actors\User;
+use common\models\actors\Store;
 use yii\web\JsExpression;
 use yii\web\View;
 use yii\helpers\Html;
@@ -13,7 +12,7 @@ use kartik\select2\Select2;
 use kartik\file\FileInput;
 
 /** @var yii\web\View $this */
-/** @var common\models\Store $model */
+/** @var common\models\actors\Store $model */
 
 $this->title = $model->full_name;
 $this->params['breadcrumbs'][] = ['label' => 'User Profiles', 'url' => ['index']];
