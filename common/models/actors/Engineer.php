@@ -1,9 +1,9 @@
 <?php
 
-namespace frontend\models;
+namespace common\models\actors;
 
 use common\db\UserQuery;
-use common\models\User;
+use common\models\actors\User;
 use yii\helpers\ArrayHelper;
 use Yii;
 

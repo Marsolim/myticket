@@ -4,7 +4,8 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\helpers\ArrayHelper;
 use frontend\helpers\RoleHelper;
-use common\models\User;
+use common\models\actors\User;
+use yii\widgets\Pjax;
 
 /** @var yii\web\View $this */
 /** @var app\models\UserProfile $model */

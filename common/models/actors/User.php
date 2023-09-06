@@ -1,6 +1,6 @@
 <?php
 
-namespace common\models;
+namespace common\models\actors;
 
 use Yii;
 use yii\base\NotSupportedException;
@@ -8,7 +8,7 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use yii\helpers\ArrayHelper;
-use common\models\Customer;
+use common\models\actors\Customer;
 use common\db\UserQuery;
 
 /**

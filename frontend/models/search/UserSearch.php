@@ -1,15 +1,15 @@
 <?php
 
-namespace common\models;
+namespace frontend\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use common\models\Region;
+use common\models\actors\User;
 
 /**
- * RegionSearch represents the model behind the search form of `common\models\Region`.
+ * StoreSearch represents the model behind the search form of `frontend\models\Shop`.
  */
-class RegionSearch extends Region
+class UserSearch extends User
 {
     /**
      * {@inheritdoc}
@@ -18,7 +18,7 @@ class RegionSearch extends Region
     {
         return [
             [['id'], 'integer'],
-            [['name', 'code'], 'safe'],
+            [['username', 'full_name'], 'safe'],
         ];
     }
 
@@ -40,7 +40,7 @@ class RegionSearch extends Region
      */
     public function search($params)
     {
-        $query = Region::find();
+        $query = User::find();
 
         // add conditions that should always apply here
 
@@ -61,8 +61,8 @@ class RegionSearch extends Region
             'id' => $this->id,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'code', $this->code]);
+        $query->andFilterWhere(['like', 'username', $this->username])
+            ->andFilterWhere(['like', 'full_name', $this->full_name]);
 
         return $dataProvider;
     }

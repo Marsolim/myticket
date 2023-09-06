@@ -2,14 +2,12 @@
 
 namespace frontend\controllers;
 
-use common\models\User;
-use common\models\Store;
-use common\models\Region;
-use common\models\SLAStatus;
-use common\models\Document;
-use common\models\ManagedStore;
-use common\models\StoreSearch;
-use common\models\TicketSearch;
+use common\models\actors\Depot;
+use common\models\actors\User;
+use common\models\actors\Store;
+use common\models\doc\Document;
+use frontend\models\search\StoreSearch;
+use frontend\models\search\TicketSearch;
 use yii\web\Controller;
 use yii\data\ActiveDataProvider;
 use yii\web\NotFoundHttpException;
@@ -17,6 +15,7 @@ use yii\filters\VerbFilter;
 use yii\helpers\Url;
 use frontend\helpers\UserHelper;
 use Yii;
+use yii\web\UnauthorizedHttpException;
 
 /**
  * ShopController implements the CRUD actions for Shop model.
@@ -32,7 +31,7 @@ class CustomerController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
                         'assign' => ['POST'],
@@ -112,7 +111,7 @@ class CustomerController extends Controller
     {
         $model = new Store();
 
-        if (User::isMemberOfRole(User::ROLE_STORE_MANAGER))
+        if (UserHelper::isMemberOfRole(User::ROLE_STORE_MANAGER))
         {
             $user = User::findOne(['id' => Yii::$app->user->id]);
             $model->region_id = $user->region_id;
@@ -128,8 +127,7 @@ class CustomerController extends Controller
 
         return $this->render('create', [
             'model' => $model,
-            'regions' => Region::find()->all(),
-            'status' => SLAStatus::find()->all(),
+            'regions' => Depot::find()->all(),
         ]);
     }
 
@@ -144,7 +142,7 @@ class CustomerController extends Controller
     {
         $model = $this->findModel($id);
         
-        if (User::isMemberOfRole(User::ROLE_STORE_MANAGER))
+        if (UserHelper::isMemberOfRole(User::ROLE_STORE_MANAGER))
         {
             $user = User::findOne(['id' => Yii::$app->user->id]);
             $model->region_id = $user->region_id;
@@ -156,8 +154,7 @@ class CustomerController extends Controller
 
         return $this->render('update', [
             'model' => $model,
-            'regions' => Region::find()->all(),
-            'status' => SLAStatus::find()->all(),
+            'regions' => Depot::find()->all(),
         ]);
     }
 

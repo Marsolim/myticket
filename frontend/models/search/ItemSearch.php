@@ -1,15 +1,15 @@
 <?php
 
-namespace common\models;
+namespace frontend\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use common\models\Company;
+use common\models\Item;
 
 /**
- * CompanySearch represents the model behind the search form of `common\models\Region`.
+ * ItemSearch represents the model behind the search form of `common\models\Region`.
  */
-class CompanySearch extends Company
+class ItemSearch extends Item
 {
     /**
      * {@inheritdoc}
@@ -40,7 +40,7 @@ class CompanySearch extends Company
      */
     public function search($params)
     {
-        $query = Company::find();
+        $query = Item::find();
 
         // add conditions that should always apply here
 

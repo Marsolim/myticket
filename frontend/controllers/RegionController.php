@@ -2,8 +2,8 @@
 
 namespace frontend\controllers;
 
-use common\models\Region;
-use common\models\RegionSearch;
+use common\models\actors\Depot;
+use frontend\models\search\DepotSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\db\Query;
@@ -23,7 +23,7 @@ class RegionController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
                     ],
@@ -39,7 +39,7 @@ class RegionController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new RegionSearch();
+        $searchModel = new DepotSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
         return $this->render('index', [
@@ -68,7 +68,7 @@ class RegionController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Region();
+        $model = new Depot();
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->save()) {
@@ -132,7 +132,7 @@ class RegionController extends Controller
             $out['results'] = array_values($data);
         }
         elseif ($id > 0) {
-            $out['results'] = ['id' => $id, 'text' => Region::find($id)->toString()];
+            $out['results'] = ['id' => $id, 'text' => Depot::find($id)->toString()];
         }
         return $out;
     }
@@ -146,7 +146,7 @@ class RegionController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = Region::findOne(['id' => $id])) !== null) {
+        if (($model = Depot::findOne(['id' => $id])) !== null) {
             return $model;
         }
 

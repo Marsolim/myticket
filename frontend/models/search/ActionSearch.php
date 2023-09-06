@@ -1,15 +1,15 @@
 <?php
 
-namespace common\models;
+namespace frontend\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use common\models\TicketAction;
+use common\models\ticket\Action;
 
 /**
  * TicketActionSearch represents the model behind the search form of `frontend\models\TicketAction`.
  */
-class TicketActionSearch extends TicketAction
+class ActionSearch extends Action
 {
     /**
      * {@inheritdoc}
@@ -40,7 +40,7 @@ class TicketActionSearch extends TicketAction
      */
     public function searchQuery($params)
     {
-        $query = TicketAction::find();
+        $query = Action::find();
 
         $this->load($params);
 

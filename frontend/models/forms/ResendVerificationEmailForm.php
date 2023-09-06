@@ -1,9 +1,9 @@
 <?php
 
-namespace frontend\models;
+namespace frontend\models\forms;
 
 use Yii;
-use common\models\User;
+use common\models\actors\User;
 use yii\base\Model;
 
 class ResendVerificationEmailForm extends Model

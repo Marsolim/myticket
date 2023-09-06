@@ -2,7 +2,7 @@
 
 namespace common\db;
 
-use common\models\Customer;
+use common\models\actors\Customer;
 use yii\db\ActiveQuery;
 
 class CustomerQuery extends ActiveQuery

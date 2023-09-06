@@ -1,11 +1,11 @@
 <?php
 
-namespace common\models;
+namespace common\models\actors;
 
-use common\models\Customer;
-use common\models\Depot;
-use common\models\Store;
-use common\models\Ticket;
+use common\models\actors\Customer;
+use common\models\actors\Depot;
+use common\models\actors\Store;
+use common\models\ticket\Ticket;
 use common\db\CustomerQuery;
 use Yii;
 use yii\helpers\ArrayHelper;

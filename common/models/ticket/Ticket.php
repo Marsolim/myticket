@@ -1,16 +1,17 @@
 <?php
 
-namespace common\models;
+namespace common\models\ticket;
 
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
-use yii\helpers\Html;
-use common\models\User;
-use common\models\Store;
-use common\models\Depot;
-use common\models\Company;
-use common\models\Action;
+use common\models\actors\User;
+use common\models\actors\Store;
+use common\models\actors\Depot;
+use common\models\actors\Company;
+use common\models\doc\Document;
+use common\models\ticket\Action;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "ticket".
@@ -97,25 +98,22 @@ class Ticket extends \yii\db\ActiveRecord
             'number' => 'No. Servis',
             'external_number' => 'No. AHO',
             'problem' => 'Kendala',
-            'recommendation' => 'Rekomendasi',
-            'reason' => 'Alasan Tidak Tercover MC',
             'created_by' => 'Dibuat Oleh',
             'created_at' => 'Dibuat Tgl.',
         ];
     }
 
-    public function afterSave($insert, $changedAttributes)
+    public function init()
     {
-        if ($insert)
-        {
-            $this->refresh();
-            $newaction = new Action();
-            $newaction->ticket_id = $this->id;
-            $newaction->engineer_id = $this->created_by;
-            $newaction->action = 'Open ticket baru.';
-            $newaction->save();
-            $newaction->refresh();
-        }
+        $this->status = self::STATUS_OPEN;
+        parent::init();
+    }
+
+    public function beforeSave($insert)
+    {
+        if ($this->isNewRecord)
+            $this->status = self::STATUS_OPEN;
+        return parent::beforeSave($insert);
     }
 
     /**
@@ -125,7 +123,8 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getEngineers()
     {
-        return $this->hasOne(User::class, ['id' => 'engineer_id']);
+        return $this->hasMany(Engineer::class, ['id' => 'user_id'])
+            ->via('assignments');
     }
 
     /**
@@ -161,7 +160,7 @@ class Ticket extends \yii\db\ActiveRecord
     
     public function getManagers()
     {
-        return $this->hasMany(User::class, ['association_id' => 'id'])
+        return $this->hasMany(StoreManager::class, ['association_id' => 'id'])
             ->via('depot')
             ->where(['status' => User::STATUS_ACTIVE]);
     }
@@ -184,7 +183,7 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getDocuments()
     {
-        return $this->hasMany(Document::class, ['ticket_id' => 'id']);
+        return $this->hasMany(Document::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
     /**
@@ -217,48 +216,10 @@ class Ticket extends \yii\db\ActiveRecord
         return $this->getDocuments()->where(['category' => Document::FILE_SPK]);
     }
 
-    public function getStatusSummary()
-    {
-        $last_action = Action::findOne(['id' => $this->last_action_id]);
-        if (isset($last_action)){
-            $scode = $last_action->status->code . ' - ' . $last_action->status->name;
-            $engineer = $last_action->engineer->full_name;
-            $date = date('d F Y', $last_action->action_date);
-            $durasi = floor(((!in_array($last_action->status->code, ['CNA', 'CDT', 'CRA']) ? time() : $last_action->action_date) - $this->issued_at)/86400);
-            return $xml = <<<EOD
-Status  : $scode
-Tanggal : $date
-Tindakan: $last_action->action
-Teknisi : $engineer
-Lama penanganan : $durasi hari
-EOD;
-        }
-        return '';
-    }
-
-    public function getStoreDetail()
-    {
-        $store = $this->store;
-        if (isset($store)){
-            $storename = Html::a($store->code.'-'.$store->name, ['store/view/', 'id' => $store->id]);
-            return $xml = <<<EOD
-$storename
-$store->address
-Telepon : $store->phone
-e-Mail  : $store->email
-EOD;
-        }
-        return '';
-    }
-
     public function getBarcodes()
     {
-        $actions = $this->getActionsWithItem()->andWhere(['not', ['serial' => null]])->all();
-        $barcodes = [];
-        foreach($actions as $action)
-        {
-            $barcodes[] = $action->serial;
-        }
+        $actions = $this->getRepairs()->andWhere(['not', ['serial' => null]])->all();
+        $barcodes = ArrayHelper::getValue($actions, 'serial');
         return implode(', ', $barcodes);
     }
 
@@ -273,13 +234,58 @@ EOD;
     }
 
     /**
-     * Gets query for [[ActionsWithItem]].
+     * Gets query for [[LastAction]].
+     *
+     * @return \common\models\Action
+     */
+    public function getLastAction()
+    {
+        return $this->getActions()->orderBy(['created_at' => SORT_DESC])->one();
+    }
+
+    /**
+     * Gets query for [[Visits]].
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getActionsWithItem()
+    public function getVisits()
     {
-        return $this->hasMany(Action::class, ['ticket_id' => 'id'])->where(['not', ['action.item_id' => null]]);
+        return $this->hasMany(Visit::class, ['ticket_id' => 'id'])->inverseOf('ticket');
+    }
+
+    /**
+     * Gets query for [[Repairs]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getRepairs()
+    {
+        return $this->hasMany(Repair::class, ['ticket_id' => 'id'])->inverseOf('ticket');
+    }
+
+    /**
+     * Gets query for [[Reason]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getReason()
+    {
+        return $this->hasOne(Reason::class, ['ticket_id' => 'id'])->inverseOf('ticket');
+    }
+
+    public function getCovered()
+    {
+        return empty($this->reason);
+    }
+
+    /**
+     * Gets query for [[Assignments]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getAssignments()
+    {
+        return $this->hasMany(Assignment::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
     /**
@@ -290,6 +296,6 @@ EOD;
     public function getItems()
     {
         return $this->hasMany(Item::class, ['id' => 'item_id'])
-            ->via('actionsWithItem');
+            ->via('repairs');
     }
 }

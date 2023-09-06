@@ -2,10 +2,11 @@
 
 namespace common\db;
 
+use common\models\ticket\Assignment;
 use common\models\actors\User;
 use yii\db\ActiveQuery;
 
-class UserQuery extends ActiveQuery
+class ActionQuery extends ActiveQuery
 {
     public $type;
     public $tableName;
@@ -15,14 +16,13 @@ class UserQuery extends ActiveQuery
         if ($this->type !== null) {
             $this->andWhere(["$this->tableName.type" => $this->type]);
         }
-        $this->with('associate', 'company');
+        $this->with('ticket', 'company');
         return parent::prepare($builder);
     }
 
-    
-    public function active($state = User::STATUS_ACTIVE)
+    public function assignments()
     {
-        return $this->andOnCondition(['status' => $state]);
+        return $this->andOnCondition(['type' => Assignment::class]);
     }
 
     public function engineers($id = null)

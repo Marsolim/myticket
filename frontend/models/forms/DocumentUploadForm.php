@@ -1,10 +1,11 @@
 <?php
 
-namespace frontend\models;
+namespace frontend\models\forms;
 
 use yii\base\Model;
 use yii\web\UploadedFile;
-use common\models\Document;
+use common\models\doc\Document;
+use Yii;
 
 class DocumentUploadForm extends Model
 {
@@ -25,7 +26,7 @@ class DocumentUploadForm extends Model
             [['owner_id', 'store_id', 'ticket_id', 'action_id', 'type'], 'integer'],
             ['owner_id', 'required'],
             ['type', 'default', 'value' => Document::FILE_UNCATEGORIZED],
-            ['type', 'in', 'range' => [Document::FILE_INVOICE, Document::FILE_BAP_SPK, Document::FILE_UNCATEGORIZED]],
+            ['type', 'in', 'range' => [Document::FILE_INVOICE, Document::FILE_BAP, Document::FILE_SPK, Document::FILE_UNCATEGORIZED]],
             [['files'], 'file', 'skipOnEmpty' => false, 'extensions' => 'pdf, doc, docx, jpg, png', 'maxFiles' => 5],
         ];
     }

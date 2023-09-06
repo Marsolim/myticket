@@ -1,7 +1,9 @@
 <?php
 namespace frontend\helpers;
 
-use common\models\User;
+use common\models\actors\User;
+use Yii;
+use yii\helpers\ArrayHelper;
 
 class RoleHelper
 {

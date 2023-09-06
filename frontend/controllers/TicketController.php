@@ -3,15 +3,13 @@
 namespace frontend\controllers;
 
 use Yii;
-use common\models\Ticket;
-use common\models\User;
-use common\models\Store;
-use common\models\ManagedStore;
-use common\models\TicketAction;
-use common\models\TicketStatus;
-use common\models\TicketActionSearch;
-use common\models\TicketSearch;
-use frontend\models\DocumentUploadForm;
+use common\models\ticket\Ticket;
+use common\models\actors\User;
+use common\models\actors\Store;
+use common\models\ticket\Action;
+use frontend\models\search\ActionSearch;
+use frontend\models\search\TicketSearch;
+use frontend\models\forms\DocumentUploadForm;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\UnauthorizedHttpException;
@@ -21,7 +19,6 @@ use yii\helpers\ArrayHelper;
 use yii\filters\VerbFilter;
 use frontend\helpers\UserHelper;
 use mdm\autonumber\AutoNumber;
-
 /**
  * TicketController implements the CRUD actions for Ticket model.
  */
@@ -36,7 +33,7 @@ class TicketController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
                         'assign-engineer' => ['POST'],
@@ -90,7 +87,7 @@ class TicketController extends Controller
      */
     public function actionView($id)
     {
-        $searchModel = new TicketActionSearch();
+        $searchModel = new ActionSearch();
         $query = $searchModel->searchQuery(['ticket_id' => $id]);
         $query->where(['ticket_id' => $id]);
         $dataProvider = $searchModel->search($query);
@@ -151,155 +148,155 @@ class TicketController extends Controller
     public function actionReport($id, $cmd)
     {
         $model = $this->findModel($id);
-        $laststatus = TicketStatus::findOne(['id' => $model->last_status_id]);
-        if (!isset($cmd) ||
-            ($cmd == 'Close' && !Yii::$app->user->can('closeTicket')) ||
-            ($cmd == 'Open' && !Yii::$app->user->can('issueTicket')) ||
-            ($cmd == 'Progress' && !Yii::$app->user->can('manageProgress')) ||
-            ($cmd == 'Suspend' && !User::isMemberOfRole([User::ROLE_ADMINISTRATOR, User::ROLE_SYS_ADMINISTRATOR])))
-        {
-            throw new UnauthorizedHttpException();
-        }
-        $parameters = null;
-        if ($cmd == 'Close' && Yii::$app->user->can('closeTicket'))
-        {
-            if (!(isset($laststatus) && in_array($laststatus->code, ['O', 'PR', 'RNI', 'RIT'])))
-            {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-            $parameters = $this->createCloseParameter($laststatus);
-        }
-        if ($cmd == 'Open' && Yii::$app->user->can('issueTicket'))
-        {
-            if (isset($laststatus) && !in_array($laststatus->code, ['S']))
-            {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-            $parameters = $this->createOpenParameter($laststatus);
-        }
-        if ($cmd == 'Suspend' && UserHelper::isAdministrator())
-        {
-            if (isset($laststatus) && !in_array($laststatus->code, ['O', 'PR']))
-            {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-            $parameters = $this->createSuspendParameter($laststatus);
-        }
-        if ($cmd == 'Progress' && Yii::$app->user->can('manageProgress'))
-        {
-            if (!(isset($laststatus) && in_array($laststatus->code, ['O', 'PR'])))
-            {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-            $parameters = $this->createProgressParameter($laststatus);
-        }
-        $ticketaction = new TicketAction();
-        $ticketaction->ticket_id = $id;
-        $ticketaction->engineer_id = Yii::$app->user->id;
-        $ticketaction->status_override = $parameters['status']->id;
-        $ticketaction->action_date = time();
+        // $laststatus = TicketStatus::findOne(['id' => $model->last_status_id]);
+        // if (!isset($cmd) ||
+        //     ($cmd == 'Close' && !Yii::$app->user->can('closeTicket')) ||
+        //     ($cmd == 'Open' && !Yii::$app->user->can('issueTicket')) ||
+        //     ($cmd == 'Progress' && !Yii::$app->user->can('manageProgress')) ||
+        //     ($cmd == 'Suspend' && !User::isMemberOfRole([User::ROLE_ADMINISTRATOR, User::ROLE_SYS_ADMINISTRATOR])))
+        // {
+        //     throw new UnauthorizedHttpException();
+        // }
+        // $parameters = null;
+        // if ($cmd == 'Close' && Yii::$app->user->can('closeTicket'))
+        // {
+        //     if (!(isset($laststatus) && in_array($laststatus->code, ['O', 'PR', 'RNI', 'RIT'])))
+        //     {
+        //         return $this->redirect(['view', 'id' => $model->id]);
+        //     }
+        //     $parameters = $this->createCloseParameter($laststatus);
+        // }
+        // if ($cmd == 'Open' && Yii::$app->user->can('issueTicket'))
+        // {
+        //     if (isset($laststatus) && !in_array($laststatus->code, ['S']))
+        //     {
+        //         return $this->redirect(['view', 'id' => $model->id]);
+        //     }
+        //     $parameters = $this->createOpenParameter($laststatus);
+        // }
+        // if ($cmd == 'Suspend' && UserHelper::isAdministrator())
+        // {
+        //     if (isset($laststatus) && !in_array($laststatus->code, ['O', 'PR']))
+        //     {
+        //         return $this->redirect(['view', 'id' => $model->id]);
+        //     }
+        //     $parameters = $this->createSuspendParameter($laststatus);
+        // }
+        // if ($cmd == 'Progress' && Yii::$app->user->can('manageProgress'))
+        // {
+        //     if (!(isset($laststatus) && in_array($laststatus->code, ['O', 'PR'])))
+        //     {
+        //         return $this->redirect(['view', 'id' => $model->id]);
+        //     }
+        //     $parameters = $this->createProgressParameter($laststatus);
+        // }
+        // $ticketaction = new TicketAction();
+        // $ticketaction->ticket_id = $id;
+        // $ticketaction->engineer_id = Yii::$app->user->id;
+        // $ticketaction->status_override = $parameters['status']->id;
+        // $ticketaction->action_date = time();
         
-        if ($this->request->isPost) 
-        {
-            if ($ticketaction->load($this->request->post())){
-                $duf = new DocumentUploadForm();
-                $ticketaction->attachments = UploadedFile::getInstances($ticketaction, 'attachments');
-                $duf->files = $ticketaction->attachments;
-                if ($ticketaction->validate() && $ticketaction->save()) {
-                    $ticketaction->refresh();
-                    $model->last_action_id = $ticketaction->id;
-                    $model->last_status_id = $ticketaction->status_override;
-                    $duf->owner_id = Yii::$app->user->id;
-                    $duf->store_id = $model->store_id;
-                    $duf->ticket_id = $model->id;
-                    $duf->action_id = $ticketaction->id;
-                    $duf->upload();
-                    $model->updateAttributes(['last_action_id', 'last_status_id']);
-                    $ticketaction->notify();
-                    return $this->redirect(Url::previous());
-                }
-            }
-        }
+        // if ($this->request->isPost) 
+        // {
+        //     if ($ticketaction->load($this->request->post())){
+        //         $duf = new DocumentUploadForm();
+        //         $ticketaction->attachments = UploadedFile::getInstances($ticketaction, 'attachments');
+        //         $duf->files = $ticketaction->attachments;
+        //         if ($ticketaction->validate() && $ticketaction->save()) {
+        //             $ticketaction->refresh();
+        //             $model->last_action_id = $ticketaction->id;
+        //             $model->last_status_id = $ticketaction->status_override;
+        //             $duf->owner_id = Yii::$app->user->id;
+        //             $duf->store_id = $model->store_id;
+        //             $duf->ticket_id = $model->id;
+        //             $duf->action_id = $ticketaction->id;
+        //             $duf->upload();
+        //             $model->updateAttributes(['last_action_id', 'last_status_id']);
+        //             $ticketaction->notify();
+        //             return $this->redirect(Url::previous());
+        //         }
+        //     }
+        // }
 
-        return $this->render('ticketaction', [
-            'model' => $ticketaction,
-            'statuses' => $parameters['statuses'],
-            'ticket' => $model,
-            'command' => $cmd
-        ]);
+        // return $this->render('ticketaction', [
+        //     'model' => $ticketaction,
+        //     'statuses' => $parameters['statuses'],
+        //     'ticket' => $model,
+        //     'command' => $cmd
+        // ]);
     }
 
     protected function createCloseParameter($laststatus)
     {
-        $statuses = [TicketStatus::findOne(['code' => 'CDT'])];
-        $status = TicketStatus::findOne(['code' => 'CNA']);
-        if (isset($laststatus) && in_array($laststatus->code, ['RNI', 'RIT']))
-        {
-            $status = TicketStatus::findOne(['code' => 'CRA']);
-        }
-        $statuses[] = $status;
+        // $statuses = [TicketStatus::findOne(['code' => 'CDT'])];
+        // $status = TicketStatus::findOne(['code' => 'CNA']);
+        // if (isset($laststatus) && in_array($laststatus->code, ['RNI', 'RIT']))
+        // {
+        //     $status = TicketStatus::findOne(['code' => 'CRA']);
+        // }
+        // $statuses[] = $status;
 
-        if ($status->code == 'CRA')
-        {
-            $action = 'Servis selesai tanpa ada kendala.';
-        }
-        if ($status->code == 'CNA')
-        {
-            $action = 'Servis tidak ditindaklanjuti.';
-        }
-        if ($status->code == 'CDT')
-        {
-            $action = 'Dobel input servis.';
-        }
-        return [
-            'statuses' => $statuses,
-            'status' => $status,
-            'action' => $action,
-        ];
+        // if ($status->code == 'CRA')
+        // {
+        //     $action = 'Servis selesai tanpa ada kendala.';
+        // }
+        // if ($status->code == 'CNA')
+        // {
+        //     $action = 'Servis tidak ditindaklanjuti.';
+        // }
+        // if ($status->code == 'CDT')
+        // {
+        //     $action = 'Dobel input servis.';
+        // }
+        // return [
+        //     'statuses' => $statuses,
+        //     'status' => $status,
+        //     'action' => $action,
+        // ];
     }
     
     protected function createOpenParameter($laststatus)
     {
-        $statuses = [TicketStatus::findOne(['code' => 'O'])];
-        $status = $statuses[0];
-        $action = 'Servis dibuka.';
-        if (isset($laststatus) && in_array($laststatus->code, ['S']))
-        {
-            $action = 'Servis dilanjutkan.';
-        }
-        return [
-            'statuses' => $statuses,
-            'status' => $status,
-            'action' => $action,
-        ];
+        // $statuses = [TicketStatus::findOne(['code' => 'O'])];
+        // $status = $statuses[0];
+        // $action = 'Servis dibuka.';
+        // if (isset($laststatus) && in_array($laststatus->code, ['S']))
+        // {
+        //     $action = 'Servis dilanjutkan.';
+        // }
+        // return [
+        //     'statuses' => $statuses,
+        //     'status' => $status,
+        //     'action' => $action,
+        // ];
     }
 
     protected function createSuspendParameter($laststatus)
     {
-        $statuses = [TicketStatus::findOne(['code' => 'S'])];
-        $status = $statuses[0];
-        $action = null;
-        if (isset($laststatus) && in_array($laststatus->code, ['O', 'PR']))
-        {
-            $action = 'Servis dihentikan.';
-        }
-        return [
-            'statuses' => $statuses,
-            'status' => $status,
-            'action' => $action,
-        ];
+        // $statuses = [TicketStatus::findOne(['code' => 'S'])];
+        // $status = $statuses[0];
+        // $action = null;
+        // if (isset($laststatus) && in_array($laststatus->code, ['O', 'PR']))
+        // {
+        //     $action = 'Servis dihentikan.';
+        // }
+        // return [
+        //     'statuses' => $statuses,
+        //     'status' => $status,
+        //     'action' => $action,
+        // ];
     }
 
     protected function createProgressParameter($laststatus)
     {
-        $statuses = TicketStatus::findAll(['code' => ['PR', 'RNI', 'RIT']]);
-        $status = $statuses[0];
-        $action = null;
-        return [
-            'statuses' => $statuses,
-            'status' => $status,
-            'action' => $action,
-        ];
+        // $statuses = TicketStatus::findAll(['code' => ['PR', 'RNI', 'RIT']]);
+        // $status = $statuses[0];
+        // $action = null;
+        // return [
+        //     'statuses' => $statuses,
+        //     'status' => $status,
+        //     'action' => $action,
+        // ];
     }
 
     /**
@@ -333,7 +330,7 @@ class TicketController extends Controller
 
     public function actionNotify($id)
     {
-        $model = TicketAction::findOne(['id' => $id]);
+        $model = Action::findOne(['id' => $id]);
 
         $model->notify();
 

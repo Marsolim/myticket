@@ -2,8 +2,8 @@
 
 namespace frontend\controllers;
 
-use common\models\Company;
-use common\models\CompanySearch;
+use common\models\actors\Company;
+use frontend\models\search\CompanySearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\db\Query;
@@ -24,7 +24,7 @@ class CompanyController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
                     ],

@@ -2,20 +2,13 @@
 
 namespace frontend\controllers;
 
-use frontend\models\ResendVerificationEmailForm;
-use frontend\models\VerifyEmailForm;
 use Yii;
-use yii\base\InvalidArgumentException;
-use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\Response;
-use yii\web\UploadedFile;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
-use common\models\LoginForm;
 use common\models\Holiday;
-use frontend\models\HolidayForm;
-use common\models\Ticket;
+use common\models\ticket\Ticket;
 use frontend\helpers\CalendarHelper;
 
 class CalendarController extends Controller
@@ -137,8 +130,8 @@ class CalendarController extends Controller
         {
             $ticketevent[] = [
                 'title' => $value->title,
-                'start' => date(DATE_ISO8601, $value->start),
-                'end' => date(DATE_ISO8601, $value->end),
+                'start' => date(DATE_ATOM, $value->start),
+                'end' => date(DATE_ATOM, $value->end),
                 'allDay' => true
             ];
         }
@@ -158,8 +151,8 @@ class CalendarController extends Controller
         {
             $ticketevent[] = [
                 'title' => $value->problem,
-                'start' => date(DATE_ISO8601, $value->created_at),
-                'end' => date(DATE_ISO8601, $value->updated_at)
+                'start' => date(DATE_ATOM, $value->created_at),
+                'end' => date(DATE_ATOM, $value->updated_at)
             ];
         }
         return $this->asJSON($ticketevent);
@@ -170,6 +163,4 @@ class CalendarController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
         return $this->asJSON(CalendarHelper::getWeekends($start, $end));
     }
-
-
 }

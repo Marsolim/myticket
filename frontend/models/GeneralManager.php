@@ -3,8 +3,9 @@
 namespace frontend\models;
 
 use common\db\UserQuery;
-use common\models\Depot;
-use common\models\User;
+use common\models\actors\Depot;
+use common\models\actors\Company;
+use common\models\actors\User;
 use Yii;
 use yii\helpers\ArrayHelper;
 

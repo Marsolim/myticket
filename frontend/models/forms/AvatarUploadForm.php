@@ -1,11 +1,11 @@
 <?php
 
-namespace frontend\models;
+namespace frontend\models\forms;
 
 use yii\base\Model;
 use yii\web\UploadedFile;
 use yii\imagine\Image;
-use common\models\User;
+use common\models\actors\User;
 use Yii;
 
 class AvatarUploadForm extends Model

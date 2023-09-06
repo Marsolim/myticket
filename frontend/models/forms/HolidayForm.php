@@ -1,6 +1,6 @@
 <?php
 
-namespace frontend\models;
+namespace frontend\models\forms;
 
 use Yii;
 use yii\base\Model;
@@ -8,13 +8,11 @@ use yii\base\Model;
 /**
  * ContactForm is the model behind the contact form.
  */
-class ContactForm extends Model
+class HolidayForm extends Model
 {
-    public $name;
-    public $email;
-    public $subject;
-    public $body;
-    public $verifyCode;
+    public $title;
+    public $start;
+    public $end;
 
 
     /**
@@ -24,11 +22,11 @@ class ContactForm extends Model
     {
         return [
             // name, email, subject and body are required
-            [['name', 'email', 'subject', 'body'], 'required'],
+            [['title', 'start', 'end'], 'required'],
             // email has to be a valid email address
-            ['email', 'email'],
+            ['title', 'string', 'max' => 255],
             // verifyCode needs to be entered correctly
-            ['verifyCode', 'captcha'],
+            [['start', 'end'], 'string', 'max' => 255],
         ];
     }
 

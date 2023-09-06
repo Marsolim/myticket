@@ -3,7 +3,8 @@
 namespace frontend\controllers;
 
 use common\models\Item;
-use common\models\ItemSearch;
+use common\models\actors\Depot;
+use frontend\models\search\ItemSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\db\Query;
@@ -23,7 +24,7 @@ class ItemController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
                     ],
@@ -132,7 +133,7 @@ class ItemController extends Controller
             $out['results'] = array_values($data);
         }
         elseif ($id > 0) {
-            $out['results'] = ['id' => $id, 'text' => Region::find($id)->toString()];
+            $out['results'] = ['id' => $id, 'text' => Depot::find($id)->toString()];
         }
         return $out;
     }

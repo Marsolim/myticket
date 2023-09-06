@@ -1,6 +1,6 @@
 <?php
 
-namespace common\models;
+namespace common\models\ticket;
 
 use Yii;
 
@@ -16,6 +16,17 @@ use Yii;
  */
 abstract class Action extends \yii\db\ActiveRecord
 {
+    /**
+     * {@inheritdoc}
+     */
+    public function behaviors()
+    {
+        return [
+            TimestampBehavior::class,
+            BlameableBehavior::class,
+        ];
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -55,23 +66,19 @@ abstract class Action extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * Gets query for [[Engineer]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getEngineer()
+    public static function instantiate($row)
     {
-        return $this->hasOne(User::class, ['id' => 'engineer_id']);
+        $type = $row['type'];
+        return new $type();
     }
-    
+
     /**
-     * Gets query for [[Status]].
+     * Gets query for [[Ticket]].
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getStatus()
+    public function getTicket()
     {
-        return $this->hasOne(TicketStatus::class, ['id' => 'status_override']);
+        return $this->hasOne(Ticket::class, ['id' => 'ticket_id']);
     }
 }

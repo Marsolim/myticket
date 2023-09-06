@@ -2,14 +2,14 @@
 
 namespace frontend\controllers;
 
-use common\models\User;
-use frontend\models\SignupForm;
-use frontend\models\AvatarUploadForm;
-use common\models\Store;
-use common\models\ManagedStore;
-use common\models\Region;
-use common\models\Company;
-use common\models\UserSearch;
+use common\models\actors\User;
+use frontend\models\forms\SignupForm;
+use frontend\models\forms\AvatarUploadForm;
+use common\models\actors\Store;
+use common\models\actors\Depot;
+use common\models\actors\Company;
+use frontend\models\search\UserSearch;
+use frontend\helpers\UserHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\UploadedFile;
@@ -32,7 +32,7 @@ class UserController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
                         'assign-role' => ['POST'],
@@ -89,7 +89,7 @@ class UserController extends Controller
             $oldValue = $model->$key;
             if ($key == 'region_id')
             {
-                $region = Region::findOne(['id' => $model->$key]);
+                $region = Depot::findOne(['id' => $model->$key]);
                 if (isset($region)) $oldValue = $region->toString();
             }
             // read your posted model attributes
@@ -108,7 +108,7 @@ class UserController extends Controller
                 if ($key == 'region_id')
                 {
                     //$model->$key = $value + 0;
-                    $region = Region::findOne(['id' => $model->$key]);
+                    $region = Depot::findOne(['id' => $model->$key]);
                     if (isset($region)) $value = $region->toString();
                 }
                 if ($key == 'company_id')
@@ -220,36 +220,36 @@ class UserController extends Controller
         if (Yii::$app->request->isAjax){
             $model = Store::findOne(['id' => $store]);
 
-            $mgs = ManagedStore::findOne(['store_id' => $store, 'active'=>ManagedStore::STATUS_ACTIVE]);
-            $smg = ManagedStore::findOne(['user_id' => $user, 'active'=>ManagedStore::STATUS_ACTIVE]);
-            if (isset($mgs) && $mgs->user_id != $user)
-            {
-                $mgs->active = ManagedStore::STATUS_INACTIVE;
-                $mgs->save();
+            // $mgs = ManagedStore::findOne(['store_id' => $store, 'active'=>ManagedStore::STATUS_ACTIVE]);
+            // $smg = ManagedStore::findOne(['user_id' => $user, 'active'=>ManagedStore::STATUS_ACTIVE]);
+            // if (isset($mgs) && $mgs->user_id != $user)
+            // {
+            //     $mgs->active = ManagedStore::STATUS_INACTIVE;
+            //     $mgs->save();
 
-                if (isset($smg) && $mgs->id != $smg->id && $mgs->store_id != $store){
-                    $smg->active = ManagedStore::STATUS_INACTIVE;
-                    $smg->save();
-                }
-            }
+            //     if (isset($smg) && $mgs->id != $smg->id && $mgs->store_id != $store){
+            //         $smg->active = ManagedStore::STATUS_INACTIVE;
+            //         $smg->save();
+            //     }
+            // }
             
-            if (!(isset($mgs) && $mgs->active == ManagedStore::STATUS_ACTIVE) &&
-                !(isset($smg) && $smg->active == ManagedStore::STATUS_ACTIVE))
-            {
-                $nmgs = new ManagedStore();
-                $nmgs->store_id = $store;
-                $nmgs->user_id = $user;
-                $nmgs->active = ManagedStore::STATUS_ACTIVE;
-                $nmgs->save();
-            }
+            // if (!(isset($mgs) && $mgs->active == ManagedStore::STATUS_ACTIVE) &&
+            //     !(isset($smg) && $smg->active == ManagedStore::STATUS_ACTIVE))
+            // {
+            //     $nmgs = new ManagedStore();
+            //     $nmgs->store_id = $store;
+            //     $nmgs->user_id = $user;
+            //     $nmgs->active = ManagedStore::STATUS_ACTIVE;
+            //     $nmgs->save();
+            // }
 
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return [
-                'action' => 'reload',
-                'label' => $model->name,
-                'value' => $store,
-                'user' => $user,
-            ];
+            // Yii::$app->response->format = Response::FORMAT_JSON;
+            // return [
+            //     'action' => 'reload',
+            //     'label' => $model->name,
+            //     'value' => $store,
+            //     'user' => $user,
+            // ];
         }
     }
 

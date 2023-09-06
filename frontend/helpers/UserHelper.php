@@ -1,7 +1,7 @@
 <?php
 namespace frontend\helpers;
 
-use common\models\User;
+use common\models\actors\User;
 use yii\helpers\ArrayHelper;
 use Yii;
 

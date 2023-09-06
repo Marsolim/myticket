@@ -1,12 +1,13 @@
 <?php
 
-namespace frontend\models;
+namespace frontend\models\forms;
 
 use Yii;
 use yii\base\Model;
-use common\models\User;
-use common\models\Region;
-use common\models\Company;
+use common\models\actors\User;
+use common\models\actors\Depot;
+use common\models\actors\Company;
+use yii\imagine\Image;
 
 /**
  * Signup form

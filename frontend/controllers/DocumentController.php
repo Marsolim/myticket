@@ -2,9 +2,9 @@
 
 namespace frontend\controllers;
 
-use common\models\Document;
-use common\models\User;
-use common\models\ManagedStore;
+use common\models\actors\Store;
+use common\models\doc\Document;
+use common\models\actors\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -25,7 +25,7 @@ class DocumentController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
                     ],
@@ -48,7 +48,7 @@ class DocumentController extends Controller
         }
         if (UserHelper::isGeneralManager())
         {
-            $store = ManagedStore::findOne(['user_id' => Yii::$app->user->id]);
+            $store = Store::findOne(['user_id' => Yii::$app->user->id]);
             $query->orWhere(['store_id' => $store->id]);
         }
 

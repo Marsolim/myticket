@@ -1,15 +1,15 @@
 <?php
 
-namespace common\models;
+namespace frontend\models\search;
 
+use common\models\actors\Depot;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use common\models\Item;
 
 /**
- * ItemSearch represents the model behind the search form of `common\models\Region`.
+ * RegionSearch represents the model behind the search form of `common\models\Region`.
  */
-class ItemSearch extends Item
+class DepotSearch extends Depot
 {
     /**
      * {@inheritdoc}
@@ -40,7 +40,7 @@ class ItemSearch extends Item
      */
     public function search($params)
     {
-        $query = Item::find();
+        $query = Depot::find();
 
         // add conditions that should always apply here
 
