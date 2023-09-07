@@ -34,7 +34,7 @@ FontAwesomeAsset::register($this);
         ), ['prompt' => '']
     ) ?>
 
-    <?= $form->field($model, 'issued_at')->widget(DateControl::classname(), [
+    <?= $form->field($model, 'issued_at')->widget(DateControl::class, [
         'type' => 'date',
         'ajaxConversion' => true,
         'autoWidget' => true,
@@ -57,7 +57,7 @@ FontAwesomeAsset::register($this);
         ]
     ]) ?>
 
-    <!-- <?= $form->field($model, 'issued_at')->widget(\yii\jui\DatePicker::className(), [
+    <!-- <?= $form->field($model, 'issued_at')->widget(\yii\jui\DatePicker::class, [
         // if you are using bootstrap, the following line will set the correct style of the input field
         'options' => ['class' => 'form-control', 'value' => time()],
         // ... you can configure more DatePicker properties here

@@ -1,15 +1,17 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
+use common\models\actors\Store;
 
 /** @var yii\web\View $this */
-/** @var frontend\models\TicketSearch $model */
+/** @var frontend\models\search\TicketSearch $model */
 /** @var yii\widgets\ActiveForm $form */
 
 $stores = Store::find()
-    ->join('LEFT JOIN', ['u'=>'user'], ['isnull(u.region_id, store.region_id) = store.region_id'])
-    ->where('u.id' => Yii::$app->user->id);
+    ->join('LEFT JOIN', ['u' => 'user'], 'isnull(u.region_id, store.region_id) = store.region_id')
+    ->where(['u.id' => Yii::$app->user->id]);
 ;
 
 ?>

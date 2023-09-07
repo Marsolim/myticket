@@ -30,6 +30,12 @@ class GeneralManager extends User
         return User::ROLE_GENERAL_MANAGER;
     }
 
+    public function getStores()
+    {
+        return $this->hasMany(Store::class, ['parent_id' => 'id'])
+            ->via('depots');
+    }
+
     public function getDepots()
     {
         return $this->hasMany(Depot::class, ['parent_id' => 'id'])
@@ -56,7 +62,7 @@ class GeneralManager extends User
     public static function find()
     {
         $query = new UserQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
-        $query = $query->with('company', 'depots');
+        $query = $query->with('company', 'depots', 'stores');
         return $query;
     }
 

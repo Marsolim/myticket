@@ -144,7 +144,7 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getStore()
     {
-        return $this->hasOne(Store::class, ['id' => 'customer_id']);
+        return $this->hasOne(Store::class, ['id' => 'store_id']);
     }
 
     /**

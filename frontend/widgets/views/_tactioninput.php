@@ -7,7 +7,7 @@ use yii\helpers\ArrayHelper;
 use kartik\editors\Summernote;
 use frontend\helpers\RoleHelper;
 use frontend\helpers\TStatusHelper;
-use common\models\User;
+use common\models\actors\User;
 
 /** @var yii\web\View $this */
 /** @var app\models\UserProfile $model */

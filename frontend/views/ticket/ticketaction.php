@@ -36,7 +36,7 @@ $this->params['breadcrumbs'][] = $command;
 
         <?= $form->field($model, 'action')->textInput(['maxlength' => true]) ?>
 
-        <?= $form->field($model, 'action_date')->widget(DateControl::classname(), [
+        <?= $form->field($model, 'action_date')->widget(DateControl::class, [
             'type' => 'date',
             'ajaxConversion' => true,
             'autoWidget' => true,

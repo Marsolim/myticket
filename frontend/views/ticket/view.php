@@ -8,12 +8,12 @@ use frontend\widgets\TActionThread;
 use frontend\widgets\TActionInput;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
-use common\models\Ticket;
-use common\models\TicketAction;
-use common\models\User;
-use common\models\TicketStatus;
-use common\models\Document;
+use common\models\ticket\Ticket;
+use common\models\ticket\Action;
+use common\models\actors\User;
+use common\models\doc\Document;
 use kartik\file\FileInput;
+use yii\data\ArrayDataProvider;
 
 /** @var yii\web\View $this */
 /** @var frontend\models\Ticket $model */
@@ -22,6 +22,8 @@ $this->title = 'Servis No. ' . $model->number . ' - ' . $model->problem;
 $this->params['breadcrumbs'][] = ['label' => 'Servis', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $model->number;
 \yii\web\YiiAsset::register($this);
+
+$dataProvider = new ArrayDataProvider(['allModels' => $model->actions]);
 ?>
 <div class="ticket-view">
 
@@ -47,7 +49,7 @@ $this->params['breadcrumbs'][] = $model->number;
                 //'label' => '',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return nl2br($model->storeDetail);
+                    return nl2br($model->store->name);
                 }
             ],
             [
@@ -82,14 +84,6 @@ $this->params['breadcrumbs'][] = $model->number;
                 }
             ],
             [
-                'attribute' => 'last_status_id',
-                'label' => 'Status terakhir',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    return nl2br($model->statusSummary);
-                }
-            ],
-            [
                 'label' => 'Documents',
                 'format' => 'raw',
                 'value' => function ($model) {
@@ -121,7 +115,4 @@ $this->params['breadcrumbs'][] = $model->number;
             ],
         ],
     ]) ?>
-    <h1><?= Html::encode('Tindakan / Kunjungan') ?></h1>
-    <?= TActionInput::widget(['model' => $model ]) ?>
-    <?= TActionThread::widget(['model' => $dataProvider ]) ?>
 </div>

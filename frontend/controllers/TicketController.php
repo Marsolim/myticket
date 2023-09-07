@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\models\actors\Engineer;
 use Yii;
 use common\models\ticket\Ticket;
 use common\models\actors\User;
@@ -18,6 +19,8 @@ use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use yii\filters\VerbFilter;
 use frontend\helpers\UserHelper;
+use frontend\models\GeneralManager;
+use frontend\models\StoreManager;
 use mdm\autonumber\AutoNumber;
 /**
  * TicketController implements the CRUD actions for Ticket model.
@@ -44,39 +47,65 @@ class TicketController extends Controller
         );
     }
 
-    /**
-     * Lists all Ticket models.
-     *
-     * @return string
-     */
+    // /**
+    //  * Lists all Ticket models.
+    //  *
+    //  * @return string
+    //  */
+    // public function actionIndex()
+    // {
+    //     $searchModel = new TicketSearch();
+    //     $query = $searchModel->searchQuery($this->request->queryParams);
+    //     if (!(UserHelper::isAdministrator() || UserHelper::isEngineer() || UserHelper::isGeneralManager()))
+    //     {
+    //         throw new UnauthorizedHttpException();
+    //     }
+    //     if (UserHelper::isEngineer())
+    //     {
+    //         $query->andWhere(['engineer_id' => Yii::$app->user->id]);
+    //     }
+    //     if (UserHelper::isGeneralManager())
+    //     {
+    //         $user = User::findOne(['id' => Yii::$app->user->id]);
+    //         $stores = Store::findAll(['region_id' => $user->region_id]);
+    //         $stores = ArrayHelper::getColumn($stores, 'id');
+    //         $query->andWhere(['store_id' => $stores]);
+    //     }
+
+    //     $dataProvider = $searchModel->search($query);
+
+    //     Url::remember();
+
+    //     return $this->render('index', [
+    //         'searchModel' => $searchModel,
+    //         'dataProvider' => $dataProvider,
+    //     ]);
+    // }
+
     public function actionIndex()
     {
-        $searchModel = new TicketSearch();
-        $query = $searchModel->searchQuery($this->request->queryParams);
-        if (!(UserHelper::isAdministrator() || UserHelper::isEngineer() || UserHelper::isGeneralManager()))
+        $ticketSearch = new TicketSearch();
+        $query = $ticketSearch->searchQuery(Yii::$app->request->post());
+        $user = User::findOne(['id' => Yii::$app->user->id]);
+        if (!(ArrayHelper::isIn($user::class, [User::class, Engineer::class])))
         {
             throw new UnauthorizedHttpException();
         }
-        if (UserHelper::isEngineer())
+        if ($user::class === Engineer::class)
         {
             $query->andWhere(['engineer_id' => Yii::$app->user->id]);
         }
-        if (UserHelper::isGeneralManager())
+        if (ArrayHelper::isIn($user::class, [StoreManager::class, GeneralManager::class]))
         {
-            $user = User::findOne(['id' => Yii::$app->user->id]);
-            $stores = Store::findAll(['region_id' => $user->region_id]);
-            $stores = ArrayHelper::getColumn($stores, 'id');
+            $stores = ArrayHelper::getColumn($user->stores, 'id');
             $query->andWhere(['store_id' => $stores]);
         }
 
-        $dataProvider = $searchModel->search($query);
-
         Url::remember();
+        $articleDataProvider = $ticketSearch->search($query);
 
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
+        return $this->render('list', ['articleSearch' => $ticketSearch ,
+                                        'articleDataProvider' => $articleDataProvider ]);
     }
 
     /**

@@ -46,6 +46,12 @@ class StoreManager extends User
     {
         return User::ROLE_STORE_MANAGER;
     }
+    
+    public function getStores()
+    {
+        return $this->hasOne(Stores::class, ['parent_id' => 'id'])
+            ->via('depot');
+    }
 
     public function getDepot()
     {
