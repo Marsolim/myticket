@@ -16,7 +16,7 @@ class ActionQuery extends ActiveQuery
         if ($this->type !== null) {
             $this->andWhere(["$this->tableName.type" => $this->type]);
         }
-        $this->with('ticket', 'company');
+        $this->with('ticket');
         return parent::prepare($builder);
     }
 

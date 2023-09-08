@@ -31,7 +31,8 @@
         "kartik-v/yii2-widget-select2": "dev-master",
         "kartik-v/yii2-editable": "dev-master",
         "kartik-v/yii2-helpers": "dev-master",
-        "mdmsoft/yii2-autonumber": "~1.0"
+        "mdmsoft/yii2-autonumber": "~1.0",
+        "kartik-v/yii2-export": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

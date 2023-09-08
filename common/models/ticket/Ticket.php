@@ -94,7 +94,7 @@ class Ticket extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'store_id' => 'Toko',
+            'customer_id' => 'Toko',
             'number' => 'No. Servis',
             'external_number' => 'No. AHO',
             'problem' => 'Kendala',
@@ -144,7 +144,7 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getStore()
     {
-        return $this->hasOne(Store::class, ['id' => 'store_id']);
+        return $this->hasOne(Store::class, ['id' => 'customer_id']);
     }
 
     /**

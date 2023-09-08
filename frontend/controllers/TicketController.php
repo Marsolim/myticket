@@ -8,6 +8,8 @@ use common\models\ticket\Ticket;
 use common\models\actors\User;
 use common\models\actors\Store;
 use common\models\ticket\Action;
+use common\models\ticket\Discretion;
+use Exception;
 use frontend\models\search\ActionSearch;
 use frontend\models\search\TicketSearch;
 use frontend\models\forms\DocumentUploadForm;
@@ -22,6 +24,10 @@ use frontend\helpers\UserHelper;
 use frontend\models\GeneralManager;
 use frontend\models\StoreManager;
 use mdm\autonumber\AutoNumber;
+use yii\helpers\Json;
+use yii\web\Response;
+use yii\widgets\ActiveForm;
+
 /**
  * TicketController implements the CRUD actions for Ticket model.
  */
@@ -85,6 +91,7 @@ class TicketController extends Controller
     public function actionIndex()
     {
         $ticketSearch = new TicketSearch();
+        $ticketSearch->customer_id = Yii::$app->request->post('customer_id', null);
         $query = $ticketSearch->searchQuery(Yii::$app->request->post());
         $user = User::findOne(['id' => Yii::$app->user->id]);
         if (!(ArrayHelper::isIn($user::class, [User::class, Engineer::class])))
@@ -98,7 +105,7 @@ class TicketController extends Controller
         if (ArrayHelper::isIn($user::class, [StoreManager::class, GeneralManager::class]))
         {
             $stores = ArrayHelper::getColumn($user->stores, 'id');
-            $query->andWhere(['store_id' => $stores]);
+            $query->andWhere(['customer_id' => $stores]);
         }
 
         Url::remember();
@@ -106,6 +113,45 @@ class TicketController extends Controller
 
         return $this->render('list', ['articleSearch' => $ticketSearch ,
                                         'articleDataProvider' => $articleDataProvider ]);
+    }
+
+    public function actionDiscretion($ticket)
+    {
+        $model = new Discretion();
+        $model->ticket_id = $ticket;
+        $model->user_id = Yii::$app->user->id;
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                if ($model->validate()) {
+                    $flag = $model->save(false);
+                    if ($flag == true) {
+                        $transaction->commit();                      
+                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
+                    } else {
+                        $transaction->rollBack();
+                    }
+                } else {
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Contact can not created.'));
+                }
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+            }
+        }
+    
+        return $this->renderAjax('_action_discretion', [
+                    'model' => $model,
+            ]);
+    }
+
+    public function actionDiscretionValidate() {
+        $model = new Discretion();
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $model->user_id = Yii::$app->user->id;
+            $model->created_at = time();
+            \Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
     }
 
     /**

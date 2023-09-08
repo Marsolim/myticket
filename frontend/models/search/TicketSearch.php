@@ -17,7 +17,7 @@ class TicketSearch extends Ticket
     public function rules()
     {
         return [
-            [['id', 'store_id', 'engineer_id', 'issuer_id'], 'integer'],
+            [['id', 'customer_id', 'engineer_id', 'issuer_id'], 'integer'],
             [['number', 'problem'], 'safe'],
         ];
     }
@@ -42,7 +42,10 @@ class TicketSearch extends Ticket
     {
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'sort'=> ['defaultOrder' => ['issued_at'=>SORT_DESC]]
+            'sort'=> ['defaultOrder' => ['created_at'=>SORT_DESC]],
+            'pagination'=>[
+                'pageSize' => 10
+            ]
         ]);
 
         if (!$this->validate()) {
@@ -82,7 +85,7 @@ class TicketSearch extends Ticket
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'store_id' => $this->store_id,
+            'customer_id' => $this->customer_id,
             'engineer_id' => $this->engineer_id,
             'issuer_id' => $this->issuer_id
         ]);

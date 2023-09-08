@@ -4,22 +4,41 @@ use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
 use common\models\actors\Store;
+use common\models\ticket\Ticket;
 use kartik\helpers\Enum;
 
 /** @var yii\web\View $this */
 /** @var frontend\models\search\TicketSearch $model */
 /** @var yii\widgets\ActiveForm $form */
 
+$statusmap = [
+    Ticket::STATUS_OPEN => 'Belum dikunjungi',
+    Ticket::STATUS_PENDING => 'Pending',
+    Ticket::STATUS_CLOSED_NORMAL => 'Selesai',
+    Ticket::STATUS_CLOSED_NORMAL_IT => 'Selesai menunggu remote IT',
+    Ticket::STATUS_CLOSED_DOUBLE_AHO => 'Duplikat AHO',
+    Ticket::STATUS_CLOSED_NOPROBLEM => 'No Problem',
+];
+
+$statuscolors = [
+    Ticket::STATUS_OPEN => '#e3f2fd',
+    Ticket::STATUS_PENDING => '#f8bbd0',
+    Ticket::STATUS_CLOSED_NORMAL => '#bbdefb',
+    Ticket::STATUS_CLOSED_NORMAL_IT => '#bbdefb',
+    Ticket::STATUS_CLOSED_DOUBLE_AHO => '#ffcdd2',
+    Ticket::STATUS_CLOSED_NOPROBLEM => '#bbdefb',
+];
+
 ?>
 <div class="ticket-view">
-<div class="container mt-2 mb-2">
+<div class="container px-0 py-0 mx-0 mt-0 mb-2">
     <div class="row d-flex align-items-center justify-content-center">
         <div class="col">
-            <div class="card">
+            <div class="card border-warning" style="background-color:<?= $statuscolors[$model->status] ?>">
                 <div class="d-flex justify-content-between p-2 px-3">
                     <div class="d-flex flex-row align-items-center">
                         <div class="d-flex flex-column ml-2">
-                            <span class="h5 text-primary"><i class="fa fa-ticket"></i> <?= $model->number.' - '.$model->problem.(empty($model->external_number) ? '' : ' | '.$model->external_number) ?></span> 
+                            <span class="h5 text-primary"><i class="fa fa-ticket"></i> <?= $model->number.' - '.$model->problem.(empty($model->external_number) ? '' : ' | '.$model->external_number).'|'.($statusmap[$model->status]) ?></span> 
                         </div>
                     </div>
                     <div class="d-flex flex-row mt-1 ellipsis">
@@ -32,17 +51,25 @@ use kartik\helpers\Enum;
                 <div class="p-2 px-3">
                     <div class="text-justify">
                         <div>
-                            <p></p>
+                            <p><?= 'Rekomendasi pekerjaan : '. (empty($model->visits) ? '' : implode("\n", ArrayHelper::getColumn($model->visits, 'summary'))) ?></p>
+                            <p><?= 'Alasan tidak tercover MC : '. (empty($model->discretion)? '' : $model->discretion->summary) ?></p>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex flex-row align-items-center">
                             <small class="text-mute position-relative"><i class="fa fa-store"></i> <?= $model->store->code.'-'.$model->store->name ?>
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-light text-dark">
-                                99+
+                                <?= Html::a($model->store->getTickets()->count(), ['/ticket/index'],
+                                    [ 
+                                        'data-method' => 'POST',
+                                        'data-params' => ['customer_id' => $model->customer_id], 
+                                    ]) ?>
                                 <span class="visually-hidden">unread messages</span>
                             </span>
-                            </small> 
+                            </small>
+                        </div>
+                        <div class="d-flex flex-row align-items-center">
+                            <small class="text-primary"><?= $statusmap[$model->status] ?></small>
                         </div>
                         <div class="d-flex flex-row align-items-center">
                             <?= Html::img('uploads/profiles/thumb/'.$model->issuer->profile, ['class' => 'rounded-circle', 'width' => 15, 'height' => 15]) ?>
@@ -51,16 +78,37 @@ use kartik\helpers\Enum;
                             </div>
                         </div>
                     </div>
-                    <hr>
+                    <hr class="bg-warning border-2 border-top border-warning" style="opacity:0.5">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex flex-row icons d-flex align-items-center">
-                            <a class="btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Tidak tercover MC"><i class="fa fa-thumbs-down text-warning"></i></a>
-                            <a class="btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Rekomendasi pengerjaan"><i class="fa fa-handshake"></i></a>
-                            <a class="btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Teknisi"><i class="fa fa-users-gear"></i></a>
-                            <a class="btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Pekerjaan"><i class="fa fa-screwdriver-wrench"></i></a>
-                            <a class="btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Selesai, menunggu IT"><i class="fa fa-hourglass-half text-primary"></i></a>
-                            <a class="btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Selesai"><i class="fa fa-circle-check text-success"></i></a>
-                            <a class="btn btn-link" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Double AHO"><i class="fa fa-bug-slash text-danger"></i></a>
+                            <?= empty($model->discretion) ? Html::a('<i class="fa fa-thumbs-down text-warning"></i>', ['ticket/discretion', 'ticket' => $model->id], [
+                                'class'=>"btn btn-link quick-action",
+                                'title'=>"Tidak tercover MC"
+                            ]) : '' ?>
+                            <?= Html::a('<i class="fa fa-handshake"></i>', ['ticket/visit', 'ticket' => $model->id], [
+                                'class'=>"btn btn-link quick-action",
+                                'title'=>"Rekomendasi pengerjaan"
+                            ]) ?>
+                            <?= Html::a('<i class="fa fa-users-gear"></i>', ['ticket/assignment', 'ticket' => $model->id], [
+                                'class'=>"btn btn-link quick-action",
+                                'title'=>"Teknisi"
+                            ]) ?>
+                            <?= Html::a('<i class="fa fa-screwdriver-wrench"></i>', ['ticket/repair', 'ticket' => $model->id], [
+                                'class'=>"btn btn-link quick-action",
+                                'title'=>"Pekerjaan"
+                            ]) ?>
+                            <?= Html::a('<i class="fa fa-hourglass-half text-primary"></i>', ['ticket/close', 'ticket' => $model->id, 'status'=>Ticket::STATUS_CLOSED_NORMAL_IT], [
+                                'class'=>"btn btn-link quick-action",
+                                'title'=>"Selesai, menunggu IT"
+                            ]) ?>
+                            <?= Html::a('<i class="fa fa-circle-check text-success"></i>', ['ticket/close', 'ticket' => $model->id, 'status'=>Ticket::STATUS_CLOSED_NORMAL], [
+                                'class'=>"btn btn-link quick-action",
+                                'title'=>"Selesai"
+                            ]) ?>
+                            <?= Html::a('<i class="fa fa-bug-slash text-danger"></i>', ['ticket/close', 'ticket' => $model->id, 'status'=>Ticket::STATUS_CLOSED_DOUBLE_AHO], [
+                                'class'=>"btn btn-link quick-action",
+                                'title'=>"Double AHO"
+                            ]) ?>
                         </div>
                         <div class="d-flex flex-row muted-color">
                             <a class="btn btn-primary position-relative" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
