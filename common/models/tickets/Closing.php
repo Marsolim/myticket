@@ -1,13 +1,13 @@
 <?php
 
-namespace common\models\ticket;
+namespace common\models\tickets;
 
 use common\db\ActionQuery;
 use common\models\actors\User;
-use common\models\ticket\Action;
+use common\models\tickets\Action;
 use yii\helpers\ArrayHelper;
 
-class Discretion extends Action
+class Closing extends Action
 {
     public function rules()
     {
@@ -34,11 +34,11 @@ class Discretion extends Action
     public static function find()
     {
         $query = new ActionQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
-        $query = $query->with('assessor');
+        $query = $query->with('operator');
         return $query;
     }
 
-    public function getAssessor()
+    public function getOperator()
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }

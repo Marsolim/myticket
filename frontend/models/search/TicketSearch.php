@@ -4,7 +4,7 @@ namespace frontend\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use common\models\ticket\Ticket;
+use common\models\tickets\Ticket;
 
 /**
  * TicketSearch represents the model behind the search form of `frontend\models\Ticket`.
@@ -17,7 +17,7 @@ class TicketSearch extends Ticket
     public function rules()
     {
         return [
-            [['id', 'customer_id', 'engineer_id', 'issuer_id'], 'integer'],
+            [['id', 'customer_id'], 'integer'],
             [['number', 'problem'], 'safe'],
         ];
     }
@@ -86,8 +86,6 @@ class TicketSearch extends Ticket
         $query->andFilterWhere([
             'id' => $this->id,
             'customer_id' => $this->customer_id,
-            'engineer_id' => $this->engineer_id,
-            'issuer_id' => $this->issuer_id
         ]);
 
         $query->andFilterWhere(['like', 'number', $this->number])

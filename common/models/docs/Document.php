@@ -1,8 +1,10 @@
 <?php
 
-namespace common\models\doc;
+namespace common\models\docs;
 
-use common\models\Store;
+use common\models\actors\Store;
+use common\models\tickets\Action;
+use common\models\tickets\Ticket;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use Yii;
@@ -16,12 +18,17 @@ use Yii;
  *
  * @property Store[] $stores
  */
-class Document extends \yii\db\ActiveRecord
+abstract class Document extends \yii\db\ActiveRecord
 {
     const FILE_INVOICE = 1;
     const FILE_BAP = 2;
     const FILE_SPK = 2;
     const FILE_UNCATEGORIZED = 3;
+    
+    /**
+     * @var UploadedFile[]
+     */
+    public $file;
 
     /**
      * {@inheritdoc}
@@ -39,7 +46,7 @@ class Document extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'document';
+        return '{{%document%}}';
     }
 
     /**
@@ -48,16 +55,15 @@ class Document extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['category', 'filename', 'number'], 'required'],
-            [['filename', 'uploadname'], 'string', 'max' => 255],
+            [['filename', 'number', 'type'], 'required'],
+            [['filename', 'uploadname', 'type'], 'string', 'max' => 255],
             [['file_type', 'number'], 'string', 'max' => 50],
-            [['category', 'ticket_id', 'store_id', 'action_id', 'file_size'], 'integer'],
-            [['category'], 'default', 'value' => self::FILE_UNCATEGORIZED],
-            [['category'], 'in', 'range' => [self::FILE_INVOICE, self::FILE_BAP, self::FILE_SPK, self::FILE_UNCATEGORIZED]],
+            [['ticket_id', 'store_id', 'action_id', 'file_size'], 'integer'],
             [['filename'], 'unique'],
+            [['file'], 'file', 'maxsize' => 1024*1024*2, 'skipOnEmpty' => false, 'extensions' => 'pdf, doc, docx, jpg, png'],
             [['ticket_id'], 'exist', 'skipOnError' => true, 'targetClass' => Ticket::class, 'targetAttribute' => ['ticket_id' => 'id']],
             [['store_id'], 'exist', 'skipOnError' => true, 'targetClass' => Store::class, 'targetAttribute' => ['store_id' => 'id']],
-            [['action_id'], 'exist', 'skipOnError' => true, 'targetClass' => TicketAction::class, 'targetAttribute' => ['action_id' => 'id']],
+            [['action_id'], 'exist', 'skipOnError' => true, 'targetClass' => Action::class, 'targetAttribute' => ['action_id' => 'id']],
         ];
     }
 
@@ -73,6 +79,24 @@ class Document extends \yii\db\ActiveRecord
         ];
     }
 
+    public static function instantiate($row)
+    {
+        $type = $row['type'];
+        return new $type();
+    }
+
+    public function init()
+    {
+        $this->type = self::class;
+        parent::init();
+    }
+
+    public function beforeSave($insert)
+    {
+        $this->type = self::class;
+        return parent::beforeSave($insert);
+    }
+
     /**
      * Gets query for [[Action]].
      *
@@ -80,7 +104,7 @@ class Document extends \yii\db\ActiveRecord
      */
     public function getAction()
     {
-        return $this->hasOne(TicketAction::class, ['action_id' => 'id']);
+        return $this->hasOne(Action::class, ['action_id' => 'id']);
     }
 
     /**

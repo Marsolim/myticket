@@ -1,6 +1,6 @@
 <?php
 
-namespace common\models\ticket;
+namespace common\models\tickets;
 
 use Yii;
 use yii\behaviors\TimestampBehavior;
@@ -9,8 +9,8 @@ use common\models\actors\User;
 use common\models\actors\Store;
 use common\models\actors\Depot;
 use common\models\actors\Company;
-use common\models\doc\Document;
-use common\models\ticket\Action;
+use common\models\docs\Document;
+use common\models\tickets\Action;
 use yii\helpers\ArrayHelper;
 
 /**

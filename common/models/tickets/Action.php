@@ -1,6 +1,6 @@
 <?php
 
-namespace common\models\ticket;
+namespace common\models\tickets;
 
 use Yii;
 use yii\behaviors\BlameableBehavior;

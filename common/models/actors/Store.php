@@ -6,7 +6,7 @@ use common\db\CustomerQuery;
 use common\models\actors\Customer;
 use common\models\actors\Company;
 use common\models\actors\Depot;
-use common\models\ticket\Ticket;
+use common\models\tickets\Ticket;
 use Yii;
 use yii\helpers\ArrayHelper;
 

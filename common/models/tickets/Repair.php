@@ -1,10 +1,10 @@
 <?php
 
-namespace common\models\ticket;
+namespace common\models\tickets;
 
 use common\db\ActionQuery;
 use common\models\actors\Engineer;
-use common\models\ticket\Action;
+use common\models\tickets\Action;
 use common\models\Item;
 use yii\helpers\ArrayHelper;
 

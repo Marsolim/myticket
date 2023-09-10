@@ -111,12 +111,6 @@ class UserController extends Controller
                     $region = Depot::findOne(['id' => $model->$key]);
                     if (isset($region)) $value = $region->toString();
                 }
-                if ($key == 'company_id')
-                {
-                    //$model->$key = $value + 0;
-                    $company = Company::findOne(['id' => $model->$key]);
-                    if (isset($company)) $value = $company->toString();
-                }
                 // validate if any errors
                 if ($model->validate() && $model->save()) {
                     // return JSON encoded output in the below format on success with an empty `message`

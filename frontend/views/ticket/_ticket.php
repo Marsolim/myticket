@@ -4,7 +4,7 @@ use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
 use common\models\actors\Store;
-use common\models\ticket\Ticket;
+use common\models\tickets\Ticket;
 use kartik\helpers\Enum;
 
 /** @var yii\web\View $this */

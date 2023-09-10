@@ -5,7 +5,7 @@ namespace common\models\actors;
 use common\models\actors\Customer;
 use common\models\actors\Depot;
 use common\models\actors\Store;
-use common\models\ticket\Ticket;
+use common\models\tickets\Ticket;
 use common\db\CustomerQuery;
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -62,24 +62,24 @@ class Company extends Customer
     public static function find()
     {
         $query = new CustomerQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
-        $query = $query->with('depots', 'stores');
+        //$query = $query->with('depots', 'stores');
         return $query;
     }
 
     public function getTickets()
     {
-        return $this->hasMany(Ticket::class, ['store_id' => 'id'])
+        return $this->hasMany(Ticket::class, ['customer_id' => 'id'])
             ->via('stores');
     }
 
     public function getStores()
     {
-        return $this->hasMany(Store::class, ['depot_id' => 'id'])
+        return $this->hasMany(Store::class, ['parent_id' => 'id'])->inverseOf('depot')
             ->via('depots');
     }
 
     public function getDepots()
     {
-        return $this->hasMany(Depot::class, ['company_id' => 'id'])->inverseOf('company');
+        return $this->hasMany(Depot::class, ['parent_id' => 'id'])->inverseOf('company');
     }
 }

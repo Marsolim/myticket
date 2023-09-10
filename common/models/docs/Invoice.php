@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models\doc;
+namespace common\models\docs;
 
-use common\models\Store;
+use common\models\actors\Store;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use Yii;

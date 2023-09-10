@@ -1,6 +1,6 @@
 <?php
 
-namespace common\models\doc;
+namespace common\models\docs;
 
 use common\models\actors\Store;
 use yii\behaviors\TimestampBehavior;
@@ -16,7 +16,7 @@ use Yii;
  *
  * @property Store[] $stores
  */
-abstract class Document extends \yii\db\ActiveRecord
+class Document extends \yii\db\ActiveRecord
 {
     const FILE_INVOICE = 1;
     const FILE_BAP = 2;
@@ -39,7 +39,7 @@ abstract class Document extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%document%}}';
+        return 'document';
     }
 
     /**
@@ -57,7 +57,7 @@ abstract class Document extends \yii\db\ActiveRecord
             [['filename'], 'unique'],
             [['ticket_id'], 'exist', 'skipOnError' => true, 'targetClass' => Ticket::class, 'targetAttribute' => ['ticket_id' => 'id']],
             [['store_id'], 'exist', 'skipOnError' => true, 'targetClass' => Store::class, 'targetAttribute' => ['store_id' => 'id']],
-            [['action_id'], 'exist', 'skipOnError' => true, 'targetClass' => Action::class, 'targetAttribute' => ['action_id' => 'id']],
+            [['action_id'], 'exist', 'skipOnError' => true, 'targetClass' => TicketAction::class, 'targetAttribute' => ['action_id' => 'id']],
         ];
     }
 
