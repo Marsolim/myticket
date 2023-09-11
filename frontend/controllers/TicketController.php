@@ -4,11 +4,13 @@ namespace frontend\controllers;
 
 use common\models\actors\Engineer;
 use Yii;
-use common\models\ticket\Ticket;
+use common\models\tickets\Ticket;
 use common\models\actors\User;
 use common\models\actors\Store;
-use common\models\ticket\Action;
-use common\models\ticket\Discretion;
+use common\models\tickets\Action;
+use common\models\tickets\Discretion;
+use common\models\tickets\Repair;
+use common\models\tickets\Visit;
 use Exception;
 use frontend\models\search\ActionSearch;
 use frontend\models\search\TicketSearch;
@@ -22,8 +24,10 @@ use yii\helpers\ArrayHelper;
 use yii\filters\VerbFilter;
 use frontend\helpers\UserHelper;
 use frontend\models\GeneralManager;
+use frontend\models\search\RepairActionSearch;
 use frontend\models\StoreManager;
 use mdm\autonumber\AutoNumber;
+use yii\base\Model;
 use yii\helpers\Json;
 use yii\web\Response;
 use yii\widgets\ActiveForm;
@@ -148,6 +152,94 @@ class TicketController extends Controller
         $model = new Discretion();
         if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
             $model->user_id = Yii::$app->user->id;
+            $model->created_at = time();
+            \Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
+    }
+
+    public function actionVisit($ticket)
+    {
+        $model = new Visit();
+        $model->ticket_id = $ticket;
+        $model->user_id = Yii::$app->user->id;
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                if ($model->validate()) {
+                    $flag = $model->save(false);
+                    if ($flag == true) {
+                        $transaction->commit();                      
+                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
+                    } else {
+                        $transaction->rollBack();
+                    }
+                } else {
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Contact can not created.'));
+                }
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+            }
+        }
+    
+        return $this->renderAjax('_action_visit', [
+                    'model' => $model,
+            ]);
+    }
+
+    public function actionVisitValidate() {
+        $model = new Visit();
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            //$model->user_id = Yii::$app->user->id;
+            $model->created_at = time();
+            \Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
+    }
+
+    public function actionRepair($ticket)
+    {
+        $searchModel = new RepairActionSearch();
+        $searchModel->ticket_id = $ticket;
+        $query = $searchModel->searchQuery(Yii::$app->request->getQueryParams());
+        $query->andWhere(['ticket_id' => $ticket]);
+        $dataProvider = $searchModel->search($query);
+        $models = $dataProvider->getModels();
+        if (Yii::$app->request->isAjax && Model::loadMultiple($models, Yii::$app->request->post())) {
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                if (Model::validateMultiple($models))
+                {
+                    $flag = false;
+                    foreach ($models as $index => $model) {
+                        // populate and save records for each model
+                        $flag &= $model->save(false);
+                    }
+                    if ($flag == true) {
+                        $transaction->commit();                      
+                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
+                    } else {
+                        $transaction->rollBack();
+                    }
+                }
+                else
+                {
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Contact can not created.'));
+                }
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+            }
+        }
+    
+        return $this->renderAjax('_action_repair', [
+                    'dataProvider' => $dataProvider,
+            ]);
+    }
+
+    public function actionRepairValidate() {
+        $model = new Repair();
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            //$model->user_id = Yii::$app->user->id;
             $model->created_at = time();
             \Yii::$app->response->format = Response::FORMAT_JSON;
             return ActiveForm::validate($model);

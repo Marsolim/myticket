@@ -45,7 +45,7 @@ abstract class Action extends \yii\db\ActiveRecord
         return [
             [['ticket_id', 'user_id', 'type'], 'required'],
             [['ticket_id', 'user_id', 'item_id'], 'integer'],
-            [['action', 'type'], 'string', 'max' => 255],
+            [['action', 'type', 'serial'], 'string', 'max' => 255],
             [['summary'], 'string', 'max' => 500],
         ];
     }

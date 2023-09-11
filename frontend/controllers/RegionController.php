@@ -123,9 +123,9 @@ class RegionController extends Controller
         if (!is_null($q)) {
             $query = new Query;
             $query->select(['id', 'CONCAT(r.code, "-", r.name) AS text'])
-                ->from(['r' => 'region'])
-                ->where(['like', 'r.name', $q])
-                ->orWhere(['like', 'r.code', $q])
+                ->from(['r' => 'customer'])
+                ->where(['r.type' => Depot::class])
+                ->andWhere(['or', ['like', 'r.name', $q], ['like', 'r.code', $q]])
                 ->limit(20);
             $command = $query->createCommand();
             $data = $command->queryAll();

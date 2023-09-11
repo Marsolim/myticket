@@ -132,10 +132,10 @@ $this->registerJs($script);
 ) ?>
 <!-- POPUP MODAL QUICK TICKET -->                            
 <div class="modal inmodal quick-ticket-model" id="addQuickTicketFormModel" role="dialog" data-keyboard="false" data-backdrop="static">
-    <div class="modal-dialog modal-md "></div>
+    <div class="modal-dialog modal-xl "></div>
 </div> 
 <!-- POPUP MODAL QUICK ACTION -->                            
 <div class="modal inmodal quick-action-model" id="addQuickActionFormModel" role="dialog" data-keyboard="false" data-backdrop="static">
-    <div class="modal-dialog modal-md "></div>
+    <div class="modal-dialog modal-xl "></div>
 </div> 
 <?php Pjax::end(); ?>

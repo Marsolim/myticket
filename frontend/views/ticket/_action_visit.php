@@ -18,12 +18,12 @@ use kartik\helpers\Enum;
     'validationUrl' => Yii::$app->urlManager->createUrl('ticket/visit-validate')]);
     ?>
     <div class="modal-header">
-        <h4 class="modal-title text-left">Alasan tidak tercover MC</h4>
+        <h4 class="modal-title text-left">Rekomendasi</h4>
     </div>
     <div class="modal-body">       
         <?= $form->field($model, 'user_id')->textInput(['maxlength' => true]) ?>
-        <?= $form->field($model, 'summary')->textInput(['maxlength' => true])->label("Alasan") ?>
-        <div class="view-btn mt-2 text-left"> 
+        <?= $form->field($model, 'summary')->textarea()->label("Rekomendasi") ?>
+        <div class="view-btn mt-2 text-left">
             <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-default' : 'btn btn-default']) ?>
         </div>
     </div>

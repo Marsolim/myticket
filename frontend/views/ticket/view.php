@@ -8,10 +8,10 @@ use frontend\widgets\TActionThread;
 use frontend\widgets\TActionInput;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
-use common\models\ticket\Ticket;
-use common\models\ticket\Action;
+use common\models\tickets\Ticket;
+use common\models\tickets\Action;
 use common\models\actors\User;
-use common\models\doc\Document;
+use common\models\docs\Document;
 use kartik\file\FileInput;
 use yii\data\ArrayDataProvider;
 

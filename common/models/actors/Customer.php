@@ -4,8 +4,6 @@ namespace common\models\actors;
 
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
-use common\db\CustomerQuery;
-use Yii;
 
 /**
  * This is the model class for table "customer".

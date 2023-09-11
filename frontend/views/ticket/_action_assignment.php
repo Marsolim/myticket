@@ -21,8 +21,12 @@ use kartik\helpers\Enum;
         <h4 class="modal-title text-left">Alasan tidak tercover MC</h4>
     </div>
     <div class="modal-body">       
-        <?= $form->field($model, 'action')->textInput(['maxlength' => true]) ?>
-        <?= $form->field($model, 'summary')->textInput(['maxlength' => true])->label("Alasan") ?>
+        <?= $form->field($model, 'user_id')->dropDownList(ArrayHelper::map(
+                $engineers,
+                'id',
+                'name'
+            ), ['prompt' => '']
+        ) ?>
         <div class="view-btn mt-2 text-left"> 
             <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-default' : 'btn btn-default']) ?>
         </div>

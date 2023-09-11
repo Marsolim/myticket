@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
 use common\models\actors\Store;
+use kartik\editors\Summernote;
 use kartik\helpers\Enum;
 
 /** @var yii\web\View $this */
@@ -21,8 +22,7 @@ use kartik\helpers\Enum;
         <h4 class="modal-title text-left">Alasan tidak tercover MC</h4>
     </div>
     <div class="modal-body">       
-        <?= $form->field($model, 'action')->textInput(['maxlength' => true]) ?>
-        <?= $form->field($model, 'summary')->textInput(['maxlength' => true])->label("Alasan") ?>
+        <?= $form->field($model, 'summary')->textarea()->label("Alasan") ?>
         <div class="view-btn mt-2 text-left"> 
             <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-default' : 'btn btn-default']) ?>
         </div>
@@ -32,7 +32,7 @@ use kartik\helpers\Enum;
 
 <?php
 $script = <<< JS
-   $(document).ready(function () {
+    $(document).ready(function () {
         $("#form-add-discretion").on('beforeSubmit', function (event) {
             event.preventDefault();
             var form_data = new FormData($('#form-add-discretion')[0]);
