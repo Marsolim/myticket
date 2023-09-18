@@ -5,6 +5,7 @@ use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
 use common\models\actors\Store;
 use common\models\tickets\Ticket;
+use frontend\helpers\TicketHelper;
 use kartik\helpers\Enum;
 
 /** @var yii\web\View $this */
@@ -29,8 +30,200 @@ $statuscolors = [
     Ticket::STATUS_CLOSED_NOPROBLEM => '#bbdefb',
 ];
 
+$css = <<<CSS
+  .text-toggle[aria-expanded=false] .text-expanded {
+    display: none;
+  }
+  .text-toggle[aria-expanded=true] .text-collapsed {
+    display: none;
+  }
+  .ticket.ticket-title:before {
+  	content:" - "
+  }
+  .ticket.ticket-aho:before {
+  	content:" | "
+  }
+  .store.store-name:before {
+    content:" - "
+  }
+  .date.date-at:before {
+  	content:" at "
+  }
+  .ticket-view .ticket-action-toolbar {
+  	display:none
+  }
+  .ticket-view:hover .ticket-action-toolbar {
+  	display:flex
+  }
+  .store-ticket-count.hover-hook .store-ticket-count.show-on-hover {
+  	display:none
+  }
+  .store-ticket-count.hover-hook:hover .store-ticket-count-label.hide-on-hover {
+  	display:none
+  }
+  .store-ticket-count.hover-hook:hover .store-ticket-count.show-on-hover {
+  	display:flex
+  }
+CSS;
+
+$this->registerCss($css);
+
 ?>
 <div class="ticket-view">
+    <div class="ticket-view card position-relative text-primary mt-3 mb-2">
+    	<div class="card-header">
+        	<div class="d-flex justify-content-between p-2">
+            	<div class="d-flex flex-row align-items-center">
+                	<div class="d-flex flex-column ml-2 me-2">
+                        <i class="text-warning fa fa-3x fa-ticket"></i>
+                    </div>
+                    <div class="vr"></div>
+                    <div class="d-flex flex-column ms-2 ml-2">
+                        <div class="h6 position-relative">
+                            <span class="h6">
+                            	<span class="ticket ticket-number" title="Nomor tiket">
+                                    <?= Html::a($model->number,['ticket/view', 'id' => $model->id]) ?>
+                                </span>
+                                <?= empty($model->problem) ? '' : Html::tag('span', $model->problem, ['class' => 'ticket ticket-title', 'title' => 'Kendala']) ?>
+                            	<?= empty($model->external_number) ? '' : Html::tag('span', $model->external_number, ['class' => 'ticket ticket-aho', 'title' => 'Nomor AHO']) ?>
+                                <?= $this->render('_ticket_status', ['model' => TicketHelper::getPrimaryStatus($model)]) ?>
+                            	<?= TicketHelper::renderStatus(TicketHelper::getSecondaryStatus($model)) ?>
+                            	<?= TicketHelper::renderStatus(TicketHelper::getContractStatus($model)) ?>
+                            	<?= TicketHelper::renderStatus(TicketHelper::getSLAStatus($model)) ?>
+                            </span>
+                        </div>
+                        <div class="h6 text-primary position-relative">
+                            <?= empty($model->store) ? '' : Html::tag('span', $model->store->code, ['class' => 'store store-code']) ?>
+                            <?= empty($model->store) ? '' : Html::tag('span', $model->store->name, ['class' => 'store store-name']) ?>
+                            <span class="store-ticket-count hover-hook small badge rounded-pill bg-secondary text-light position-absolute">
+                                  	<span class="store-ticket-count store-ticket-count-label hide-on-hover">
+                                  		<a class="text-decoration-none text-light" title="Jumlah ticket" href="#" data-method="POST">12</a>
+                                  	</span>
+                                    <span class="store-ticket-count store-ticket-count-expansion show-on-hover">
+                                    	<span class="badge rounded-pill bg-primary">
+                                          <a class="text-decoration-none text-light" title="Jumlah ticket" href="#" data-method="POST">12</a>
+                                      	</span>
+                                        >
+                                      	<span class="badge rounded-pill bg-success">
+                                          	<a class="text-decoration-none text-light" title="Jumlah ticket yang sudah selesai" href="#" data-method="POST">5</a>
+                                         	<div class="vr"></div>
+                                          	<a class="text-decoration-none text-warning" title="Jumlah ticket sudah selesai tidak tercover MC" href="#" data-method="POST">1</a>
+                                          	<div class="vr"></div>
+                                            <a class="text-decoration-none text-danger" title="Jumlah ticket selesai dan SLA tidak tercapai" href="#" data-method="POST">1</a>
+                                          	<span class="visually-hidden">unread messages</span>
+                                      	</span> 
+                                      	<span class="badge rounded-pill bg-info">
+                                          	<a class="text-decoration-none text-light" title="Jumlah ticket selesai dan menunggu remote IT" href="#" data-method="POST">1</a>
+                                          	<div class="vr"></div>
+                                          	<a class="text-decoration-none text-warning" title="Jumlah ticket selesai dan menunggu remote IT tidak tercover MC" href="#" data-method="POST">1</a>
+                                          	<div class="vr"></div>
+                                            <a class="text-decoration-none text-danger" title="Jumlah ticket selesai dan menunggu remote IT dan SLA tidak tercapai" href="#" data-method="POST">1</a>
+                                          	<span class="visually-hidden">unread messages</span>
+                                      	</span> 
+                                      	<span class="badge rounded-pill bg-danger">
+                                          	<a class="text-decoration-none text-light" title="Jumlah ticket double AHO" href="#" data-method="POST">2</a>
+                                          	<span class="visually-hidden">unread messages</span>
+                                      	</span>
+                                  	</span>
+                                  	<span class="visually-hidden">unread messages</span>
+                              	</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex flex-row mt-1">
+                    <div class="d-flex flex-column align-items-end ml-2">
+                        <small class="mr-2 text-align-right">
+                            <span>Last update by</span> 
+                            <span><a href="#">Administrator</a></span>
+                            <span>20 days ago</span>
+                        </small>
+                        <small class="mr-2 text-align-right">
+                        	<span>Created by</span> 
+                            <span><a href="#">Administrator</a></span>
+                        	<span class="date date-at">20-08-2023 12:50:24</span>
+                        </small>
+                    </div>
+                </div>
+        	</div>
+            <div class="ticket-action-toolbar btn-group ms-2 small align-items-end position-absolute top-0 end-0 translate-middle-y">
+            	<button class="btn btn-warning text-light" title="Tidak dicover MC"><i class="fa fa-thumbs-down"></i></button>
+                <button class="btn btn-primary" title="Rekomendasi"><i class="fa fa-handshake"></i></button>
+                <button class="btn btn-primary" title="Teknisi"><i class="fa fa-users-gear"></i></button>
+                <button class="btn btn-primary" title="Pekerjaan"><i class="fa fa-screwdriver-wrench"></i></button>
+                <button class="btn btn-info text-light" title="Selesai menunggu IT"><i class="fa fa-hourglass"></i></button>
+                <button class="btn btn-success" title="Selesai"><i class="fa fa-circle-check"></i></button>
+                <button class="btn btn-danger" title="Double AHO"><i class="fa fa-bugs"></i></button>
+                <button class="btn btn-primary text-toggle" data-bs-toggle="collapse" href="#ts-ts0001-body" aria-expanded="false" aria-controls="ts-ts0001-body"><i class="text-collapsed fas fa-caret-down"></i><i class="text-expanded fas fa-caret-up"></i></button>
+        	</div>
+    	</div>
+        <div class="card-body collapse" id="ts-ts0001-body">
+        	<div class="text-justify">
+            	<ul class="list-group list-group-flush">
+                	<li class="list-group-item">
+                    	<div class="d-flex">
+                            <div class="h6 my-1 align-self-stretch text-align-center">Rekomendasi</div>
+                            <div class="ms-auto">
+                            	<button title="Rekomendasi pekerjaan" class="btn py-1 btn-link"><i class="fa fa-handshake"></i></button>
+                            </div>
+                        </div>
+                        <p class="card-text">Sebaiknya dilakukan dulu pengecekan area apakah aman untuk pemasangan kamera.</p>
+                    </li>
+                    <li class="list-group-item">
+                    	<div class="d-flex">
+                            <div class="h6 my-1 align-self-stretch text-align-center">Tidak tercover MC</div>
+                            <div class="ms-auto">
+                            	<button title="Alasan tidak tercover MC" class="btn py-1 btn-link"><i class="fa fa-thumbs-down"></i></button>
+                            </div>
+                        </div>
+                        <p class="card-text">MC sudah expired sejak 2 hari sebelum pembuatan tiket servis.</p>
+                    </li>
+                    <li class="list-group-item">
+                    	<div class="d-flex">
+                            <div class="h6 my-1 align-self-stretch text-align-center">Daftar Dokumen</div>
+                            <div class="ms-auto">
+                            	<button title="Tambah dokumen" class="btn py-1 btn-link"><i class="fa fa-upload"></i></button>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex flex-row align-items-center">
+                                <a href="#">Invoice</a>
+                                <a href="#">SPK</a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="d-flex">
+                            <div class="h6 my-1 align-self-stretch text-align-center">Teknisi</div>
+                            <div class="ms-auto">
+                            	<button title="Tambah teknisi" class="btn py-1 btn-link"><i class="fa fa-users-gear"></i></button>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex flex-row align-items-center">
+                                <a href="#">Bambang</a>,
+                                <a href="#">Herianto</a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                    	<div class="d-flex">
+                            <div class="h6 my-1 align-self-stretch text-align-center">Pekerjaan</div>
+                            <div class="ms-auto">
+                            	<button title="Pekerjaan" class="btn py-1 btn-link"><i class="fa fa-screwdriver-wrench"></i></button>
+                            </div>
+                            <div>
+                            	<button title="Penyelesaian" class="btn py-1 btn-link"><i class="fa fa-circle-check"></i></button>
+                            </div>
+                        </div>
+                        <div class="row small card-text"><div class="col-2">20-08-2023 12:52.22</div><div class="col-4">Pemeriksaan lapangan</div></div>
+                        <div class="row small card-text"><div class="col-2">21-08-2023 12:52.22</div><div class="col-4">Ganti kamera</div><div class="col-4">Kamera HIKVISION</div><div class="col-2">123456789</div></div>
+                    </li>
+            	</ul>
+        	</div>
+        </div>
+    </div>
+</div>
+<div class="visually-hidden">
 <div class="container px-0 py-0 mx-0 mt-0 mb-2">
     <div class="row d-flex align-items-center justify-content-center">
         <div class="col">
@@ -162,7 +355,7 @@ $statuscolors = [
 </div>
 </div>
 
-<div class="card position-relative text-primary mt-3 mb-2">
+<div class="visually-hidden card position-relative text-primary mt-3 mb-2">
     	<div class="card-header">
         	<div class="d-flex justify-content-between p-2">
             	<div class="d-flex flex-row align-items-center">

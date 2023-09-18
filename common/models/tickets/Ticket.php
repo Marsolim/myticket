@@ -275,7 +275,7 @@ class Ticket extends \yii\db\ActiveRecord
 
     public function getCovered()
     {
-        return empty($this->reason);
+        return empty($this->discretion);
     }
 
     /**
