@@ -17,11 +17,26 @@
   .ticket.ticket-title:before {
   	content:" - "
   }
+  .ticket-view .ticket-action-toolbar {
+  	display:none
+  }
+  .ticket-view:hover .ticket-action-toolbar {
+  	display:flex
+  }
+  .store-ticket-count.hover-hook .store-ticket-count.show-on-hover {
+  	display:none
+  }
+  .store-ticket-count.hover-hook:hover .store-ticket-count-label.hide-on-hover {
+  	display:none
+  }
+  .store-ticket-count.hover-hook:hover .store-ticket-count.show-on-hover {
+  	display:flex
+  }
   </style>
 </head>
 <body>
-<div class="ticket-view">
-	<div class="card position-relative text-primary mt-3 mb-2">
+<div class="ticket-list-view">
+	<div class="ticket-view card position-relative text-primary mt-3 mb-2">
     	<div class="card-header">
         	<div class="d-flex justify-content-between p-2 px-3">
             	<div class="d-flex flex-row align-items-center">
@@ -35,12 +50,12 @@
                 </div>
                 <div class="d-flex flex-row mt-1 ellipsis">
                     <div class="d-flex flex-column align-items-end ml-2">
-                        <small class="mr-2 text-align-right">Last update 20 days ago</small>
-                        <small class="mr-2 text-align-right">20-08-2023 12:50:24</small>
+                        <small class="mr-2 text-align-right">Last update by <a href="#">Administrator</a>, 20 days ago</small>
+                        <small class="mr-2 text-align-right">20-Aug-2023 12:50:24</small>
                     </div>
                 </div>
         	</div>
-            <div class="btn-group ms-2 small align-items-end position-absolute top-0 end-0 translate-middle-y">
+            <div class="ticket-action-toolbar btn-group ms-2 small align-items-end position-absolute top-0 end-0 translate-middle-y">
                         <button class="btn btn-warning" title="Tidak dicover MC"><i class="fa fa-thumbs-down"></i></button>
                         <button class="btn btn-primary" title="Rekomendasi"><i class="fa fa-handshake"></i></button>
                         <button class="btn btn-primary" title="Teknisi"><i class="fa fa-users-gear"></i></button>
@@ -76,29 +91,65 @@
         	</div>
         </div>
     </div>
-    <div class="card position-relative text-primary mt-3 mb-2">
+    <div class="ticket-view card position-relative text-primary mt-3 mb-2">
     	<div class="card-header">
         	<div class="d-flex justify-content-between p-2">
             	<div class="d-flex flex-row align-items-center">
-                	<div class="d-flex flex-column ml-2">
+                	<div class="d-flex flex-column ml-2 me-2">
                         <i class="text-warning fa fa-3x fa-ticket"></i>
                     </div>
+                    <div class="vr"></div>
                     <div class="d-flex flex-column ms-2 ml-2">
                         <div class="h6 position-relative">
-                        <span class="h6 position-relative"><span class="ticket ticket-number">TS0001</span><span class="ticket ticket-title">Pindah titik kamera 6</span>
-                        <span class="small badge rounded-pill bg-primary text-light">
-                                <a class="text-decoration-none text-light" title="Status ticket" href="#" data-method="POST">Belum dikunjungi</a>
-                                <span class="visually-hidden">unread messages</span>
+                            <span class="h6 position-relative"><span class="ticket ticket-number">TS0001</span><span class="ticket ticket-title">Pindah titik kamera 6</span>
+                                <span class="small badge rounded-pill bg-primary text-light">
+                                    <a class="text-decoration-none text-light" title="Status ticket" href="#" data-method="POST">Belum dikunjungi</a>
+                                    <span class="visually-hidden">unread messages</span>
+                                </span>
+                                <span class="small badge rounded-pill bg-warning text-light">
+                                    <a class="text-decoration-none text-light" title="Status ticket" href="#" data-method="POST">Tidak tercover MC</a>
+                                    <span class="visually-hidden">unread messages</span>
+                                </span>
+                                <span class="small badge rounded-pill bg-danger text-light">
+                                    <a class="text-decoration-none text-light" title="Status ticket" href="#" data-method="POST">SLA tidak tercapai</a>
+                                    <span class="visually-hidden">unread messages</span>
+                                </span>
                             </span>
-                        </span>
                         </div>
                         <div class="h6 position-relative">
-                            <span class="h6 position-relative rounded-pill">AMD001-MIDI JAKARTA BARAT
-                            <span class="small badge rounded-pill bg-success text-light">
-                                <a class="text-decoration-none text-light" title="Jumlah ticket" href="#" data-method="POST">12</a>
-                                <span class="visually-hidden">unread messages</span>
-                            </span>
-                            </span>
+                            <span class="h6 position-relative text-primary pe-1">AMD001-MIDI JAKARTA BARAT</span>
+                              	<span class="store-ticket-count hover-hook small badge rounded-pill bg-secondary text-light position-absolute">
+                                  	<span class="store-ticket-count store-ticket-count-label hide-on-hover">
+                                  		<a class="text-decoration-none text-light" title="Jumlah ticket" href="#" data-method="POST">12</a>
+                                  	</span>
+                                    <span class="store-ticket-count store-ticket-count-expansion show-on-hover">
+                                    	<span class="badge rounded-pill bg-primary">
+                                          <a class="text-decoration-none text-light" title="Jumlah ticket" href="#" data-method="POST">12</a>
+                                      	</span>
+                                        >
+                                      	<span class="badge rounded-pill bg-success">
+                                          	<a class="text-decoration-none text-light" title="Jumlah ticket yang sudah selesai" href="#" data-method="POST">5</a>
+                                         	<div class="vr"></div>
+                                          	<a class="text-decoration-none text-warning" title="Jumlah ticket sudah selesai tidak tercover MC" href="#" data-method="POST">1</a>
+                                          	<div class="vr"></div>
+                                            <a class="text-decoration-none text-danger" title="Jumlah ticket selesai dan SLA tidak tercapai" href="#" data-method="POST">1</a>
+                                          	<span class="visually-hidden">unread messages</span>
+                                      	</span> 
+                                      	<span class="badge rounded-pill bg-info">
+                                          	<a class="text-decoration-none text-light" title="Jumlah ticket selesai dan menunggu remote IT" href="#" data-method="POST">1</a>
+                                          	<div class="vr"></div>
+                                          	<a class="text-decoration-none text-warning" title="Jumlah ticket selesai dan menunggu remote IT tidak tercover MC" href="#" data-method="POST">1</a>
+                                          	<div class="vr"></div>
+                                            <a class="text-decoration-none text-danger" title="Jumlah ticket selesai dan menunggu remote IT dan SLA tidak tercapai" href="#" data-method="POST">1</a>
+                                          	<span class="visually-hidden">unread messages</span>
+                                      	</span> 
+                                      	<span class="badge rounded-pill bg-danger">
+                                          	<a class="text-decoration-none text-light" title="Jumlah ticket double AHO" href="#" data-method="POST">2</a>
+                                          	<span class="visually-hidden">unread messages</span>
+                                      	</span>
+                                  	</span>
+                                  	<span class="visually-hidden">unread messages</span>
+                              	</span>
                         </div>
                     </div>
                 </div>
@@ -109,12 +160,12 @@
                     </div>
                 </div>
         	</div>
-            <div class="btn-group ms-2 small align-items-end position-absolute top-0 end-0 translate-middle-y">
-            	<button class="btn btn-warning disabled" title="Tidak dicover MC"><i class="fa fa-thumbs-down"></i></button>
+            <div class="ticket-action-toolbar btn-group ms-2 small align-items-end position-absolute top-0 end-0 translate-middle-y">
+            	<button class="btn btn-warning text-light" title="Tidak dicover MC"><i class="fa fa-thumbs-down"></i></button>
                 <button class="btn btn-primary" title="Rekomendasi"><i class="fa fa-handshake"></i></button>
                 <button class="btn btn-primary" title="Teknisi"><i class="fa fa-users-gear"></i></button>
                 <button class="btn btn-primary" title="Pekerjaan"><i class="fa fa-screwdriver-wrench"></i></button>
-                <button class="btn btn-primary" title="Selesai menunggu IT"><i class="fa fa-hourglass"></i></button>
+                <button class="btn btn-info text-light" title="Selesai menunggu IT"><i class="fa fa-hourglass"></i></button>
                 <button class="btn btn-success" title="Selesai"><i class="fa fa-circle-check"></i></button>
                 <button class="btn btn-danger" title="Double AHO"><i class="fa fa-bugs"></i></button>
                 <button class="btn btn-primary text-toggle" data-bs-toggle="collapse" href="#ts-ts0001-body" aria-expanded="false" aria-controls="ts-ts0001-body"><i class="text-collapsed fas fa-caret-down"></i><i class="text-expanded fas fa-caret-up"></i></button>
