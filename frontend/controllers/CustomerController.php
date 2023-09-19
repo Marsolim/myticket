@@ -5,7 +5,7 @@ namespace frontend\controllers;
 use common\models\actors\Depot;
 use common\models\actors\User;
 use common\models\actors\Store;
-use common\models\doc\Document;
+use common\models\docs\Document;
 use frontend\models\search\StoreSearch;
 use frontend\models\search\TicketSearch;
 use yii\web\Controller;

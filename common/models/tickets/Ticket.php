@@ -11,6 +11,7 @@ use common\models\actors\Depot;
 use common\models\actors\Company;
 use common\models\docs\Document;
 use common\models\tickets\Action;
+use common\models\tickets\closings\Closing;
 use yii\helpers\ArrayHelper;
 
 /**

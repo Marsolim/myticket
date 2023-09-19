@@ -2,25 +2,32 @@
 
 namespace frontend\helpers;
 
+use common\models\tickets\closings\Awaiting;
+use common\models\tickets\closings\Closing;
+use common\models\tickets\closings\Duplicate;
+use common\models\tickets\closings\NoProblem;
+use common\models\tickets\Discretion;
+use common\models\tickets\Open;
+use common\models\tickets\Repair;
 use common\models\tickets\Ticket;
 use yii\helpers\Html;
 
 class TicketHelper {
 
     static $statuses = [
-        1 => ['id' => 1, 'status' => 'Open', 'color' => 'bg-primary', 'description' => 'Open = Belum kunjungan'],
-        2 => ['id' => 2, 'status' => 'Pending', 'color' => 'bg-secondary', 'description' => 'Pending = Pekerjaan belum selesai'],
-        3 => ['id' => 3, 'status' => 'Selesai', 'color' => 'bg-success', 'description' => 'Selesai = Pekerjaan selesai'],
+        Open::class => ['id' => 1, 'status' => 'Open', 'color' => 'bg-primary', 'description' => 'Open = Belum kunjungan'],
+        Repair::class => ['id' => 2, 'status' => 'Pending', 'color' => 'bg-secondary', 'description' => 'Pending = Pekerjaan belum selesai'],
+        Closing::class => ['id' => 3, 'status' => 'Selesai', 'color' => 'bg-success', 'description' => 'Selesai = Pekerjaan selesai'],
     ];
 
     static $closestatuses = [
-        2 => ['id' => 2, 'status' => 'No Problem', 'color' => 'bg-info', 'description' => 'No Problem = Tidak ada masalah'],
-        3 => ['id' => 3, 'status' => 'Duplicate', 'color' => 'bg-danger', 'description' => 'Duplicate = Double input AHO'],
-        4 => ['id' => 4, 'status' => 'Waiting', 'color' => 'bg-info', 'description' => 'Waiting = Menunggu remote IT'],
+        Awaiting::class => ['id' => 2, 'status' => 'No Problem', 'color' => 'bg-info', 'description' => 'No Problem = Tidak ada masalah'],
+        NoProblem::class => ['id' => 3, 'status' => 'Duplicate', 'color' => 'bg-danger', 'description' => 'Duplicate = Double input AHO'],
+        Duplicate::class => ['id' => 4, 'status' => 'Waiting', 'color' => 'bg-info', 'description' => 'Waiting = Menunggu remote IT'],
     ];
 
     static $contractstatuses = [
-        2 => ['id' => 2, 'status' => 'MC <i class="fa fa-xmark"></i>', 'color' => 'bg-warning', 'description' => 'Tidak tercover MC']
+        Discretion::class => ['id' => 2, 'status' => 'MC <i class="fa fa-xmark"></i>', 'color' => 'bg-warning', 'description' => 'Tidak tercover MC']
     ];
 
     public static function getPrimaryStatus(Ticket $ticket) {

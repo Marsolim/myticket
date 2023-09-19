@@ -8,7 +8,7 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\Holiday;
-use common\models\ticket\Ticket;
+use common\models\tickets\Ticket;
 use frontend\helpers\CalendarHelper;
 
 class CalendarController extends Controller

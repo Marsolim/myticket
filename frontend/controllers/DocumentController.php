@@ -3,7 +3,7 @@
 namespace frontend\controllers;
 
 use common\models\actors\Store;
-use common\models\doc\Document;
+use common\models\docs\Document;
 use common\models\actors\User;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
