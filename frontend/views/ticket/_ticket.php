@@ -55,14 +55,22 @@ $css = <<<CSS
   .ticket-view:hover .ticket-action-toolbar {
   	display:flex
   }
-  .store-ticket-count.hover-hook .store-ticket-count.show-on-hover {
+  .hover-hook~.show-on-hover {
   	display:none
   }
-  .store-ticket-count.hover-hook:hover .store-ticket-count-label.hide-on-hover {
-  	display:none
+  .hover-hook:hover~.show-on-hover {
+  	display:inline-block
   }
-  .store-ticket-count.hover-hook:hover .store-ticket-count.show-on-hover {
-  	display:flex
+  .hover-hook:hover {
+  	background-color:blue!important
+    --bs-bg-opacity: 1;
+    background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important;
+  }
+  .hover-hook:hover~.show-on-hover {
+  	display:inline-block
+  }
+  .hover-hook~.show-on-hover:hover {
+  	display:inline-block
   }
 CSS;
 
@@ -81,52 +89,12 @@ $this->registerCss($css);
                     <div class="d-flex flex-column ms-2 ml-2">
                         <div class="h6 position-relative">
                             <span class="h6">
-                            	<span class="ticket ticket-number" title="Nomor tiket">
-                                    <?= Html::a($model->number,['ticket/view', 'id' => $model->id]) ?>
-                                </span>
-                                <?= empty($model->problem) ? '' : Html::tag('span', $model->problem, ['class' => 'ticket ticket-title', 'title' => 'Kendala']) ?>
-                            	<?= empty($model->external_number) ? '' : Html::tag('span', $model->external_number, ['class' => 'ticket ticket-aho', 'title' => 'Nomor AHO']) ?>
-                                <?= $this->render('_ticket_status', ['model' => TicketHelper::getPrimaryStatus($model)]) ?>
-                            	<?= TicketHelper::renderStatus(TicketHelper::getSecondaryStatus($model)) ?>
-                            	<?= TicketHelper::renderStatus(TicketHelper::getContractStatus($model)) ?>
-                            	<?= TicketHelper::renderStatus(TicketHelper::getSLAStatus($model)) ?>
+                            	<?= $this->render('_ticket_header', ['model' => $model])?>
+                                <?= $this->render('_ticket_status', ['model' => TicketHelper::getStatuses($model)]) ?>
                             </span>
                         </div>
-                        <div class="h6 text-primary position-relative">
-                            <?= empty($model->store) ? '' : Html::tag('span', $model->store->code, ['class' => 'store store-code']) ?>
-                            <?= empty($model->store) ? '' : Html::tag('span', $model->store->name, ['class' => 'store store-name']) ?>
-                            <span class="store-ticket-count hover-hook small badge rounded-pill bg-secondary text-light position-absolute">
-                                  	<span class="store-ticket-count store-ticket-count-label hide-on-hover">
-                                  		<a class="text-decoration-none text-light" title="Jumlah ticket" href="#" data-method="POST">12</a>
-                                  	</span>
-                                    <span class="store-ticket-count store-ticket-count-expansion show-on-hover">
-                                    	<span class="badge rounded-pill bg-primary">
-                                          <a class="text-decoration-none text-light" title="Jumlah ticket" href="#" data-method="POST">12</a>
-                                      	</span>
-                                        >
-                                      	<span class="badge rounded-pill bg-success">
-                                          	<a class="text-decoration-none text-light" title="Jumlah ticket yang sudah selesai" href="#" data-method="POST">5</a>
-                                         	<div class="vr"></div>
-                                          	<a class="text-decoration-none text-warning" title="Jumlah ticket sudah selesai tidak tercover MC" href="#" data-method="POST">1</a>
-                                          	<div class="vr"></div>
-                                            <a class="text-decoration-none text-danger" title="Jumlah ticket selesai dan SLA tidak tercapai" href="#" data-method="POST">1</a>
-                                          	<span class="visually-hidden">unread messages</span>
-                                      	</span> 
-                                      	<span class="badge rounded-pill bg-info">
-                                          	<a class="text-decoration-none text-light" title="Jumlah ticket selesai dan menunggu remote IT" href="#" data-method="POST">1</a>
-                                          	<div class="vr"></div>
-                                          	<a class="text-decoration-none text-warning" title="Jumlah ticket selesai dan menunggu remote IT tidak tercover MC" href="#" data-method="POST">1</a>
-                                          	<div class="vr"></div>
-                                            <a class="text-decoration-none text-danger" title="Jumlah ticket selesai dan menunggu remote IT dan SLA tidak tercapai" href="#" data-method="POST">1</a>
-                                          	<span class="visually-hidden">unread messages</span>
-                                      	</span> 
-                                      	<span class="badge rounded-pill bg-danger">
-                                          	<a class="text-decoration-none text-light" title="Jumlah ticket double AHO" href="#" data-method="POST">2</a>
-                                          	<span class="visually-hidden">unread messages</span>
-                                      	</span>
-                                  	</span>
-                                  	<span class="visually-hidden">unread messages</span>
-                              	</span>
+                        <div class="h6 position-relative text-primary">
+                            <?= $this->render('_ticket_store_info', ['model' => $model->store]) ?>
                         </div>
                     </div>
                 </div>

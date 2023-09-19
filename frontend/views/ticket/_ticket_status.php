@@ -13,14 +13,15 @@ use kartik\helpers\Enum;
 /** @var yii\widgets\ActiveForm $form */
 
 
-foreach($model as $k->$m)
+foreach($model as $k=>$m)
 {
+    if (empty($m)) continue;
 ?>
-<?= Html::beginTag('span', ['class' => ['','',$m['color']], 'title' => $m['description']]) ?>
+<?= Html::beginTag('span', ['class' => ['small', 'badge', 'rounded-pill','text-light',$m['color']], 'title' => $m['description']]) ?>
 <?= Html::a($m['status'], ['ticket/index', ['status' => $m['id']]],
     [
         'class' => [
-            $m['id'] > 7 ? 'text-decoration-strike-through' : 'text-decoration-none',
+            $m['id'] > 7 ? 'text-decoration-line-through' : 'text-decoration-none',
             'text-light'
         ]
     ]) ?>

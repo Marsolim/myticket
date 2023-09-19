@@ -34,10 +34,15 @@ class Ticket extends \yii\db\ActiveRecord
 {
     const STATUS_OPEN = 1;
     const STATUS_PENDING = 2;
-    const STATUS_CLOSED_NOPROBLEM = 3;
-    const STATUS_CLOSED_NORMAL = 4;
-    const STATUS_CLOSED_DOUBLE_AHO = 5;
-    const STATUS_CLOSED_NORMAL_IT = 7;
+    const STATUS_CLOSED = 3;
+
+    const STATUS_CLOSED_NORMAL = 1;
+    const STATUS_CLOSED_NOPROBLEM = 2;
+    const STATUS_CLOSED_DOUBLE_AHO = 3;
+    const STATUS_CLOSED_NORMAL_IT = 4;
+
+    const STATUS_COVERED_IN_CONTRACT = 1;
+    const STATUS_NOT_COVERED_IN_CONTRACT = 2;
 
     /**
      * {@inheritdoc}
@@ -65,20 +70,14 @@ class Ticket extends \yii\db\ActiveRecord
     {
         return [
             [['customer_id', 'number', 'status'], 'required'],
-            [['customer_id'], 'integer'],
+            [['customer_id', 'status', 'status_closed', 'status_contract'], 'integer'],
             [['number'. 'external_number'], 'string', 'max' => 20],
             [['problem'], 'string', 'max' => 255],
             [['number'], 'unique'],
             [['number'], 'autonumber', 'format'=>'TS.{Y.m}.????'],
             [['status'], 'default', 'value' => self::STATUS_OPEN],
-            [['status'], 'in', 'range' => [
-                self::STATUS_OPEN,
-                self::STATUS_PENDING,
-                self::STATUS_CLOSED_NOPROBLEM,
-                self::STATUS_CLOSED_NORMAL,
-                self::STATUS_CLOSED_DOUBLE_AHO,
-                self::STATUS_CLOSED_NORMAL_IT
-            ]],
+            [['status_closed'], 'default', 'value' => self::STATUS_CLOSED_NORMAL],
+            [['status_contract'], 'default', 'value' => self::STATUS_COVERED_IN_CONTRACT],
             //['issued_at', 'default', 'value' => time()],
             //['issued_at', 'date', 'timestampAttribute' => 'issued_at'],
             //[['engineer_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['engineer_id' => 'id']],
@@ -106,13 +105,17 @@ class Ticket extends \yii\db\ActiveRecord
     public function init()
     {
         $this->status = self::STATUS_OPEN;
+        $this->status_contract = self::STATUS_COVERED_IN_CONTRACT;
         parent::init();
     }
 
     public function beforeSave($insert)
     {
         if ($this->isNewRecord)
+        {
             $this->status = self::STATUS_OPEN;
+            //$this->status_contract = self::STATUS_COVERED_IN_CONTRACT;
+        }
         return parent::beforeSave($insert);
     }
 
@@ -261,6 +264,26 @@ class Ticket extends \yii\db\ActiveRecord
     public function getRepairs()
     {
         return $this->hasMany(Repair::class, ['ticket_id' => 'id'])->inverseOf('ticket');
+    }
+
+    /**
+     * Gets query for [[Discretion]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLastRepair()
+    {
+        return $this->getRepairs()->orderBy(['created_at' => SORT_DESC])->one();
+    }
+
+    /**
+     * Gets query for [[Discretion]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getClosing()
+    {
+        return $this->hasOne(Closing::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
     /**

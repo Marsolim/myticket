@@ -111,6 +111,6 @@ class Store extends Customer
      */
     public function getTickets()
     {
-        return $this->hasMany(Ticket::class, ['customer_id' => 'id'])->inverseOf('customer');
+        return $this->hasMany(Ticket::class, ['customer_id' => 'id'])->inverseOf('store');
     }
 }

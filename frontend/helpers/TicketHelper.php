@@ -7,41 +7,80 @@ use yii\helpers\Html;
 
 class TicketHelper {
 
+    static $statuses = [
+        1 => ['id' => 1, 'status' => 'Open', 'color' => 'bg-primary', 'description' => 'Open = Belum kunjungan'],
+        2 => ['id' => 2, 'status' => 'Pending', 'color' => 'bg-secondary', 'description' => 'Pending = Pekerjaan belum selesai'],
+        3 => ['id' => 3, 'status' => 'Selesai', 'color' => 'bg-success', 'description' => 'Selesai = Pekerjaan selesai'],
+    ];
+
+    static $closestatuses = [
+        2 => ['id' => 2, 'status' => 'No Problem', 'color' => 'bg-info', 'description' => 'No Problem = Tidak ada masalah'],
+        3 => ['id' => 3, 'status' => 'Duplicate', 'color' => 'bg-danger', 'description' => 'Duplicate = Double input AHO'],
+        4 => ['id' => 4, 'status' => 'Waiting', 'color' => 'bg-info', 'description' => 'Waiting = Menunggu remote IT'],
+    ];
+
+    static $contractstatuses = [
+        2 => ['id' => 2, 'status' => 'MC <i class="fa fa-xmark"></i>', 'color' => 'bg-warning', 'description' => 'Tidak tercover MC']
+    ];
+
     public static function getPrimaryStatus(Ticket $ticket) {
         if (empty($ticket->repairs) && $ticket->status == 1)
-            return ['id' => 1, 'status' => 'Open', 'class' => 'small badge rounded-pill bg-primary text-light', 'description' => 'Open = Belum kunjungan'];
+            return ['id' => 1, 'status' => 'Open', 'color' => 'bg-primary', 'description' => 'Open = Belum kunjungan'];
         elseif((!empty($ticket->repairs) && $ticket->status == 1) || $ticket->status == 2)
-            return ['id' => 2, 'status' => 'Pending', 'class' => 'small badge rounded-pill bg-secondary text-light', 'description' => 'Pending = Pekerjaan belum selesai'];
+            return ['id' => 2, 'status' => 'Pending', 'color' => 'bg-secondary', 'description' => 'Pending = Pekerjaan belum selesai'];
         elseif($ticket->status >= 3)
-            return ['id' => 3, 'status' => 'Selesai', 'class' => 'small badge rounded-pill bg-success text-light', 'description' => 'Selesai = Pekerjaan selesai'];
+            return ['id' => 3, 'status' => 'Selesai', 'color' => 'bg-success', 'description' => 'Selesai = Pekerjaan selesai'];
         else return null;
     }
 
     public static function getSecondaryStatus(Ticket $ticket) {
         if ($ticket->status == 3)
-            return ['id' => 3, 'status' => 'No Problem', 'class' => 'small badge rounded-pill bg-info text-light', 'description' => 'No Problem = Tidak ada masalah'];
+            return ['id' => 4, 'status' => 'No Problem', 'color' => 'bg-info', 'description' => 'No Problem = Tidak ada masalah'];
         elseif($ticket->status == 5)
-            return ['id' => 5, 'status' => 'Duplicate', 'class' => 'small badge rounded-pill bg-danger text-light', 'description' => 'Duplicate = Double input AHO'];
+            return ['id' => 5, 'status' => 'Duplicate', 'color' => 'bg-danger', 'description' => 'Duplicate = Double input AHO'];
         elseif($ticket->status == 7)
-            return ['id' => 7, 'status' => 'Waiting', 'class' => 'small badge rounded-pill bg-info text-light', 'description' => 'Waiting = Menunggu remote IT'];
+            return ['id' => 7, 'status' => 'Waiting', 'color' => 'bg-info', 'description' => 'Waiting = Menunggu remote IT'];
         else return null;
     }
 
     public static function getContractStatus(Ticket $ticket) {
         if (!empty($ticket->discretion))
-            return ['id' => 8, 'status' => 'MC <i class="fa fa-xmark"></i>', 'class' => 'small badge rounded-pill bg-warning text-light', 'description' => 'Tidak tercover MC'];
+            return ['id' => 8, 'status' => 'MC <i class="fa fa-xmark"></i>', 'color' => 'bg-warning', 'description' => 'Tidak tercover MC'];
         else return null;
     }
 
     public static function getSLAStatus(Ticket $ticket) {
-        if (((empty($ticket->updated_at) ? time() : $ticket->updated_at) - $ticket->created_at > (14 * 86400)))
-            return ['id' => 9, 'status' => 'SLA <i class="fa fa-xmark"></i>', 'class' => 'small badge rounded-pill bg-danger text-light', 'description' => 'SLA tidak tercapai'];
-        else return null;
+        $due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, $ticket->contract->sla);
+        if (!empty($ticket->closed))
+        {
+            if ($due < $ticket->closed->created_at)
+            {
+                return ['id' => 9, 'status' => 'SLA <i class="fa fa-xmark"></i>', 'color' => 'danger', 'description' => 'SLA tidak tercapai'];
+            }
+            else return ['id' => 10, 'status' => 'SLA <i class="fa fa-checked"></i>', 'color' => 'success', 'description' => 'SLA tercapai'];
+        }
+        else
+        {
+            $days = floor(($due - time())/DateTimeHelper::DAY_IN_SECONDS);
+            if ($days >= 0)
+                return ['id' => 11, 'status' => 'SLA '.$days.' hari', 'color' => 'primary', 'description' => 'SLA sisa '.$days.' hari'];
+            else
+                return ['id' => 12, 'status' => 'SLA '.$days.' hari', 'color' => 'warning', 'description' => 'SLA terlewat '.$days.' hari'];
+        }
     }
 
-    public static function renderStatus($status)
+    public static function getStatuses(Ticket $ticket)
     {
-        if (empty($status)) return null;
-        return Html::tag('span', Html::a($status['status'], ['ticket/index', ['status' => $status['id']]], ['class' => 'text-decoration-none text-light']), ['class' => $status['class'], 'title' => $status['description']]);
+        $statuses = [];
+        
+        $status = self::getPrimaryStatus($ticket);
+        if (!empty($status)) $statuses[$status['id']] = $status;
+        $status = self::getSecondaryStatus($ticket);
+        if (!empty($status)) $statuses[$status['id']] = $status;
+        $status = self::getContractStatus($ticket);
+        if (!empty($status)) $statuses[$status['id']] = $status;
+        $status = self::getSLAStatus($ticket);
+        if (!empty($status)) $statuses[$status['id']] = $status;
+        return $statuses;
     }
 }
