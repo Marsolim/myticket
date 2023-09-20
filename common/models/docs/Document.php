@@ -2,6 +2,7 @@
 
 namespace common\models\docs;
 
+use common\db\AuditedRecord;
 use common\models\actors\Store;
 use common\models\tickets\Action;
 use common\models\tickets\Ticket;
@@ -18,7 +19,7 @@ use Yii;
  *
  * @property Store[] $stores
  */
-abstract class Document extends \yii\db\ActiveRecord
+abstract class Document extends AuditedRecord
 {
     const FILE_INVOICE = 1;
     const FILE_BAP = 2;

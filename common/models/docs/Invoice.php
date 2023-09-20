@@ -16,7 +16,7 @@ use Yii;
  *
  * @property Store[] $stores
  */
-class Document extends \yii\db\ActiveRecord
+class Invoice extends Document
 {
     const FILE_INVOICE = 1;
     const FILE_BAP = 2;
