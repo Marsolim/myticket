@@ -1,34 +1,27 @@
 <?php
 
-namespace common\models\tickets;
+namespace common\models\tickets\actions;
 
+use common\db\ActionQuery;
+use common\db\AuditedRecord;
 use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "ticket_action".
  *
  * @property int $id
  * @property int $ticket
- * @property int $engineer_id
+ * @property int $user_id
  * @property string $action_date
  * @property int $status_override
  * @property string|null $summary
  */
-abstract class Action extends \yii\db\ActiveRecord
-{
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-            BlameableBehavior::class,
-        ];
-    }
 
+abstract class Action extends AuditedRecord
+{
     /**
      * {@inheritdoc}
      */
@@ -42,12 +35,13 @@ abstract class Action extends \yii\db\ActiveRecord
      */
     public function rules()
     {
-        return [
-            [['ticket_id', 'user_id', 'type'], 'required'],
+        $rules = parent::rules();
+        return ArrayHelper::merge($rules, [
+            [['ticket_id', 'user_id'], 'required'],
             [['ticket_id', 'user_id', 'item_id'], 'integer'],
-            [['action', 'type', 'serial'], 'string', 'max' => 255],
+            [['action', 'serial'], 'string', 'max' => 255],
             [['summary'], 'string', 'max' => 500],
-        ];
+        ]);
     }
 
     /**
@@ -59,19 +53,13 @@ abstract class Action extends \yii\db\ActiveRecord
             'id' => 'ID',
             'action' => 'Pekerjaan',
             'ticket_id' => 'No. Servis',
-            'engineer_id' => 'Teknisi',
+            'user_id' => 'Teknisi',
             'item_id' => 'Barang',
             'serial' => 'S/N',
             'created_at' => 'Tgl. Pekerjaan',
             'created_by' => 'Penginput',
             'summary' => 'Laporan lengkap',
         ];
-    }
-
-    public static function instantiate($row)
-    {
-        $type = $row['type'];
-        return new $type();
     }
 
     /**

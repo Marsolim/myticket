@@ -16,7 +16,7 @@ use Yii;
  * @property string $code
  *
  */
-class CustomerContract extends \yii\db\ActiveRecord
+class Contract extends \yii\db\ActiveRecord
 {
     const STATUS_ACTIVE = 1;
     const STATUS_NONACTIVE = 2;

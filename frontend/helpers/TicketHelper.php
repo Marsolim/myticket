@@ -2,14 +2,15 @@
 
 namespace frontend\helpers;
 
-use common\models\tickets\closings\Awaiting;
-use common\models\tickets\closings\Closing;
-use common\models\tickets\closings\Duplicate;
-use common\models\tickets\closings\NoProblem;
-use common\models\tickets\Discretion;
-use common\models\tickets\Open;
-use common\models\tickets\Repair;
+use common\models\tickets\actions\closings\Awaiting;
+use common\models\tickets\actions\closings\Closing;
+use common\models\tickets\actions\closings\Duplicate;
+use common\models\tickets\actions\closings\NoProblem;
+use common\models\tickets\actions\Discretion;
+use common\models\tickets\actions\Open;
+use common\models\tickets\actions\Repair;
 use common\models\tickets\Ticket;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 
 class TicketHelper {
@@ -57,37 +58,44 @@ class TicketHelper {
     }
 
     public static function getSLAStatus(Ticket $ticket) {
-        $due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, $ticket->contract->sla);
-        if (!empty($ticket->closed))
+        //$due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, $ticket->contract->sla);
+        $due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, 14);
+        $ticket->closing;
+        if (!empty($ticket->closing))
         {
-            if ($due < $ticket->closed->created_at)
+            $days = floor(($due - $ticket->closing->created_at)/DateTimeHelper::DAY_IN_SECONDS);
+            if ($due < $ticket->closing->created_at)
             {
-                return ['id' => 9, 'status' => 'SLA <i class="fa fa-xmark"></i>', 'color' => 'danger', 'description' => 'SLA tidak tercapai'];
+                return ['id' => 9, 'status' => 'SLA '.$days.' hari', 'color' => 'bg-danger', 'description' => 'SLA tidak tercapai'];
             }
-            else return ['id' => 10, 'status' => 'SLA <i class="fa fa-checked"></i>', 'color' => 'success', 'description' => 'SLA tercapai'];
+            else return ['id' => 10, 'status' => 'SLA '.$days.' hari', 'color' => 'bg-success', 'description' => 'SLA tercapai'];
         }
         else
         {
             $days = floor(($due - time())/DateTimeHelper::DAY_IN_SECONDS);
             if ($days >= 0)
-                return ['id' => 11, 'status' => 'SLA '.$days.' hari', 'color' => 'primary', 'description' => 'SLA sisa '.$days.' hari'];
+                return ['id' => 11, 'status' => 'SLA '.$days.' hari', 'color' => 'bg-primary', 'description' => 'SLA sisa '.$days.' hari'];
             else
-                return ['id' => 12, 'status' => 'SLA '.$days.' hari', 'color' => 'warning', 'description' => 'SLA terlewat '.$days.' hari'];
+                return ['id' => 12, 'status' => 'SLA '.$days.' hari', 'color' => 'bg-warning', 'description' => 'SLA terlewat '.$days.' hari'];
         }
     }
 
     public static function getStatuses(Ticket $ticket)
     {
-        $statuses = [];
-        
-        $status = self::getPrimaryStatus($ticket);
-        if (!empty($status)) $statuses[$status['id']] = $status;
-        $status = self::getSecondaryStatus($ticket);
-        if (!empty($status)) $statuses[$status['id']] = $status;
-        $status = self::getContractStatus($ticket);
-        if (!empty($status)) $statuses[$status['id']] = $status;
-        $status = self::getSLAStatus($ticket);
-        if (!empty($status)) $statuses[$status['id']] = $status;
-        return $statuses;
+        $stats = [];
+        $ticket->lastAction;
+        if (!empty($ticket->lastAction)){
+            $actionclass = $ticket->lastAction::class;           
+            $stats[] = ArrayHelper::getValue(self::$statuses, $actionclass);
+            if (is_subclass_of($actionclass, Closing::class)){
+                $stats[] = ArrayHelper::getValue(self::$statuses, Closing::class);
+                $stats[] = ArrayHelper::getValue(self::$closestatuses, $actionclass);
+            }
+        }
+        $ticket->discretion;
+        if (!empty($ticket->discretion))
+            $stats[] = ArrayHelper::getValue(self::$contractstatuses, $ticket->discretion::class);
+        $stats[] = self::getSLAStatus($ticket);
+        return $stats;
     }
 }

@@ -1,14 +1,13 @@
 <?php
 
-namespace common\models\tickets;
+namespace common\models\tickets\actions;
 
-use common\db\ActionQuery;
+use common\db\ObjectQuery;
 use common\models\actors\Engineer;
-use common\models\tickets\Action;
 use common\models\Item;
 use yii\helpers\ArrayHelper;
 
-class Repair extends Action
+class Repair extends ConcreteAction
 {
     public function rules()
     {
@@ -35,7 +34,7 @@ class Repair extends Action
     
     public static function find()
     {
-        $query = new ActionQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = new ObjectQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
         $query = $query->with('operator');
         return $query;
     }

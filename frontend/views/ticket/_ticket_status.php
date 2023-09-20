@@ -12,7 +12,6 @@ use kartik\helpers\Enum;
 /** @var frontend\models\search\TicketSearch $model */
 /** @var yii\widgets\ActiveForm $form */
 
-
 foreach($model as $k=>$m)
 {
     if (empty($m)) continue;
@@ -21,7 +20,7 @@ foreach($model as $k=>$m)
 <?= Html::a($m['status'], ['ticket/index', ['status' => $m['id']]],
     [
         'class' => [
-            $m['id'] > 7 ? 'text-decoration-line-through' : 'text-decoration-none',
+            'text-decoration-none',
             'text-light'
         ]
     ]) ?>

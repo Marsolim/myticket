@@ -1,46 +1,49 @@
 <?php
 
-namespace common\models\tickets\closings;
+namespace common\models\tickets\actions;
 
 use common\db\ActionQuery;
-use common\models\actors\User;
-use common\models\tickets\closings\Closing;
+use common\models\tickets\actions\Action;
+use common\models\actors\Engineer;
 use yii\helpers\ArrayHelper;
 
-class NoProblem extends Closing
+class Assignment extends MetaAction
 {
     public function rules()
     {
         $rules = parent::rules();
         return ArrayHelper::merge($rules, [
             [['user_id'], 'required'],
-            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['user_id' => 'id']]
+            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => Engineer::class, 'targetAttribute' => ['user_id' => 'id']],
         ]);
     }
     
     public function init()
     {
         $this->type = self::class;
-        $this->status_id = 1;
         parent::init();
     }
 
     public function beforeSave($insert)
     {
         $this->type = self::class;
-        $this->status_id = 1;
         return parent::beforeSave($insert);
     }
     
     public static function find()
     {
         $query = new ActionQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
-        $query = $query->with('operator');
+        $query = $query->with('engineer');
         return $query;
     }
 
-    public function getOperator()
+    /**
+     * Gets query for [[Engineer]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getEngineer()
     {
-        return $this->hasOne(User::class, ['id' => 'user_id']);
+        return $this->hasOne(Engineer::class, ['id' => 'user_id']);
     }
 }

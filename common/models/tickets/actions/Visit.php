@@ -1,18 +1,20 @@
 <?php
 
-namespace common\models\tickets\closings;
+namespace common\models\tickets\actions;
 
 use common\db\ActionQuery;
+use common\db\ObjectQuery;
+use common\models\tickets\actions\Action;
 use common\models\actors\User;
-use common\models\tickets\closings\Closing;
 use yii\helpers\ArrayHelper;
 
-class Duplicate extends Closing
+class Visit extends MetaAction
 {
     public function rules()
     {
         $rules = parent::rules();
         return ArrayHelper::merge($rules, [
+            [['summary'], 'required'],
             [['user_id'], 'required'],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['user_id' => 'id']]
         ]);
@@ -21,25 +23,23 @@ class Duplicate extends Closing
     public function init()
     {
         $this->type = self::class;
-        $this->status_id = 1;
         parent::init();
     }
 
     public function beforeSave($insert)
     {
         $this->type = self::class;
-        $this->status_id = 1;
         return parent::beforeSave($insert);
     }
     
     public static function find()
     {
-        $query = new ActionQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
-        $query = $query->with('operator');
+        $query = new ObjectQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = $query->with('evaluator');
         return $query;
     }
 
-    public function getOperator()
+    public function getEvaluator()
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }

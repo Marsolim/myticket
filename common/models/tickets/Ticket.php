@@ -2,6 +2,8 @@
 
 namespace common\models\tickets;
 
+use common\db\AuditedRecord;
+use common\db\ObjectQuery;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
@@ -9,9 +11,15 @@ use common\models\actors\User;
 use common\models\actors\Store;
 use common\models\actors\Depot;
 use common\models\actors\Company;
+use common\models\actors\Engineer;
 use common\models\docs\Document;
-use common\models\tickets\Action;
-use common\models\tickets\closings\Closing;
+use common\models\tickets\actions\Action;
+use common\models\tickets\actions\Assignment;
+use common\models\tickets\actions\closings\Closing;
+use common\models\tickets\actions\ConcreteAction;
+use common\models\tickets\actions\Discretion;
+use common\models\tickets\actions\MetaAction;
+use common\models\tickets\actions\Repair;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -31,7 +39,7 @@ use yii\helpers\ArrayHelper;
  * @property Store $store
  * @property Action[] $actions
  */
-class Ticket extends \yii\db\ActiveRecord
+class Ticket extends AuditedRecord
 {
     const STATUS_OPEN = 1;
     const STATUS_PENDING = 2;
@@ -50,18 +58,7 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'ticket';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-            BlameableBehavior::class,
-        ];
+        return '{{%ticket%}}';
     }
 
     /**
@@ -234,7 +231,17 @@ class Ticket extends \yii\db\ActiveRecord
      */
     public function getActions()
     {
-        return $this->hasMany(Action::class, ['ticket_id' => 'id']);
+        return $this->hasMany(ConcreteAction::class, ['ticket_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[Actions]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getMetaActions()
+    {
+        return $this->hasMany(MetaAction::class, ['ticket_id' => 'id']);
     }
 
     /**
@@ -321,5 +328,12 @@ class Ticket extends \yii\db\ActiveRecord
     {
         return $this->hasMany(Item::class, ['id' => 'item_id'])
             ->via('repairs');
+    }
+
+    public static function find()
+    {
+        $query = new ObjectQuery(get_called_class(), ['type' => get_called_class(), 'tableName' => Ticket::tableName()]);
+        $query->with('actions', 'closing', 'repairs', 'assignments', 'engineers');
+        return $query;
     }
 }

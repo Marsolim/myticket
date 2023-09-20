@@ -1,13 +1,13 @@
 <?php
 
-namespace common\models\tickets\closings;
+namespace common\models\tickets\actions\closings;
 
 use common\db\ActionQuery;
 use common\models\actors\User;
-use common\models\tickets\Action;
+use common\models\tickets\actions\ConcreteAction;
 use yii\helpers\ArrayHelper;
 
-abstract class Closing extends Action
+abstract class Closing extends ConcreteAction
 {
     public function rules()
     {

@@ -51,7 +51,7 @@ class CalendarHelper
         $isholiday = false;
         $isweekend = ArrayHelper::isIn(date('N', $date), $weekend);
         if (!$isweekend)
-            $isholiday = Holiday::find()->andWhere(['<=', 'start' => $date])->andWhere(['>=', 'end' => $date])->count() > 0;
+            $isholiday = Holiday::find()->andWhere(['<=', 'start', $date])->andWhere(['>=', 'end', $date])->count() > 0;
         return !($isweekend||$isholiday);
     }
 
