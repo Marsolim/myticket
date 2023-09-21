@@ -2,10 +2,12 @@
 
 namespace common\models;
 
+use common\db\AuditedRecord;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use common\db\CustomerQuery;
 use common\models\actors\Customer;
+use common\models\actors\Store;
 use Yii;
 
 /**
@@ -16,7 +18,7 @@ use Yii;
  * @property string $code
  *
  */
-class Contract extends \yii\db\ActiveRecord
+class Contract extends AuditedRecord
 {
     const STATUS_ACTIVE = 1;
     const STATUS_NONACTIVE = 2;
@@ -24,20 +26,9 @@ class Contract extends \yii\db\ActiveRecord
     /**
      * {@inheritdoc}
      */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-            BlameableBehavior::class,
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName()
     {
-        return 'customer_contract';
+        return '{{%contract%}}';
     }
 
     /**
@@ -71,7 +62,7 @@ class Contract extends \yii\db\ActiveRecord
 
     public function getCustomer()
     {
-        return $this->hasOne(Customer::class, ['id' => 'customer_id']);
+        return $this->hasOne(Store::class, ['id' => 'customer_id'])->inverseOf('contract');
     }
 
     public function toString()

@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use common\db\AuditedRecord;
 use common\models\actors\Store;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
@@ -16,29 +17,14 @@ use Yii;
  *
  * @property Store[] $stores
  */
-class Holiday extends \yii\db\ActiveRecord
+class Holiday extends AuditedRecord
 {
-    const FILE_INVOICE = 1;
-    const FILE_BAP_SPK = 2;
-    const FILE_UNCATEGORIZED = 3;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-            BlameableBehavior::class,
-        ];
-    }
-
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'holiday';
+        return '{{%holiday%}}';
     }
 
     /**
@@ -47,7 +33,7 @@ class Holiday extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['title', 'start', 'end'], 'required'],
+            [['title', 'start'], 'required'],
             [['start', 'end'], 'integer'],
             [['title'], 'string', 'max' => 255]
         ];
@@ -64,5 +50,16 @@ class Holiday extends \yii\db\ActiveRecord
             'start' => 'Dari',
             'end' => 'Hingga',
         ];
+    }
+
+    public function beforeSave($insert)
+    {
+        $this->start = $this->start - ($this->start % 84600);
+        $this->end = $this->start + 84599;
+        return parent::beforeSave($insert);
+    }
+
+    public function isWithin(int $date){
+        return $this->start <= $date && $date >= $this->end;
     }
 }

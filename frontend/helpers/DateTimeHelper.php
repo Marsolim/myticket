@@ -19,14 +19,16 @@ class DateTimeHelper
      */
     public static function due(int $start, int $duration, $weekend = [6, 7])
     {
+        $start = $start - ($start % 84600);
         $result = [ 'due' => 0, 'ndays' => 0];
         $ducount = $duration;
         $ndays = 0;
+        $holidays = Holiday::find()->andWhere(['between', 'start', $start, $start + (30 * 84600)])->all();
         $i = 1;
         while ($i <= $ducount) {
             $start = $start + self::DAY_IN_SECONDS;
             $isweekend = (!$weekend) ? false : ArrayHelper::isIn(date('N', $start), $weekend);
-            $isholiday = Holiday::find()->andWhere(['and', ['<=', 'start', $start],['>=', 'end', $start]])->count();
+            $isholiday = ArrayHelper::isIn($start, ArrayHelper::getColumn($holidays, 'start'), true);
             if (!($isweekend || $isholiday))
                 $i++;
             else $ndays++;

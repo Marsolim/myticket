@@ -18,6 +18,7 @@ use common\models\tickets\actions\ConcreteAction;
 use common\models\tickets\actions\Discretion;
 use common\models\tickets\actions\Recommendation;
 use common\models\tickets\actions\MetaAction;
+use common\models\tickets\actions\Open;
 use common\models\tickets\actions\Repair;
 use yii\helpers\ArrayHelper;
 
@@ -86,7 +87,14 @@ class Ticket extends AuditedRecord
 
     public function afterSave($insert, $changedAttributes)
     {
-        
+        if ($insert)
+        {
+            $open = new Open([
+                'ticket_id' => $this->primaryKey(),
+                'user_id' => Yii::$app->user->id,
+            ]);
+            $open->save(false);
+        }
     }
 
     /**
@@ -189,6 +197,11 @@ class Ticket extends AuditedRecord
         return $this->hasMany(Invoice::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
+    /**
+     * Gets query for [[Replacements]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getReplacements()
     {
         return $this->hasMany(Repair::class, ['ticket_id' => 'id'])->onCondition(['not', ['serial' => null]])->inverseOf('ticket');
@@ -205,7 +218,7 @@ class Ticket extends AuditedRecord
     }
 
     /**
-     * Gets query for [[Actions]].
+     * Gets query for [[MetaActions]].
      *
      * @return \yii\db\ActiveQuery
      */
@@ -249,26 +262,6 @@ class Ticket extends AuditedRecord
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getLastRepair()
-    {
-        return $this->hasOne(Repair::class, ['ticket_id' => 'id'])->addOrderBy(['created_at' => SORT_DESC])->inverseOf('ticket');
-    }
-
-    /**
-     * Gets query for [[Discretion]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getClosing()
-    {
-        return $this->hasOne(Closing::class, ['ticket_id' => 'id'])->inverseOf('ticket');
-    }
-
-    /**
-     * Gets query for [[Discretion]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
     public function getDiscretion()
     {
         return $this->hasOne(Discretion::class, ['ticket_id' => 'id'])->inverseOf('ticket');
@@ -298,7 +291,10 @@ class Ticket extends AuditedRecord
     public static function find()
     {
         $query = parent::find();
-        $query->with('actions', 'metaActions', 'recommendations', 'replacements', 'closing', 'repairs', 'assignments', 'engineers', 'lastAction');
+        $query->with('actions', 'replacements', 'repairs', 'lastAction');
+        $query->with('metaActions', 'discretion', 'recommendations', 'assignments', 'engineers');
+        $query->with('documents', 'inquiries', 'invoices', 'workOrders');
+        $query->with('company', 'depot', 'store', 'manager');
         return $query;
     }
 }

@@ -27,9 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
   var calendarEl = document.querySelector('#{$id}');
   console.log(calendarEl);
   var calendar = new FullCalendar.Calendar(calendarEl, {
-    //initialView: 'dayGridMonth',
-    initialDate: new Date(),
-    //editable: true,
+      //initialView: 'dayGridMonth',
+      initialDate: new Date(),
+      //editable: true,
       firstDay: 1, //  1(Monday) this can be changed to 0(Sunday) for the USA system
       selectable: true,
       //defaultView: 'month',
@@ -38,84 +38,67 @@ document.addEventListener('DOMContentLoaded', function() {
       center: 'title',
       right: 'dayGridMonth,timeGridWeek,timeGridDay'
     },
-    //selectHelper: true,
-      select: function(start, end, allDay) {
-        var title = prompt('Event Title:');
-        if (title) {
-var data = new FormData();
-data.append( "json", JSON.stringify( {
-            'title': title,
-            'start': start.start,
-            'end': start.end
-} ) );
-
-fetch('{$addholiday}', {
-  method: 'POST',
-  headers: {
-    'Accept':'application/json',
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify( {
-            'title': title,
-            'start': start.start,
-            'end': start.end
-} ),
-}).then(response => {
-  if (response.ok) {
-    response.text().then(response => {
-      calendar.getEventSourceById('HOLIDAY').refetch();
-  calendar.render();
-    });
-  }
-});
-          
-        }
-        calendar.unselect();
+    select: function(start, end, allDay) {
+      var title = prompt('Event Title:');
+      if (title) {
+        var data = new FormData();
+        data.append("json", JSON.stringify({'title': title,'start': start.start,'end': start.end}));
+        fetch('{$addholiday}', {
+          method: 'POST',
+          headers: {
+            'Accept':'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({'title': title,'start': start.start,'end': start.end}),
+        }).then(response => {
+          if (response.ok) {
+            response.text().then(response => {
+              calendar.getEventSourceById('HOLIDAY').refetch();
+              calendar.render();
+            });
+          }
+        });
+      }
+      calendar.unselect();
+    },
+    eventSources: [
+      {
+        url: '{$nonworkingday}',
+        method: 'GET',
+        failure: function() {
+          alert('there was an error while fetching events!');
+        },
+        className:'fc-non-business',
+        display:'background',
+        color: 'yellow',   // a non-ajax option
+        textColor: 'red' // a non-ajax option
       },
-      eventSources: [
-
-// your event source
-{
-  url: '{$nonworkingday}',
-  method: 'GET',
-  failure: function() {
-    alert('there was an error while fetching events!');
-  },
-  className:'fc-non-business',
-  display:'background',
-  color: 'yellow',   // a non-ajax option
-  textColor: 'red' // a non-ajax option
-},
-{
-  id:'HOLIDAY',
-  url: '{$holiday}',
-  method: 'GET',
-  failure: function() {
-    alert('there was an error while fetching events!');
-  },
-  className:'fc-non-business',
-  display:'background',
-  color: 'pink',   // a non-ajax option
-  textColor: 'red' // a non-ajax option
-},
-{
-  id:'TICKETS',
-  url: '{$ticket}',
-  method: 'GET',
-  failure: function() {
-    alert('there was an error while fetching events!');
-  },
-  className:'fc-business',
-  //display:'background',
-  color: 'blue',   // a non-ajax option
-  textColor: 'black' // a non-ajax option
-}
-// any other sources...
-
-]
-    
+      {
+        id:'HOLIDAY',
+        url: '{$holiday}',
+        method: 'GET',
+        failure: function() {
+          alert('there was an error while fetching events!');
+        },
+        className:'fc-non-business',
+        display:'background',
+        color: 'pink',   // a non-ajax option
+        textColor: 'red' // a non-ajax option
+      },
+      {
+        id:'TICKETS',
+        url: '{$ticket}',
+        method: 'GET',
+        failure: function() {
+          alert('there was an error while fetching events!');
+        },
+        className:'fc-business',
+        //display:'background',
+        color: 'blue',   // a non-ajax option
+        textColor: 'black' // a non-ajax option
+      }
+    ]
   });
-
   calendar.render();
 });
 JS;

@@ -94,22 +94,28 @@ class CalendarController extends Controller
 
     public function actionAddHoliday()
     {
-        //if (Yii::$app->request->isAjax) 
-        //{
-            $model = Yii::$app->request->getBodyParams();
-            $holi = new Holiday();
-            $holi->title = $model["title"];
-            $holi->start = CalendarHelper::toTimeStamp($model["start"]);
-            $holi->end = CalendarHelper::toTimeStamp($model["end"]);
-            
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            if ($holi->validate())
-            {
-                //return $this->asJSON(['holi' => $holi]);
-                if ($holi->save())
+        $model = Yii::$app->request->getBodyParams();
+        $start = CalendarHelper::toTimeStamp($model["start"]);
+        $end = CalendarHelper::toTimeStampDec($model["end"]);
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        if ($start >= $end) {
+            $holi = new Holiday(['title' => $model["title"], 'start' => $start,]);
+            if ($holi->validate() && $holi->save())
                 return $this->asJSON(['holi' => $holi]);
+        }
+        else
+        {
+            $holis = [];
+            while ($start <= $end){
+                $holi = new Holiday(['title' => $model["title"], 'start' => $start,]);
+                
+            if ($holi->validate() && $holi->save())
+                $holis[] = $holi;
             }
-            return $this->asJSON(['model' => $model,
+            return $this->asJSON(['holi' => $holis]);
+        }
+            
+        return $this->asJSON(['model' => $model,
             'post' => Yii::$app->request->post(),
             'body' => Yii::$app->request->getBodyParams()
         ]);

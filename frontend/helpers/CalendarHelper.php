@@ -58,6 +58,16 @@ class CalendarHelper
     public static function toTimeStamp($date)
     {
         $date = new DateTime($date);
-        return $date->getTimeStamp();
+        $date = $date->getTimeStamp();
+        $date = $date - ($date % 84600);
+        return $date;
+    }
+
+    public static function toTimeStampDec($date)
+    {
+        $date = new DateTime($date);
+        $date = $date->getTimeStamp() - 1;
+        $date = $date - ($date % 84600);
+        return $date;
     }
 }
