@@ -9,14 +9,10 @@ use yii\helpers\ArrayHelper;
 
 class ObjectQuery extends ActiveQuery
 {
-    public $type;
-    public $tableName;
-
     public function prepare($builder)
     {
-        if ($this->type !== null) {
-            $this->andWhere(["$this->tableName.type" => self::getChildClasses($this->type)]);
-        }
+        $tableName = $this->modelClass::tableName();
+        $this->andWhere(["$tableName.type" => self::getChildClasses($this->modelClass)]);
         return parent::prepare($builder);
     }
 

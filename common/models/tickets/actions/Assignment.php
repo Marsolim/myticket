@@ -32,7 +32,7 @@ class Assignment extends MetaAction
     
     public static function find()
     {
-        $query = new ActionQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = parent::find();
         $query = $query->with('engineer');
         return $query;
     }

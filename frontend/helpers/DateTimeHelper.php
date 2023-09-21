@@ -2,6 +2,9 @@
 
 namespace frontend\helpers;
 
+use common\models\Holiday;
+use yii\helpers\ArrayHelper;
+
 class DateTimeHelper
 {
     const DAY_IN_SECONDS = 86400;
@@ -16,14 +19,20 @@ class DateTimeHelper
      */
     public static function due(int $start, int $duration, $weekend = [6, 7])
     {
+        $result = [ 'due' => 0, 'ndays' => 0];
         $ducount = $duration;
-        if (!$weekend) return $start + ($duration * self::DAY_IN_SECONDS);
+        $ndays = 0;
         $i = 1;
         while ($i <= $ducount) {
             $start = $start + self::DAY_IN_SECONDS;
-            if (CalendarHelper::isNonWorkday($start, $weekend))
+            $isweekend = (!$weekend) ? false : ArrayHelper::isIn(date('N', $start), $weekend);
+            $isholiday = Holiday::find()->andWhere(['and', ['<=', 'start', $start],['>=', 'end', $start]])->count();
+            if (!($isweekend || $isholiday))
                 $i++;
+            else $ndays++;
         }
-        return $start;
+        $result['due'] = $start;
+        $result['ndays'] = $ndays;
+        return $result;
     }
 }

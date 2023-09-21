@@ -2,8 +2,7 @@
 
 namespace common\models\actors;
 
-use yii\behaviors\TimestampBehavior;
-use yii\behaviors\BlameableBehavior;
+use common\db\AuditedRecord;
 
 /**
  * This is the model class for table "customer".
@@ -13,19 +12,8 @@ use yii\behaviors\BlameableBehavior;
  * @property string $code
  *
  */
-abstract class Customer extends \yii\db\ActiveRecord
+abstract class Customer extends AuditedRecord
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-            BlameableBehavior::class,
-        ];
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -63,18 +51,6 @@ abstract class Customer extends \yii\db\ActiveRecord
             'address' => 'Alamat',
         ];
     }
-
-    // public function init()
-    // {
-    //     $this->type = self::class;
-    //     parent::init();
-    // }
-
-    // public function beforeSave($insert)
-    // {
-    //     $this->type = self::class;
-    //     parent::beforeSave($insert);
-    // }
 
     public static function instantiate($row)
     {

@@ -32,7 +32,7 @@ class Discretion extends MetaAction
     
     public static function find()
     {
-        $query = new ObjectQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = parent::find();
         $query = $query->with('assessor');
         return $query;
     }

@@ -2,13 +2,11 @@
 
 namespace common\models\tickets\actions;
 
-use common\db\ActionQuery;
-use common\db\ObjectQuery;
-use common\models\tickets\actions\Action;
+use common\models\tickets\actions\MetaAction;
 use common\models\actors\User;
 use yii\helpers\ArrayHelper;
 
-class Visit extends MetaAction
+class Recommendation extends MetaAction
 {
     public function rules()
     {
@@ -34,7 +32,7 @@ class Visit extends MetaAction
     
     public static function find()
     {
-        $query = new ObjectQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = parent::find();
         $query = $query->with('evaluator');
         return $query;
     }

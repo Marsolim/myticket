@@ -12,24 +12,6 @@ use kartik\helpers\Enum;
 /** @var frontend\models\search\TicketSearch $model */
 /** @var yii\widgets\ActiveForm $form */
 
-$statusmap = [
-    Ticket::STATUS_OPEN => 'Belum dikunjungi',
-    Ticket::STATUS_PENDING => 'Pending',
-    Ticket::STATUS_CLOSED_NORMAL => 'Selesai',
-    Ticket::STATUS_CLOSED_NORMAL_IT => 'Selesai menunggu remote IT',
-    Ticket::STATUS_CLOSED_DOUBLE_AHO => 'Duplikat AHO',
-    Ticket::STATUS_CLOSED_NOPROBLEM => 'No Problem',
-];
-
-$statuscolors = [
-    Ticket::STATUS_OPEN => '#e3f2fd',
-    Ticket::STATUS_PENDING => '#f8bbd0',
-    Ticket::STATUS_CLOSED_NORMAL => '#bbdefb',
-    Ticket::STATUS_CLOSED_NORMAL_IT => '#bbdefb',
-    Ticket::STATUS_CLOSED_DOUBLE_AHO => '#ffcdd2',
-    Ticket::STATUS_CLOSED_NOPROBLEM => '#bbdefb',
-];
-
 $css = <<<CSS
   .text-toggle[aria-expanded=false] .text-expanded {
     display: none;
@@ -195,11 +177,11 @@ $this->registerCss($css);
 <div class="container px-0 py-0 mx-0 mt-0 mb-2">
     <div class="row d-flex align-items-center justify-content-center">
         <div class="col">
-            <div class="card border-warning" style="background-color:<?= $statuscolors[$model->status] ?>">
+            <div class="card border-warning">
                 <div class="d-flex justify-content-between p-2 px-3">
                     <div class="d-flex flex-row align-items-center">
                         <div class="d-flex flex-column ml-2">
-                            <span class="h5 text-primary"><i class="fa fa-ticket"></i> <?= $model->number.' - '.$model->problem.(empty($model->external_number) ? '' : ' | '.$model->external_number).'|'.($statusmap[$model->status]) ?></span> 
+                            <span class="h5 text-primary"><i class="fa fa-ticket"></i> <?= $model->number.' - '.$model->problem.(empty($model->external_number) ? '' : ' | '.$model->external_number) ?></span> 
                         </div>
                     </div>
                     <div class="d-flex flex-row mt-1 ellipsis">
@@ -230,7 +212,7 @@ $this->registerCss($css);
                             </small>
                         </div>
                         <div class="d-flex flex-row align-items-center">
-                            <small class="text-primary"><?= $statusmap[$model->status] ?></small>
+                            <small class="text-primary"></small>
                         </div>
                         <div class="d-flex flex-row align-items-center">
                             <?= Html::img('uploads/profiles/thumb/'.$model->issuer->profile, ['class' => 'rounded-circle', 'width' => 15, 'height' => 15]) ?>
@@ -258,15 +240,15 @@ $this->registerCss($css);
                                 'class'=>"btn btn-link quick-action",
                                 'title'=>"Pekerjaan"
                             ]) ?>
-                            <?= Html::a('<i class="fa fa-hourglass-half text-primary"></i>', ['ticket/close', 'ticket' => $model->id, 'status'=>Ticket::STATUS_CLOSED_NORMAL_IT], [
+                            <?= Html::a('<i class="fa fa-hourglass-half text-primary"></i>', ['ticket/close', 'ticket' => $model->id], [
                                 'class'=>"btn btn-link quick-action",
                                 'title'=>"Selesai, menunggu IT"
                             ]) ?>
-                            <?= Html::a('<i class="fa fa-circle-check text-success"></i>', ['ticket/close', 'ticket' => $model->id, 'status'=>Ticket::STATUS_CLOSED_NORMAL], [
+                            <?= Html::a('<i class="fa fa-circle-check text-success"></i>', ['ticket/close', 'ticket' => $model->id], [
                                 'class'=>"btn btn-link quick-action",
                                 'title'=>"Selesai"
                             ]) ?>
-                            <?= Html::a('<i class="fa fa-bug-slash text-danger"></i>', ['ticket/close', 'ticket' => $model->id, 'status'=>Ticket::STATUS_CLOSED_DOUBLE_AHO], [
+                            <?= Html::a('<i class="fa fa-bug-slash text-danger"></i>', ['ticket/close', 'ticket' => $model->id], [
                                 'class'=>"btn btn-link quick-action",
                                 'title'=>"Double AHO"
                             ]) ?>

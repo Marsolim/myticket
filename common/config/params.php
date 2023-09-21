@@ -33,7 +33,7 @@ return [
         'common\\models\\tickets\\actions\\ConcreteAction',
         'common\\models\\tickets\\actions\\Assignment',
         'common\\models\\tickets\\actions\\Discretion',
-        'common\\models\\tickets\\actions\\Visit',
+        'common\\models\\tickets\\actions\\Recommendation',
         'common\\models\\tickets\\actions\\Open',
         'common\\models\\tickets\\actions\\Repair',
         'common\\models\\tickets\\actions\\closings\Closing',

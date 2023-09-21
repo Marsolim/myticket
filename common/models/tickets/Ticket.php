@@ -3,21 +3,20 @@
 namespace common\models\tickets;
 
 use common\db\AuditedRecord;
-use common\db\ObjectQuery;
 use Yii;
-use yii\behaviors\TimestampBehavior;
-use yii\behaviors\BlameableBehavior;
 use common\models\actors\User;
 use common\models\actors\Store;
 use common\models\actors\Depot;
 use common\models\actors\Company;
 use common\models\actors\Engineer;
 use common\models\docs\Document;
+use common\models\docs\Invoice;
 use common\models\tickets\actions\Action;
 use common\models\tickets\actions\Assignment;
 use common\models\tickets\actions\closings\Closing;
 use common\models\tickets\actions\ConcreteAction;
 use common\models\tickets\actions\Discretion;
+use common\models\tickets\actions\Recommendation;
 use common\models\tickets\actions\MetaAction;
 use common\models\tickets\actions\Repair;
 use yii\helpers\ArrayHelper;
@@ -41,18 +40,6 @@ use yii\helpers\ArrayHelper;
  */
 class Ticket extends AuditedRecord
 {
-    const STATUS_OPEN = 1;
-    const STATUS_PENDING = 2;
-    const STATUS_CLOSED = 3;
-
-    const STATUS_CLOSED_NORMAL = 1;
-    const STATUS_CLOSED_NOPROBLEM = 2;
-    const STATUS_CLOSED_DOUBLE_AHO = 3;
-    const STATUS_CLOSED_NORMAL_IT = 4;
-
-    const STATUS_COVERED_IN_CONTRACT = 1;
-    const STATUS_NOT_COVERED_IN_CONTRACT = 2;
-
     /**
      * {@inheritdoc}
      */
@@ -73,9 +60,6 @@ class Ticket extends AuditedRecord
             [['problem'], 'string', 'max' => 255],
             [['number'], 'unique'],
             [['number'], 'autonumber', 'format'=>'TS.{Y.m}.????'],
-            [['status'], 'default', 'value' => self::STATUS_OPEN],
-            [['status_closed'], 'default', 'value' => self::STATUS_CLOSED_NORMAL],
-            [['status_contract'], 'default', 'value' => self::STATUS_COVERED_IN_CONTRACT],
             //['issued_at', 'default', 'value' => time()],
             //['issued_at', 'date', 'timestampAttribute' => 'issued_at'],
             //[['engineer_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['engineer_id' => 'id']],
@@ -100,21 +84,9 @@ class Ticket extends AuditedRecord
         ];
     }
 
-    public function init()
+    public function afterSave($insert, $changedAttributes)
     {
-        $this->status = self::STATUS_OPEN;
-        $this->status_contract = self::STATUS_COVERED_IN_CONTRACT;
-        parent::init();
-    }
-
-    public function beforeSave($insert)
-    {
-        if ($this->isNewRecord)
-        {
-            $this->status = self::STATUS_OPEN;
-            //$this->status_contract = self::STATUS_COVERED_IN_CONTRACT;
-        }
-        return parent::beforeSave($insert);
+        
     }
 
     /**
@@ -159,9 +131,9 @@ class Ticket extends AuditedRecord
             ->via('store');
     }
     
-    public function getManagers()
+    public function getManager()
     {
-        return $this->hasMany(StoreManager::class, ['association_id' => 'id'])
+        return $this->hasOne(StoreManager::class, ['association_id' => 'id'])
             ->via('depot')
             ->where(['status' => User::STATUS_ACTIVE]);
     }
@@ -194,7 +166,7 @@ class Ticket extends AuditedRecord
      */
     public function getInvoices()
     {
-        return $this->getDocuments()->where(['category' => Document::FILE_INVOICE]);
+        return $this->hasMany(Invoice::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
     /**
@@ -202,9 +174,9 @@ class Ticket extends AuditedRecord
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getBaps()
+    public function getInquiries()
     {
-        return $this->getDocuments()->where(['category' => Document::FILE_BAP]);
+        return $this->hasMany(Invoice::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
     /**
@@ -212,16 +184,14 @@ class Ticket extends AuditedRecord
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getSPKs()
+    public function getWorkOrders()
     {
-        return $this->getDocuments()->where(['category' => Document::FILE_SPK]);
+        return $this->hasMany(Invoice::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
-    public function getBarcodes()
+    public function getReplacements()
     {
-        $actions = $this->getRepairs()->andWhere(['not', ['serial' => null]])->all();
-        $barcodes = ArrayHelper::getValue($actions, 'serial');
-        return implode(', ', $barcodes);
+        return $this->hasMany(Repair::class, ['ticket_id' => 'id'])->onCondition(['not', ['serial' => null]])->inverseOf('ticket');
     }
 
     /**
@@ -231,7 +201,7 @@ class Ticket extends AuditedRecord
      */
     public function getActions()
     {
-        return $this->hasMany(ConcreteAction::class, ['ticket_id' => 'id']);
+        return $this->hasMany(ConcreteAction::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
     /**
@@ -241,7 +211,7 @@ class Ticket extends AuditedRecord
      */
     public function getMetaActions()
     {
-        return $this->hasMany(MetaAction::class, ['ticket_id' => 'id']);
+        return $this->hasMany(MetaAction::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
     /**
@@ -251,7 +221,7 @@ class Ticket extends AuditedRecord
      */
     public function getLastAction()
     {
-        return $this->getActions()->orderBy(['created_at' => SORT_DESC])->one();
+        return $this->hasOne(ConcreteAction::class, ['ticket_id' => 'id'])->addOrderBy(['created_at' => SORT_DESC])->inverseOf('ticket');
     }
 
     /**
@@ -259,9 +229,9 @@ class Ticket extends AuditedRecord
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getVisits()
+    public function getRecommendations()
     {
-        return $this->hasMany(Visit::class, ['ticket_id' => 'id'])->inverseOf('ticket');
+        return $this->hasMany(Recommendation::class, ['ticket_id' => 'id'])->inverseOf('ticket');
     }
 
     /**
@@ -281,7 +251,7 @@ class Ticket extends AuditedRecord
      */
     public function getLastRepair()
     {
-        return $this->getRepairs()->orderBy(['created_at' => SORT_DESC])->one();
+        return $this->hasOne(Repair::class, ['ticket_id' => 'id'])->addOrderBy(['created_at' => SORT_DESC])->inverseOf('ticket');
     }
 
     /**
@@ -302,11 +272,6 @@ class Ticket extends AuditedRecord
     public function getDiscretion()
     {
         return $this->hasOne(Discretion::class, ['ticket_id' => 'id'])->inverseOf('ticket');
-    }
-
-    public function getCovered()
-    {
-        return empty($this->discretion);
     }
 
     /**
@@ -332,8 +297,8 @@ class Ticket extends AuditedRecord
 
     public static function find()
     {
-        $query = new ObjectQuery(get_called_class(), ['type' => get_called_class(), 'tableName' => Ticket::tableName()]);
-        $query->with('actions', 'closing', 'repairs', 'assignments', 'engineers');
+        $query = parent::find();
+        $query->with('actions', 'metaActions', 'recommendations', 'replacements', 'closing', 'repairs', 'assignments', 'engineers', 'lastAction');
         return $query;
     }
 }

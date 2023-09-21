@@ -6,6 +6,7 @@ use common\db\ObjectQuery;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use yii\helpers\VarDumper;
 
 /**
  * @property string $type Class type of object
@@ -43,6 +44,7 @@ abstract class AuditedRecord extends ObjectRecord
 
     public static function find()
     {
-        return new ObjectQuery(get_called_class(), ['type' => get_called_class(), 'tableName' => get_called_class()::tableName()]);
+        //echo VarDumper::dump(get_called_class());
+        return new ObjectQuery(get_called_class());
     }
 }
