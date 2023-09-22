@@ -7,10 +7,10 @@ use Yii;
 use common\models\tickets\Ticket;
 use common\models\actors\User;
 use common\models\actors\Store;
-use common\models\tickets\Action;
-use common\models\tickets\Discretion;
-use common\models\tickets\Repair;
-use common\models\tickets\Visit;
+use common\models\tickets\actions\Action;
+use common\models\tickets\actions\Repair;
+use common\models\tickets\actions\Discretion;
+use common\models\tickets\actions\Recommendation;
 use Exception;
 use frontend\models\search\ActionSearch;
 use frontend\models\search\TicketSearch;
@@ -160,7 +160,7 @@ class TicketController extends Controller
 
     public function actionVisit($ticket)
     {
-        $model = new Visit();
+        $model = new Recommendation();
         $model->ticket_id = $ticket;
         $model->user_id = Yii::$app->user->id;
         if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
@@ -169,26 +169,26 @@ class TicketController extends Controller
                 if ($model->validate()) {
                     $flag = $model->save(false);
                     if ($flag == true) {
-                        $transaction->commit();                      
-                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
+                        $transaction->commit();
+                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Recommendation created successfully.'));
                     } else {
                         $transaction->rollBack();
+                        return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Model error.'));
                     }
                 } else {
-                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Contact can not created.'));
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
                 }
             } catch (Exception $ex) {
                 $transaction->rollBack();
+
+                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
             }
         }
-    
-        return $this->renderAjax('_action_visit', [
-                    'model' => $model,
-            ]);
+        return $this->renderAjax('_action_visit', ['model' => $model,]);
     }
 
     public function actionVisitValidate() {
-        $model = new Visit();
+        $model = new Recommendation();
         if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
             //$model->user_id = Yii::$app->user->id;
             $model->created_at = time();
@@ -220,6 +220,7 @@ class TicketController extends Controller
                         return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
                     } else {
                         $transaction->rollBack();
+                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
                     }
                 }
                 else
@@ -228,6 +229,7 @@ class TicketController extends Controller
                 }
             } catch (Exception $ex) {
                 $transaction->rollBack();
+                return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
             }
         }
     
@@ -268,6 +270,55 @@ class TicketController extends Controller
         ]);
     }
 
+    public function actionCloseNoProblem($ticket)
+    {
+        $model = new Recommendation();
+        if (Yii::$app->request->isAjax)
+        {
+            $model->ticket_id = $ticket;
+        $model->user_id = Yii::$app->user->id;
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                if ($model->validate()) {
+                    $flag = $model->save(false);
+                    if ($flag == true) {
+                        $transaction->commit();
+                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Recommendation created successfully.'));
+                    } else {
+                        $transaction->rollBack();
+                        return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Model error.'));
+                    }
+                } else {
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
+                }
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+
+                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
+            }
+        }
+        return $this->renderAjax('_action_visit', ['model' => $model,]);
+    }
+    throw new NotFoundHttpException("Should not try to call this.");
+    
+    }
+
+    public function actionCloseNormal($ticket)
+    {
+
+    }
+
+    public function actionCloseWaiting($ticket)
+    {
+
+    }
+
+    public function actionCloseDuplicate($ticket)
+    {
+
+    }
+
     /**
      * Creates a new Ticket model.
      * If creation is successful, the browser will be redirected to the 'view' page.
@@ -305,165 +356,6 @@ class TicketController extends Controller
             'stores' => $stores->all(),
             'engineers' => $engineers
         ]);
-    }
-
-    /**
-     * Creates a new Ticket model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
-    public function actionReport($id, $cmd)
-    {
-        $model = $this->findModel($id);
-        // $laststatus = TicketStatus::findOne(['id' => $model->last_status_id]);
-        // if (!isset($cmd) ||
-        //     ($cmd == 'Close' && !Yii::$app->user->can('closeTicket')) ||
-        //     ($cmd == 'Open' && !Yii::$app->user->can('issueTicket')) ||
-        //     ($cmd == 'Progress' && !Yii::$app->user->can('manageProgress')) ||
-        //     ($cmd == 'Suspend' && !User::isMemberOfRole([User::ROLE_ADMINISTRATOR, User::ROLE_SYS_ADMINISTRATOR])))
-        // {
-        //     throw new UnauthorizedHttpException();
-        // }
-        // $parameters = null;
-        // if ($cmd == 'Close' && Yii::$app->user->can('closeTicket'))
-        // {
-        //     if (!(isset($laststatus) && in_array($laststatus->code, ['O', 'PR', 'RNI', 'RIT'])))
-        //     {
-        //         return $this->redirect(['view', 'id' => $model->id]);
-        //     }
-        //     $parameters = $this->createCloseParameter($laststatus);
-        // }
-        // if ($cmd == 'Open' && Yii::$app->user->can('issueTicket'))
-        // {
-        //     if (isset($laststatus) && !in_array($laststatus->code, ['S']))
-        //     {
-        //         return $this->redirect(['view', 'id' => $model->id]);
-        //     }
-        //     $parameters = $this->createOpenParameter($laststatus);
-        // }
-        // if ($cmd == 'Suspend' && UserHelper::isAdministrator())
-        // {
-        //     if (isset($laststatus) && !in_array($laststatus->code, ['O', 'PR']))
-        //     {
-        //         return $this->redirect(['view', 'id' => $model->id]);
-        //     }
-        //     $parameters = $this->createSuspendParameter($laststatus);
-        // }
-        // if ($cmd == 'Progress' && Yii::$app->user->can('manageProgress'))
-        // {
-        //     if (!(isset($laststatus) && in_array($laststatus->code, ['O', 'PR'])))
-        //     {
-        //         return $this->redirect(['view', 'id' => $model->id]);
-        //     }
-        //     $parameters = $this->createProgressParameter($laststatus);
-        // }
-        // $ticketaction = new TicketAction();
-        // $ticketaction->ticket_id = $id;
-        // $ticketaction->engineer_id = Yii::$app->user->id;
-        // $ticketaction->status_override = $parameters['status']->id;
-        // $ticketaction->action_date = time();
-        
-        // if ($this->request->isPost) 
-        // {
-        //     if ($ticketaction->load($this->request->post())){
-        //         $duf = new DocumentUploadForm();
-        //         $ticketaction->attachments = UploadedFile::getInstances($ticketaction, 'attachments');
-        //         $duf->files = $ticketaction->attachments;
-        //         if ($ticketaction->validate() && $ticketaction->save()) {
-        //             $ticketaction->refresh();
-        //             $model->last_action_id = $ticketaction->id;
-        //             $model->last_status_id = $ticketaction->status_override;
-        //             $duf->owner_id = Yii::$app->user->id;
-        //             $duf->store_id = $model->store_id;
-        //             $duf->ticket_id = $model->id;
-        //             $duf->action_id = $ticketaction->id;
-        //             $duf->upload();
-        //             $model->updateAttributes(['last_action_id', 'last_status_id']);
-        //             $ticketaction->notify();
-        //             return $this->redirect(Url::previous());
-        //         }
-        //     }
-        // }
-
-        // return $this->render('ticketaction', [
-        //     'model' => $ticketaction,
-        //     'statuses' => $parameters['statuses'],
-        //     'ticket' => $model,
-        //     'command' => $cmd
-        // ]);
-    }
-
-    protected function createCloseParameter($laststatus)
-    {
-        // $statuses = [TicketStatus::findOne(['code' => 'CDT'])];
-        // $status = TicketStatus::findOne(['code' => 'CNA']);
-        // if (isset($laststatus) && in_array($laststatus->code, ['RNI', 'RIT']))
-        // {
-        //     $status = TicketStatus::findOne(['code' => 'CRA']);
-        // }
-        // $statuses[] = $status;
-
-        // if ($status->code == 'CRA')
-        // {
-        //     $action = 'Servis selesai tanpa ada kendala.';
-        // }
-        // if ($status->code == 'CNA')
-        // {
-        //     $action = 'Servis tidak ditindaklanjuti.';
-        // }
-        // if ($status->code == 'CDT')
-        // {
-        //     $action = 'Dobel input servis.';
-        // }
-        // return [
-        //     'statuses' => $statuses,
-        //     'status' => $status,
-        //     'action' => $action,
-        // ];
-    }
-    
-    protected function createOpenParameter($laststatus)
-    {
-        // $statuses = [TicketStatus::findOne(['code' => 'O'])];
-        // $status = $statuses[0];
-        // $action = 'Servis dibuka.';
-        // if (isset($laststatus) && in_array($laststatus->code, ['S']))
-        // {
-        //     $action = 'Servis dilanjutkan.';
-        // }
-        // return [
-        //     'statuses' => $statuses,
-        //     'status' => $status,
-        //     'action' => $action,
-        // ];
-    }
-
-    protected function createSuspendParameter($laststatus)
-    {
-        // $statuses = [TicketStatus::findOne(['code' => 'S'])];
-        // $status = $statuses[0];
-        // $action = null;
-        // if (isset($laststatus) && in_array($laststatus->code, ['O', 'PR']))
-        // {
-        //     $action = 'Servis dihentikan.';
-        // }
-        // return [
-        //     'statuses' => $statuses,
-        //     'status' => $status,
-        //     'action' => $action,
-        // ];
-    }
-
-    protected function createProgressParameter($laststatus)
-    {
-        // $statuses = TicketStatus::findAll(['code' => ['PR', 'RNI', 'RIT']]);
-        // $status = $statuses[0];
-        // $action = null;
-        // return [
-        //     'statuses' => $statuses,
-        //     'status' => $status,
-        //     'action' => $action,
-        // ];
     }
 
     /**

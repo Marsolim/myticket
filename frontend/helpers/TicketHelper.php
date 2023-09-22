@@ -22,11 +22,10 @@ class TicketHelper
     public static function getSLAStatus(Ticket $ticket) {
         //$due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, $ticket->contract->sla);
         $due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, 14);
-        $ticket->closing;
-        if (!empty($ticket->closing))
+        if (!empty($ticket->lastAction) && is_subclass_of($ticket->lastAction, Closing::class))
         {
-            $days = floor(($due['due'] - $ticket->closing->created_at)/DateTimeHelper::DAY_IN_SECONDS) - $due['ndays'];
-            if ($due['due'] < $ticket->closing->created_at)
+            $days = floor(($due['due'] - $ticket->lastAction->created_at)/DateTimeHelper::DAY_IN_SECONDS) - $due['ndays'];
+            if ($due['due'] < $ticket->lastAction->created_at)
             {
                 return ['id' => 9, 'status' => 'SLA lewat '.(abs($days)).' hari', 'color' => 'bg-danger', 'description' => 'SLA tidak tercapai'];
             }
@@ -36,7 +35,7 @@ class TicketHelper
         {
             $days = floor(($due['due'] - time())/DateTimeHelper::DAY_IN_SECONDS);
             if ($days >= 0)
-                return ['id' => 11, 'status' => 'SLA sisa '.(14 - $days).' hari', 'color' => 'bg-primary', 'description' => 'SLA sisa '.$days.' hari'];
+                return ['id' => 11, 'status' => 'SLA sisa '.$days.' hari', 'color' => 'bg-primary', 'description' => 'SLA sisa '.$days.' hari'];
             else
                 return ['id' => 12, 'status' => 'SLA lewat '.(abs($days)).' hari', 'color' => 'bg-warning', 'description' => 'SLA terlewat '.$days.' hari'];
         }
@@ -48,10 +47,9 @@ class TicketHelper
         $statuses = Yii::$app->params['ticketStatusRegister'];
         //echo VarDumper::dump($ticket->lastAction);
         if (!empty($ticket->lastAction)){
-            $actionclass = $ticket->lastAction::class;           
-            if (is_subclass_of($actionclass, Closing::class))
+            if (is_subclass_of($ticket->lastAction, Closing::class))
                 $stats[] = ArrayHelper::getValue($statuses, Closing::class);
-            $stats[] = ArrayHelper::getValue($statuses, $actionclass);
+            $stats[] = ArrayHelper::getValue($statuses, $ticket->lastAction::class);
         }
         $ticket->discretion;
         if (!empty($ticket->discretion))

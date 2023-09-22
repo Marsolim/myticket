@@ -36,13 +36,13 @@ abstract class ObjectRecord extends ActiveRecord
 
     public function init()
     {
-        $this->type = $this::class;
+        $this->type = get_called_class();
     }
 
     public function beforeSave($insert)
     {
-        $this->type = $this::class;
-        parent::beforeSave($insert);
+        $this->type = get_called_class();
+        return parent::beforeSave($insert);
     }
 
     public static function instantiate($row)

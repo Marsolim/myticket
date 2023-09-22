@@ -4,7 +4,7 @@ namespace frontend\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use common\models\tickets\Repair;
+use common\models\tickets\actions\Repair;
 
 /**
  * TicketActionSearch represents the model behind the search form of `frontend\models\TicketAction`.

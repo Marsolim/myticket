@@ -47,6 +47,7 @@ $script = <<< JS
                    beforeSend: function() {
                    },
                    success: function(response){
+                    console.log(response.message);
                        toastr.success("",response.message);
                        $('#addQuickActionFormModel').modal('hide');
                        $.pjax.reload({container: '#pjax_list_articles', async: false});

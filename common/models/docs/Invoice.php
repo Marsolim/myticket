@@ -3,6 +3,7 @@
 namespace common\models\docs;
 
 use common\models\actors\Store;
+use common\models\tickets\Ticket;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use Yii;

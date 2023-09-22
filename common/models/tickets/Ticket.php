@@ -11,6 +11,7 @@ use common\models\actors\Company;
 use common\models\actors\Engineer;
 use common\models\docs\Document;
 use common\models\docs\Invoice;
+use frontend\models\StoreManager;
 use common\models\tickets\actions\Action;
 use common\models\tickets\actions\Assignment;
 use common\models\tickets\actions\closings\Closing;
@@ -89,11 +90,13 @@ class Ticket extends AuditedRecord
     {
         if ($insert)
         {
+            $this->addError('lastAction', $insert);
             $open = new Open([
                 'ticket_id' => $this->primaryKey(),
                 'user_id' => Yii::$app->user->id,
             ]);
             $open->save(false);
+            $this->addError('lastAction', $open->getErrors());
         }
     }
 
@@ -141,7 +144,7 @@ class Ticket extends AuditedRecord
     
     public function getManager()
     {
-        return $this->hasOne(StoreManager::class, ['association_id' => 'id'])
+        return $this->hasOne(StoreManager::class, ['associate_id' => 'id'])
             ->via('depot')
             ->where(['status' => User::STATUS_ACTIVE]);
     }
