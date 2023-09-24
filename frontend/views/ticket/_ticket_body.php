@@ -14,7 +14,7 @@ use yii\helpers\Url;
 /** @var yii\widgets\ActiveForm $form */
 
 ?>
-<?= Html::beginTag('div', ['class' => 'card-body collapse', 'id' => "ts-.$model->number.-body",]) ?>
+<?= Html::beginTag('div', ['class' => ['card-body', $expanded ? 'show' : 'collapse'], 'id' => "ts-.$model->number.-body",]) ?>
 <div class="text-justify">
     <ul class="list-group list-group-flush">
         <li class="list-group-item">

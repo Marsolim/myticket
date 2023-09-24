@@ -24,7 +24,7 @@ $title = implode(' ', $title);
     <div class="h6 my-1 align-self-stretch text-align-center"><?= $title ?></div>
     <div class="ms-auto">
         <?= Html::a('<i class="fa fa-screwdriver-wrench"></i>', ['ticket/repair', 'ticket' => $model->id], [
-            'class' => "btn py-1 btn-link text-decoration-none quick-action",
+            'class' => "btn py-1 btn-link text-decoration-none quick-action quick-action-form",
             'title' => "Invoice"
         ]) ?>
     </div>

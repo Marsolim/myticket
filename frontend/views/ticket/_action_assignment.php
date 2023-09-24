@@ -1,5 +1,6 @@
 <?php
 
+use common\models\actors\Engineer;
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
@@ -10,10 +11,12 @@ use kartik\helpers\Enum;
 /** @var frontend\models\search\TicketSearch $model */
 /** @var yii\widgets\ActiveForm $form */
 
+$engineers = Engineer::find()->all();
+
 ?>
 <div class="modal-content animated bounceInCenter" >
     <?php
-    $form = ActiveForm::begin(['id' => 'form-add-assignment', 
+    $form = ActiveForm::begin(['id' => 'qa-form', 
     'enableAjaxValidation' => true, 
     'validationUrl' => Yii::$app->urlManager->createUrl('ticket/assignment-validate')]);
     ?>
@@ -24,11 +27,11 @@ use kartik\helpers\Enum;
         <?= $form->field($model, 'user_id')->dropDownList(ArrayHelper::map(
                 $engineers,
                 'id',
-                'name'
-            ), ['prompt' => '']
+                'full_name'
+            ), ['prompt' => 'Engineer...']
         ) ?>
         <div class="view-btn mt-2 text-left"> 
-            <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-default' : 'btn btn-default']) ?>
+            <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-primary' : 'btn btn-success']) ?>
         </div>
     </div>
     <?php ActiveForm::end(); ?>

@@ -15,10 +15,7 @@ use yii\helpers\Url;
 
 ?>
 <?= Html::beginTag('span', ['class'=>"ticket", 'id' => 'ts-'.$model->number]) ?>
-<?= Html::beginTag('a', [ 'href' => Url::to(['ticket/view', 'id' => $model->id]),
-        'class' => [
-        ]
-    ]) ?>
+<?= Html::beginTag('a', [ 'href' => Url::to(['ticket/view', 'id' => $model->id]), 'class' => ['ticket-link']]) ?>
 <?= empty($model->number) ? '' : Html::tag('span', $model->number, ['class' => 'ticket ticket-number', 'title' => 'Nomor tiket']) ?>
 <?= empty($model->problem) ? '' : Html::tag('span', $model->problem, ['class' => 'ticket ticket-title', 'title' => 'Kendala']) ?>
 <?= empty($model->external_number) ? '' : Html::tag('span', $model->external_number, ['class' => 'ticket ticket-aho', 'title' => 'Nomor AHO']) ?>

@@ -7,6 +7,7 @@ use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use frontend\helpers\UserHelper;
 use frontend\widgets\TicketHeader;
+use kartik\daterange\DateRangePicker;
 use yii\grid\ActionColumn;
 use kartik\export\ExportMenu;
 use yii\widgets\ActiveForm;
@@ -44,14 +45,72 @@ $gridColumns = [
 
 $script = <<< JS
 //QUICK ACTION
-$(document).on('click', '.quick-action', function (event) {       
+$(document).on('click', '.quick-action', function (event) {
     var href = $(this).attr('href');
-    $('#addQuickActionFormModel').modal('show').find('.modal-dialog').load(href);
     event.preventDefault();
+    if ($(this).hasClass('quick-action-link'))
+    {
+        $.ajax({
+            url: href,
+            dataType: 'JSON',
+            cache: false,
+            contentType: false,
+            processData: false,
+            //data: form_data, //$(this).serialize(),
+            type: 'post',
+            beforeSend: function() {
+            },
+            success: function(response){
+                $(response.target).load(response.refresh_link);
+            },
+            complete: function() {
+            },
+            error: function (data) {
+                toastr.warning("","There may a error on uploading. Try again later");
+            }
+        });
+    }
+    if ($(this).hasClass('quick-action-form'))
+    {
+        var container = $('#qa-container');
+        var content = $('#qa-container .modal-dialog')
+        content.load(href, function (r, s, x) {
+            var form = content.find("#qa-form");
+            form.on('beforeSubmit', function (event) {
+                event.preventDefault();
+                var form_data = new FormData(form[0]);
+                $.ajax({
+                    url: form.attr('action'),
+                    dataType: 'JSON',
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    data: form_data, //$(this).serialize(),
+                    type: 'post',
+                    beforeSend: function() {
+                    },
+                    success: function(response){
+                        console.log(response);
+                        $(response.target).load(response.refresh_link);
+                    },
+                    complete: function() {
+                        container.modal('hide');
+                        content.empty();
+                    },
+                    error: function (data) {
+                        toastr.warning("","There may a error on uploading. Try again later");
+                    }
+                });
+                return false;
+            });
+        });
+        container.modal('show');
+    }
 });
 //QUICK TICKET
 $(document).on('click', '.quick-ticket', function (event) {       
     var href = $(this).attr('href');
+    console.log(href);
     $('#addQuickTicketFormModel').modal('show').find('.modal-dialog').load(href);
     event.preventDefault();
 });
@@ -59,16 +118,24 @@ $(document).on('click', '.quick-ticket', function (event) {
 JS;
 $this->registerJs($script);
 
+$exportwidget = ExportMenu::widget([
+    'dataProvider' => $articleDataProvider,
+    'columns' => $gridColumns,
+    'exportConfig' => [
+        ExportMenu::FORMAT_TEXT => false,
+        ExportMenu::FORMAT_PDF => false,
+        ExportMenu::FORMAT_HTML => false,
+    ],
+    'options' => [
+        'class' => 'py-2 item-aligment-end'
+    ]
+]);
+
 ?>
 
 <?php Pjax::begin(['id' => 'pjax_list_articles', 
                    'timeout' => false, 
                    'clientOptions' => ['method' => 'POST']]); ?> 
-
-<?php $mapCategories = [
-    [1 => 'EXCEL'],
-    [2 => 'PDF']
-]; ?>
 
 <div class="filter_form">   
 
@@ -79,39 +146,42 @@ $this->registerJs($script);
     'enableClientValidation'=>false,
     'options' => ['class' => 'form-horizontal'], 
 ]); ?>
-
-    <?= $form->field($articleSearch , 'customer_id')
-            ->dropDownList($mapCategories, 
-                        ['prompt'=> Yii::t('app', 'All categories'), 
-                         'onchange'=>'this.form.submit()'
-                        ])
-            ->label(false) 
-    ?>  
-
+    <div class='mb-2'>
+    <?= $form->field($articleSearch , 'searchstring')
+            ->textInput([
+                'placeholder'=> 'Search tickets...',
+                'onchange'=>'this.form.submit()'
+                ])
+            ->label(false);
+    ?>
+    </div>
+    <div>
+    <?= $form->field($articleSearch, 'date_range', [
+            //'addon'=>['prepend'=>['content'=>'<i class="fas fa-calendar-alt"></i>']],
+            'options'=>['class'=>'drp-container mb-2']
+        ])->widget(DateRangePicker::class, [
+            'presetDropdown'=>true,
+            'convertFormat'=>true,
+            'includeMonthsFilter'=>true,
+            'pluginOptions' => ['locale' => ['format' => 'd-M-y']],
+            'options' => ['placeholder' => 'Select range...', 'onchange' => 'this.form.submit()']
+        ])->label(false) ?>
+    </div>
 <?php ActiveForm::end() ?>  
 
 </div>
 
 <div class="listView_container position-relative mt-3">
     <div class="position-absolute top-0 end-0">
-    <?= ExportMenu::widget([
-        'dataProvider' => $articleDataProvider,
-        'columns' => $gridColumns,
-        'exportConfig' => [
-            ExportMenu::FORMAT_TEXT => false,
-            ExportMenu::FORMAT_PDF => false,
-            ExportMenu::FORMAT_HTML => false,
-        ],
-    ]) ?>
     </div>
     <?= 
         ListView::widget([
             'dataProvider' => $articleDataProvider ,
-            'layout' => "{pager}<div class='row'>{items}</div>",
+            'layout' => "<div class='d-flex flex-row'>{pager}<div class='ms-auto'>$exportwidget</div></div><div class='row'>{items}</div>",
             'itemView' => function ($model, $key, $index, $widget) {
                 return $this->render('_ticket',['model' => $model]);
             },
-            'emptyText' => 'No Services...',
+            'emptyText' => "<div class='d-flex flex-row'><div></div><div class='ms-auto'>$exportwidget</div></div>No Services...",
             'pager' => [
                 'linkOptions' => ['class'=>'page-link'],
                 'linkContainerOptions' => ['class' =>'page-item'],
@@ -123,7 +193,7 @@ $this->registerJs($script);
     ?>
 </div>
 
-<?= Html::a('<i class="fas fa-plus"></i><span class="visually-hidden">Add Category</span>',
+<?= Html::a('<i class="fas fa-plus"></i><span class="visually-hidden">Add Ticket</span>',
     ['ticket/create'],
     [
         'class'=>"btn btn-success position-fixed bottom-0 end-0 mb-5 me-5 rounded-circle quick-ticket",
@@ -131,11 +201,11 @@ $this->registerJs($script);
     ]
 ) ?>
 <!-- POPUP MODAL QUICK TICKET -->                            
-<div class="modal inmodal quick-ticket-model" id="addQuickTicketFormModel" role="dialog" data-keyboard="false" data-backdrop="static">
-    <div class="modal-dialog modal-xl "></div>
+<div class="modal inmodal quick-ticket-model" id="qa-container" role="dialog" data-keyboard="false" data-backdrop="static">
+    <div class="modal-dialog modal-xl"></div>
 </div> 
 <!-- POPUP MODAL QUICK ACTION -->                            
 <div class="modal inmodal quick-action-model" id="addQuickActionFormModel" role="dialog" data-keyboard="false" data-backdrop="static">
-    <div class="modal-dialog modal-xl "></div>
+    <div class="modal-dialog modal-xl"></div>
 </div> 
 <?php Pjax::end(); ?>

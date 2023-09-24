@@ -8,6 +8,8 @@ use common\models\tickets\Ticket;
 use common\models\actors\User;
 use common\models\actors\Store;
 use common\models\tickets\actions\Action;
+use common\models\tickets\actions\Assignment;
+use common\models\tickets\actions\closings\NoProblem;
 use common\models\tickets\actions\Repair;
 use common\models\tickets\actions\Discretion;
 use common\models\tickets\actions\Recommendation;
@@ -95,8 +97,8 @@ class TicketController extends Controller
     public function actionIndex()
     {
         $ticketSearch = new TicketSearch();
-        $ticketSearch->customer_id = Yii::$app->request->post('customer_id', null);
-        $query = $ticketSearch->searchQuery(Yii::$app->request->post());
+        //$ticketSearch->customer_id = Yii::$app->request->post('customer_id', null);
+        //$query = $ticketSearch->searchQuery(Yii::$app->request->post());
         $user = User::findOne(['id' => Yii::$app->user->id]);
         if (!(ArrayHelper::isIn($user::class, [User::class, Engineer::class])))
         {
@@ -104,48 +106,52 @@ class TicketController extends Controller
         }
         if ($user::class === Engineer::class)
         {
-            $query->andWhere(['engineer_id' => Yii::$app->user->id]);
+            //$query->andWhere(['engineer_id' => Yii::$app->user->id]);
         }
         if (ArrayHelper::isIn($user::class, [StoreManager::class, GeneralManager::class]))
         {
             $stores = ArrayHelper::getColumn($user->stores, 'id');
-            $query->andWhere(['customer_id' => $stores]);
+            //$query->andWhere(['customer_id' => $stores]);
         }
 
         Url::remember();
-        $articleDataProvider = $ticketSearch->search($query);
-
-        return $this->render('list', ['articleSearch' => $ticketSearch ,
-                                        'articleDataProvider' => $articleDataProvider ]);
+        $articleDataProvider = $ticketSearch->search(Yii::$app->request->post());
+        $options = [
+            'articleSearch' => $ticketSearch,
+            'articleDataProvider' => $articleDataProvider
+        ];
+        if (Yii::$app->request->isAjax) 
+            return $this->renderAjax('list', $options);
+        else
+            return $this->render('list', $options);
     }
 
     public function actionDiscretion($ticket)
     {
-        $model = new Discretion();
-        $model->ticket_id = $ticket;
+        $ticket = Ticket::findOne(['id' => $ticket]);
+        $model = $ticket->discretion;
+        if (empty($model)){
+            $model = new Discretion();
+            $model->ticket_id = $ticket->id;
+        } 
+        //$model = empty($ticket->discretion) ? new Discretion(['ticket_id' => $ticket->id]) : $ticket->discretion;
         $model->user_id = Yii::$app->user->id;
         if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
-                if ($model->validate()) {
-                    $flag = $model->save(false);
-                    if ($flag == true) {
-                        $transaction->commit();                      
-                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
-                    } else {
-                        $transaction->rollBack();
-                    }
-                } else {
-                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Contact can not created.'));
+                if ($model->validate() && $model->save(false)) {
+                    $transaction->commit();                      
+                    return Json::encode(['target' => "#ts-$ticket->number", 'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode'=>'list-item'])]);
                 }
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Discretion not created.'));
             } catch (Exception $ex) {
                 $transaction->rollBack();
+                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Discretion not created.'));
             }
         }
     
-        return $this->renderAjax('_action_discretion', [
-                    'model' => $model,
-            ]);
+        return $this->renderAjax('_action_discretion', ['model' => $model,]);
     }
 
     public function actionDiscretionValidate() {
@@ -166,22 +172,15 @@ class TicketController extends Controller
         if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
-                if ($model->validate()) {
-                    $flag = $model->save(false);
-                    if ($flag == true) {
-                        $transaction->commit();
-                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Recommendation created successfully.'));
-                    } else {
-                        $transaction->rollBack();
-                        return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Model error.'));
-                    }
-                } else {
-                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
+                if ($model->validate() && $model->save(false)) {
+                    $transaction->commit();
+                    return Json::encode(['target' => "#ts-$ticket->number", 'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode'=>'list-item'])]);
                 }
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Recommendation not created.'));
             } catch (Exception $ex) {
                 $transaction->rollBack();
-
-                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
+                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Recommendation not created.'));
             }
         }
         return $this->renderAjax('_action_visit', ['model' => $model,]);
@@ -199,43 +198,27 @@ class TicketController extends Controller
 
     public function actionRepair($ticket)
     {
-        $searchModel = new RepairActionSearch();
-        $searchModel->ticket_id = $ticket;
-        $query = $searchModel->searchQuery(Yii::$app->request->getQueryParams());
-        $query->andWhere(['ticket_id' => $ticket]);
-        $dataProvider = $searchModel->search($query);
-        $models = $dataProvider->getModels();
-        if (Yii::$app->request->isAjax && Model::loadMultiple($models, Yii::$app->request->post())) {
+        $model = new Repair();
+        $model->ticket_id = $ticket;
+        $ticket = Ticket::findOne(['id' => $ticket]);
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
-                if (Model::validateMultiple($models))
-                {
-                    $flag = false;
-                    foreach ($models as $index => $model) {
-                        // populate and save records for each model
-                        $flag &= $model->save(false);
-                    }
-                    if ($flag == true) {
+                if ($model->validate() && $model->save(false)) {
                         $transaction->commit();                      
-                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
-                    } else {
-                        $transaction->rollBack();
-                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
-                    }
+                        return Json::encode([
+                            'target' => "#ts-$ticket->number",
+                            'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                        ]);
                 }
-                else
-                {
-                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Contact can not created.'));
-                }
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
             } catch (Exception $ex) {
                 $transaction->rollBack();
-                return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Contact created successfully.'));
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
             }
         }
-    
-        return $this->renderAjax('_action_repair', [
-                    'dataProvider' => $dataProvider,
-            ]);
+        return $this->renderAjax('_action_repair', ['model' => $model,]);
     }
 
     public function actionRepairValidate() {
@@ -247,6 +230,48 @@ class TicketController extends Controller
             return ActiveForm::validate($model);
         }
     }
+    
+    public function actionAssignment($ticket) {
+        $model = new Assignment();
+        $model->ticket_id = $ticket;
+        $ticket = Ticket::findOne(['id' => $ticket]);
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                if ($model->validate() && $model->save(false)) {
+                        $transaction->commit();                      
+                        return Json::encode([
+                            'target' => "#ts-$ticket->number",
+                            'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                        ]);
+                }
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
+            }
+        }
+        return $this->renderAjax('_action_assignment', ['model' => $model,]);
+    }
+    
+    public function actionAssignmentValidate() {
+        $model = new Assignment();
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            //$model->user_id = Yii::$app->user->id;
+            $model->created_at = time();
+            \Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
+    }
+
+    public function actionWaiting($ticket) {
+
+    }
+
+    public function actionUploadInvoice($ticket){
+
+    }
 
     /**
      * Displays a single Ticket model.
@@ -254,30 +279,22 @@ class TicketController extends Controller
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionView($id, $mode)
     {
-        $searchModel = new ActionSearch();
-        $query = $searchModel->searchQuery(['ticket_id' => $id]);
-        $query->where(['ticket_id' => $id]);
-        $dataProvider = $searchModel->search($query);
-        
         Url::remember();
-
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
+        if (Yii::$app->request->isAjax && $mode === "list-item")
+            return $this->renderAjax('_ticket', ['model' => $this->findModel($id), 'expanded' => true]);
+        else $this->render('view', ['model' => $this->findModel($id)]);
     }
 
     public function actionCloseNoProblem($ticket)
     {
-        $model = new Recommendation();
+        $model = new NoProblem();
         if (Yii::$app->request->isAjax)
         {
             $model->ticket_id = $ticket;
-        $model->user_id = Yii::$app->user->id;
-        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $model->user_id = Yii::$app->user->id;
+            if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
                 if ($model->validate()) {
@@ -339,7 +356,7 @@ class TicketController extends Controller
             $stores->andWhere(['region_id' => $user->region_id]);
         }
 
-        if ($this->request->isPost) {
+        if (Yii::$app->request->isAjax) {
             $model->issuer_id = Yii::$app->user->id;
 
             if ($model->load($this->request->post()) && $model->save())
@@ -351,7 +368,7 @@ class TicketController extends Controller
             $model->loadDefaultValues();
         }
 
-        return $this->render('create', [
+        return $this->renderAjax('create', [
             'model' => $model,
             'stores' => $stores->all(),
             'engineers' => $engineers

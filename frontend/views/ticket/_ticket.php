@@ -57,10 +57,10 @@ $css = <<<CSS
 CSS;
 
 $this->registerCss($css);
-
+if (empty($expanded)) $expanded = false;
 ?>
 
-<?= Html::beginTag('div', ['class' => 'ticket-view text-toggle',]) ?>
+<?= Html::beginTag('div', ['class' => 'ticket-view text-toggle', 'id'=>"ts-$model->number"]) ?>
     <div class="ticket-view card position-relative text-primary mt-3 mb-2">
     	<div class="card-header">
         <?= Html::beginTag('div', ['class' => 'd-flex justify-content-between p-2',]) ?>
@@ -69,7 +69,7 @@ $this->registerCss($css);
                 'class' => 'd-flex flex-column ml-2 me-2 text-toggle',
                 'data-bs-toggle'=> 'collapse',
                 'href' => "#ts-.$model->number.-body",
-                'aria-expanded' => 'false',
+                'aria-expanded' => $expanded ? 'true' : 'false',
                 'aria-controls' => "ts-.$model->number.-body"
             ]) ?>
                 <div class="vr"></div>
@@ -105,7 +105,7 @@ $this->registerCss($css);
             </div>
         <?= Html::endTag('div') ?>
         </div>
-        <?= $this->render('_ticket_body', ['model' => $model]) ?>
+        <?= $this->render('_ticket_body', ['model' => $model, 'expanded' => $expanded]) ?>
     </div>
 <?= Html::endTag('div') ?>
 <div class="visually-hidden">

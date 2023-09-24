@@ -1,66 +1,39 @@
 <?php
 
+use common\models\actors\Engineer;
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
 use common\models\actors\Store;
+use common\models\actors\User;
 use kartik\helpers\Enum;
 
 /** @var yii\web\View $this */
 /** @var frontend\models\search\TicketSearch $model */
 /** @var yii\widgets\ActiveForm $form */
-
+$engineers = $model->ticket->engineers;
+$engineers = ArrayHelper::merge(User::findAll(['status' => User::STATUS_ACTIVE]), $engineers);
+$engineers = ArrayHelper::map($engineers, 'id', 'full_name');
 ?>
 <div class="modal-content animated bounceInCenter" >
     <?php
-    $form = ActiveForm::begin(['id' => 'form-add-visit', 
-    'enableAjaxValidation' => true, 
-    'validationUrl' => Yii::$app->urlManager->createUrl('ticket/visit-validate')]);
+    $form = ActiveForm::begin([
+        'id' => 'qa-form', 
+        'enableAjaxValidation' => true, 
+        'validationUrl' => Yii::$app->urlManager->createUrl('ticket/visit-validate'),
+        'class' => 'qa-form'
+    ]);
     ?>
     <div class="modal-header">
         <h4 class="modal-title text-left">Rekomendasi</h4>
     </div>
     <div class="modal-body">       
-        <?= $form->field($model, 'user_id')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model->ticket, 'number')->hiddenInput(['maxlength' => true])->label(false) ?>
+        <?= $form->field($model, 'user_id')->dropDownList($engineers) ?>
         <?= $form->field($model, 'summary')->textarea()->label("Rekomendasi") ?>
         <div class="view-btn mt-2 text-left">
-            <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-default' : 'btn btn-default']) ?>
+            <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-primary' : 'btn btn-success']) ?>
         </div>
     </div>
     <?php ActiveForm::end(); ?>
 </div>
-
-<?php
-$script = <<< JS
-   $(document).ready(function () {
-        $("#form-add-visit").on('beforeSubmit', function (event) {
-            event.preventDefault();
-            var form_data = new FormData($('#form-add-visit')[0]);
-            $.ajax({
-                   url: $("#form-add-visit").attr('action'),
-                   dataType: 'JSON',
-                   cache: false,
-                   contentType: false,
-                   processData: false,
-                   data: form_data, //$(this).serialize(),
-                   type: 'post',
-                   beforeSend: function() {
-                   },
-                   success: function(response){
-                    console.log(response.message);
-                       toastr.success("",response.message);
-                       $('#addQuickActionFormModel').modal('hide');
-                       $.pjax.reload({container: '#pjax_list_articles', async: false});
-                   },
-                   complete: function() {
-                   },
-                   error: function (data) {
-                      toastr.warning("","There may a error on uploading. Try again later");
-                   }
-                });
-            return false;
-        });
-    });
-JS;
-$this->registerJs($script);
-?>

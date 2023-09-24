@@ -20,7 +20,7 @@ $title = 'Alasan tidak tercover MC '.(empty($model->discretion) ? '<span class="
     <div class="h6 my-1 align-self-stretch text-align-center"><?= $title ?></div>
     <div class="ms-auto">
         <?= Html::a('<i class="fa fa-handshake"></i>', ['ticket/discretion', 'ticket' => $model->id], [
-            'class' => "btn py-1 btn-link text-decoration-none quick-action",
+            'class' => "btn py-1 btn-link text-decoration-none quick-action quick-action-form",
             'title' => "Alasan tidak tercover MC"
         ]) ?>
     </div>
@@ -28,12 +28,15 @@ $title = 'Alasan tidak tercover MC '.(empty($model->discretion) ? '<span class="
 <?php
 if (!empty($model->discretion)) {
 ?>
-<p class="card-text">
-    <?= $model->discretion->summary ?>
-    <span class="small">
-    <?= $model->discretion->assessor->full_name ?>
-    </span>
-</p>
+<figure class="card-text p-2 rounded" style="border-left: .25rem solid #a34e78;border-right: .25rem solid #a34e78;">
+  <blockquote class="blockquote">
+    <p><?= $model->discretion->summary ?></p>
+  </blockquote>
+  <figcaption class="blockquote-footer text-end">
+  <?= $model->discretion->assessor->full_name ?>
+  <cite title="at"><?= date('Y F d', $model->discretion->updated_at) ?></cite>
+  </figcaption>
+</figure>
 <?php
 }
 ?>
