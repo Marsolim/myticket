@@ -58,7 +58,7 @@ class Ticket extends AuditedRecord
         return [
             [['customer_id', 'number', 'status'], 'required'],
             [['customer_id', 'status', 'status_closed', 'status_contract'], 'integer'],
-            [['number'. 'external_number'], 'string', 'max' => 20],
+            [['number', 'external_number'], 'string', 'max' => 20],
             [['problem'], 'string', 'max' => 255],
             [['number'], 'unique'],
             [['number'], 'autonumber', 'format'=>'TS.{Y.m}.????'],

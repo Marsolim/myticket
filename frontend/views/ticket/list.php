@@ -8,8 +8,11 @@ use yii\helpers\ArrayHelper;
 use frontend\helpers\UserHelper;
 use frontend\widgets\TicketHeader;
 use kartik\daterange\DateRangePicker;
+use kartik\editors\assets\SummernoteBs5Asset;
 use yii\grid\ActionColumn;
 use kartik\export\ExportMenu;
+use kartik\select2\Select2Asset;
+use kartik\select2\Select2KrajeeAsset;
 use yii\widgets\ActiveForm;
 use yii\widgets\ListView;
 use yii\widgets\Pjax;
@@ -20,6 +23,10 @@ use yii\widgets\Pjax;
 
 $this->title = 'Servis';
 $this->params['breadcrumbs'][] = $this->title;
+
+Select2Asset::register($this);
+Select2KrajeeAsset::register($this);
+SummernoteBs5Asset::register($this);
 
 $gridColumns = [
     ['class' => 'kartik\grid\SerialColumn'],
@@ -58,12 +65,8 @@ $(document).on('click', '.quick-action', function (event) {
             processData: false,
             //data: form_data, //$(this).serialize(),
             type: 'post',
-            beforeSend: function() {
-            },
             success: function(response){
                 $(response.target).load(response.refresh_link);
-            },
-            complete: function() {
             },
             error: function (data) {
                 toastr.warning("","There may a error on uploading. Try again later");
@@ -78,6 +81,7 @@ $(document).on('click', '.quick-action', function (event) {
             var form = content.find("#qa-form");
             form.on('beforeSubmit', function (event) {
                 event.preventDefault();
+                console.log(form.attr('action'));
                 var form_data = new FormData(form[0]);
                 $.ajax({
                     url: form.attr('action'),
@@ -87,11 +91,11 @@ $(document).on('click', '.quick-action', function (event) {
                     processData: false,
                     data: form_data, //$(this).serialize(),
                     type: 'post',
-                    beforeSend: function() {
-                    },
                     success: function(response){
                         console.log(response);
-                        $(response.target).load(response.refresh_link);
+                        if (response.pjax_refresh) 
+                            $.pjax.reload ({container:"#pjax_list_articles", async:false});
+                        else $(response.target).load(response.refresh_link);
                     },
                     complete: function() {
                         container.modal('hide');
@@ -110,8 +114,9 @@ $(document).on('click', '.quick-action', function (event) {
 //QUICK TICKET
 $(document).on('click', '.quick-ticket', function (event) {       
     var href = $(this).attr('href');
-    console.log(href);
-    $('#addQuickTicketFormModel').modal('show').find('.modal-dialog').load(href);
+    //console.log(href);
+    $('#qa-container').modal('show').find('.modal-dialog').load(href);
+    //console.log($('#addQuickTicketFormModel'));
     event.preventDefault();
 });
 
@@ -201,11 +206,7 @@ $exportwidget = ExportMenu::widget([
     ]
 ) ?>
 <!-- POPUP MODAL QUICK TICKET -->                            
-<div class="modal inmodal quick-ticket-model" id="qa-container" role="dialog" data-keyboard="false" data-backdrop="static">
+<div class="modal inmodal quick-action-modal" id="qa-container" role="dialog" data-keyboard="false" data-backdrop="static">
     <div class="modal-dialog modal-xl"></div>
-</div> 
-<!-- POPUP MODAL QUICK ACTION -->                            
-<div class="modal inmodal quick-action-model" id="addQuickActionFormModel" role="dialog" data-keyboard="false" data-backdrop="static">
-    <div class="modal-dialog modal-xl"></div>
-</div> 
+</div>
 <?php Pjax::end(); ?>

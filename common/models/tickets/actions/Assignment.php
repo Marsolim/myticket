@@ -2,8 +2,7 @@
 
 namespace common\models\tickets\actions;
 
-use common\db\ActionQuery;
-use common\models\tickets\actions\Action;
+use common\models\tickets\actions\MetaAction;
 use common\models\actors\Engineer;
 use yii\helpers\ArrayHelper;
 

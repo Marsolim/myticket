@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\models\actors\Company;
 use common\models\actors\Depot;
 use common\models\actors\User;
 use common\models\actors\Store;
@@ -15,6 +16,7 @@ use yii\filters\VerbFilter;
 use yii\helpers\Url;
 use frontend\helpers\UserHelper;
 use Yii;
+use yii\db\Query;
 use yii\web\UnauthorizedHttpException;
 
 /**
@@ -170,6 +172,66 @@ class CustomerController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    public function actionStoreList($q = null, $id = null, $page = 1) {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $out = ['results' => ['id' => 0, 'text' => ''], 'total_count' => 1];
+        if (!is_null($q)) {
+            $query = new Query();
+            $query->select(['id', 'CONCAT(r.code, "-", r.name) AS text'])
+                ->from(['r' => 'customer'])
+                ->where(['or', ['like', 'r.name', $q], ['like', 'r.code', $q]])
+                ->andWhere(['type' => Store::class]);
+            $out['total_count'] = $query->count();
+            $command = $query->offset(($page-1) * 20)->limit(20)->createCommand();
+            $data = $command->queryAll();
+            $out['results'] = array_values($data);
+        }
+        elseif ($id > 0) {
+            $out['results'] = ['id' => $id, 'text' => Store::find($id)->toString()];
+        }
+        return $out;
+    }
+
+    public function actionDepotList($q = null, $id = null, $page = 1) {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $out = ['results' => ['id' => 0, 'text' => ''], 'total_count' => 1];
+        if (!is_null($q)) {
+            $query = new Query();
+            $query->select(['id', 'CONCAT(r.code, "-", r.name) AS text'])
+                ->from(['r' => 'customer'])
+                ->where(['or', ['like', 'r.name', $q], ['like', 'r.code', $q]])
+                ->andWhere(['type' => Depot::class]);
+            $out['total_count'] = $query->count();
+            $command = $query->offset(($page-1) * 20)->limit(20)->createCommand();
+            $data = $command->queryAll();
+            $out['results'] = array_values($data);
+        }
+        elseif ($id > 0) {
+            $out['results'] = ['id' => $id, 'text' => Depot::find($id)->toString()];
+        }
+        return $out;
+    }
+
+    public function actionCompanyList($q = null, $id = null, $page = 1) {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $out = ['results' => ['id' => 0, 'text' => ''], 'total_count' => 1];
+        if (!is_null($q)) {
+            $query = new Query();
+            $query->select(['id', 'CONCAT(r.code, "-", r.name) AS text'])
+                ->from(['r' => 'customer'])
+                ->where(['or', ['like', 'r.name', $q], ['like', 'r.code', $q]])
+                ->andWhere(['type' => Company::class]);
+            $out['total_count'] = $query->count();
+            $command = $query->offset(($page-1) * 20)->limit(20)->createCommand();
+            $data = $command->queryAll();
+            $out['results'] = array_values($data);
+        }
+        elseif ($id > 0) {
+            $out['results'] = ['id' => $id, 'text' => Company::find($id)->toString()];
+        }
+        return $out;
     }
 
     /**

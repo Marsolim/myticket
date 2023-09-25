@@ -23,15 +23,15 @@ $title = implode(' ', $title);
 <div class="d-flex">
     <div class="h6 my-1 align-self-stretch text-align-center"><?= $title ?></div>
     <div class="ms-auto">
-        <?= Html::a('<i class="fa fa-upload"></i>', ['ticket/upload-invoice', 'ticket' => $model->id], [
+        <?= Html::a('Invoice <i class="fa fa-upload"></i>', ['ticket/upload-invoice', 'ticket' => $model->id], [
             'class' => "btn py-1 btn-link text-decoration-none quick-action quick-action-form",
             'title' => "Invoice"
         ]) ?>
-        <?= Html::a('<i class="fa fa-upload"></i>', ['ticket/upload-inquiry', 'ticket' => $model->id], [
+        <?= Html::a('BAP <i class="fa fa-upload"></i>', ['ticket/upload-inquiry', 'ticket' => $model->id], [
             'class' => "btn py-1 btn-link text-decoration-none quick-action quick-action-form",
             'title' => "BAP"
         ]) ?>
-        <?= Html::a('<i class="fa fa-upload"></i>', ['ticket/upload-work-order', 'ticket' => $model->id], [
+        <?= Html::a('SPK <i class="fa fa-upload"></i>', ['ticket/upload-work-order', 'ticket' => $model->id], [
             'class' => "btn py-1 btn-link text-decoration-none quick-action quick-action-form",
             'title' => "SPK"
         ]) ?>
@@ -49,7 +49,7 @@ foreach($model->documents as $doc) {
         WorkOrder::class => 'SPK',
     };
 ?>
-<?= Html::a($doc->fileIcon.$type.' - '.$doc->uploadname, ['document/download', 'id' => $doc->id], ['class' => 'btn btn-link']) ?>
+<?= Html::a($doc->fileIcon.' '.$type.' - '.$doc->uploadname, ['document/download', 'id' => $doc->id], ['class' => 'btn btn-link']) ?>
 <?php
 }
 ?>

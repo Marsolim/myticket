@@ -8,6 +8,7 @@ use frontend\models\forms\AvatarUploadForm;
 use common\models\actors\Store;
 use common\models\actors\Depot;
 use common\models\actors\Company;
+use common\models\actors\Engineer;
 use frontend\models\search\UserSearch;
 use frontend\helpers\UserHelper;
 use yii\web\Controller;
@@ -17,6 +18,7 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use yii\imagine\Image;
 use Yii;
+use yii\db\Query;
 
 /**
  * ShopController implements the CRUD actions for Shop model.
@@ -313,6 +315,28 @@ class UserController extends Controller
 
     //     return $this->redirect(['index']);
     // }
+
+    public function actionEngineerList($q = null, $id = null, $page = 1) {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $out = ['results' => ['id' => '', 'text' => ''], 'total_count' => 1 ];
+        //if (is_null($q)) $q = '';
+        if (!is_null($q)) {
+            $query = new Query();
+            $query->select('id, full_name AS text')
+                ->from('user')
+                ->where(['like', 'full_name', $q])
+                ->andWhere(['type' => Engineer::class]);
+            $out['total_count'] = $query->count();
+
+            $command = $query->offset(($page-1) * 20)->limit(20)->createCommand();
+            $data = $command->queryAll();
+            $out['results'] = array_values($data);
+        }
+        elseif ($id > 0) {
+            $out['results'] = ['id' => $id, 'text' => Engineer::find($id)->full_name];
+        }
+        return $out;
+    }
 
     /**
      * Finds the Shop model based on its primary key value.

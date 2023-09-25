@@ -83,6 +83,9 @@ if (empty($expanded)) $expanded = false;
                         <div class="h6 position-relative text-primary">
                             <?= $this->render('_ticket_store_info', ['model' => $model->store]) ?>
                         </div>
+                        <div class="h6 position-relative text-primary">
+                            <?= $this->render('_ticket_command', ['model' => $model]) ?>
+                        </div>
                 </div>
             </div>
             <div class="d-flex flex-row mt-1">

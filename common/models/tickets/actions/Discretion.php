@@ -2,8 +2,8 @@
 
 namespace common\models\tickets\actions;
 
-use common\db\ObjectQuery;
 use common\models\actors\User;
+use common\models\tickets\actions\MetaAction;
 use yii\helpers\ArrayHelper;
 
 class Discretion extends MetaAction

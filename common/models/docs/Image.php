@@ -3,8 +3,8 @@
 namespace common\models\docs;
 
 use common\models\actors\Store;
-use yii\behaviors\TimestampBehavior;
-use yii\behaviors\BlameableBehavior;
+use common\models\tickets\actions\Action;
+use common\models\tickets\Ticket;
 use Yii;
 
 /**
@@ -18,49 +18,6 @@ use Yii;
  */
 class Image extends Document
 {
-    const FILE_INVOICE = 1;
-    const FILE_BAP = 2;
-    const FILE_SPK = 2;
-    const FILE_UNCATEGORIZED = 3;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-            BlameableBehavior::class,
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'document';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['category', 'filename', 'number'], 'required'],
-            [['filename', 'uploadname'], 'string', 'max' => 255],
-            [['file_type', 'number'], 'string', 'max' => 50],
-            [['category', 'ticket_id', 'store_id', 'action_id', 'file_size'], 'integer'],
-            [['category'], 'default', 'value' => self::FILE_UNCATEGORIZED],
-            [['category'], 'in', 'range' => [self::FILE_INVOICE, self::FILE_BAP, self::FILE_SPK, self::FILE_UNCATEGORIZED]],
-            [['filename'], 'unique'],
-            [['ticket_id'], 'exist', 'skipOnError' => true, 'targetClass' => Ticket::class, 'targetAttribute' => ['ticket_id' => 'id']],
-            [['store_id'], 'exist', 'skipOnError' => true, 'targetClass' => Store::class, 'targetAttribute' => ['store_id' => 'id']],
-            [['action_id'], 'exist', 'skipOnError' => true, 'targetClass' => TicketAction::class, 'targetAttribute' => ['action_id' => 'id']],
-        ];
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -80,7 +37,7 @@ class Image extends Document
      */
     public function getAction()
     {
-        return $this->hasOne(TicketAction::class, ['action_id' => 'id']);
+        return $this->hasOne(Action::class, ['action_id' => 'id']);
     }
 
     /**

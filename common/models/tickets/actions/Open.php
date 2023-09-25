@@ -2,9 +2,7 @@
 
 namespace common\models\tickets\actions;
 
-use common\db\ActionQuery;
-use common\db\ObjectQuery;
-use common\models\tickets\actions\Action;
+use common\models\tickets\actions\ConcreteAction;
 use common\models\actors\User;
 use yii\helpers\ArrayHelper;
 

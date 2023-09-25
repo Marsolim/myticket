@@ -21,13 +21,8 @@ use Yii;
  */
 abstract class Document extends AuditedRecord
 {
-    const FILE_INVOICE = 1;
-    const FILE_BAP = 2;
-    const FILE_SPK = 2;
-    const FILE_UNCATEGORIZED = 3;
-    
     /**
-     * @var UploadedFile[]
+     * @var UploadedFile
      */
     public $file;
 
@@ -56,12 +51,11 @@ abstract class Document extends AuditedRecord
     public function rules()
     {
         return [
-            [['filename', 'number', 'type'], 'required'],
+            [['number', 'type'], 'required'],
             [['filename', 'uploadname', 'type'], 'string', 'max' => 255],
             [['file_type', 'number'], 'string', 'max' => 50],
             [['ticket_id', 'store_id', 'action_id', 'file_size'], 'integer'],
-            [['filename'], 'unique'],
-            [['file'], 'file', 'maxsize' => 1024*1024*2, 'skipOnEmpty' => false, 'extensions' => 'pdf, doc, docx, jpg, png'],
+            [['file'], 'file', 'maxSize' => 1024*1024*2, 'skipOnEmpty' => false, 'extensions' => 'pdf, doc, docx, jpg, png'],
             [['ticket_id'], 'exist', 'skipOnError' => true, 'targetClass' => Ticket::class, 'targetAttribute' => ['ticket_id' => 'id']],
             [['store_id'], 'exist', 'skipOnError' => true, 'targetClass' => Store::class, 'targetAttribute' => ['store_id' => 'id']],
             [['action_id'], 'exist', 'skipOnError' => true, 'targetClass' => Action::class, 'targetAttribute' => ['action_id' => 'id']],
@@ -198,5 +192,16 @@ abstract class Document extends AuditedRecord
             if ($result) return $result;
             continue;
         }
+    }
+
+    public function upload($runValidation = true, $attributeNames = null){
+        $filename = Yii::$app->security->generateRandomString() . '.' . $this->file->extension;
+        $filepath = 'uploads/documents/' . $filename;
+        $this->file->saveAs($filepath);
+        $this->filename = $filename;
+        $this->uploadname = $this->file->baseName;
+        $this->file_size = $this->file->size;
+        $this->file_type = $this->file->extension;
+        return $this->save($runValidation, $attributeNames);
     }
 }

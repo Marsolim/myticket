@@ -18,7 +18,7 @@ FontAwesomeAsset::register($this);
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'store_id')->dropDownList(ArrayHelper::map(
+    <?= $form->field($model, 'customer_id')->dropDownList(ArrayHelper::map(
             $stores,
             'id',
             'name'

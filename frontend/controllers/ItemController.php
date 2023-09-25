@@ -118,22 +118,21 @@ class ItemController extends Controller
         return $this->redirect(['index']);
     }
 
-    public function actionList($q = null, $id = null) {
+    public function actionItemList($q = null, $id = null, $page = 1) {
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        $out = ['results' => ['id' => 0, 'code' => '', 'text' => '']];
+        $out = ['results' => ['id' => 0, 'text' => ''], 'total_count' => 1];
         if (!is_null($q)) {
             $query = new Query;
             $query->select(['id', 'CONCAT(r.code, "-", r.name) AS text'])
                 ->from(['r' => 'item'])
-                ->where(['like', 'r.name', $q])
-                ->orWhere(['like', 'r.code', $q])
-                ->limit(20);
-            $command = $query->createCommand();
+                ->where(['or', ['like', 'r.name', $q], ['like', 'r.code', $q]]);
+            $out['total_count'] = $query->count();
+            $command = $query->offset(($page-1) * 20)->limit(20)->createCommand();
             $data = $command->queryAll();
             $out['results'] = array_values($data);
         }
         elseif ($id > 0) {
-            $out['results'] = ['id' => $id, 'text' => Depot::find($id)->toString()];
+            $out['results'] = ['id' => $id, 'text' => Item::find($id)->toString()];
         }
         return $out;
     }

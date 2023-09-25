@@ -60,16 +60,22 @@ class TicketHelper
 
     public static function can(Ticket $ticket, $class){
         if (is_subclass_of($class, ConcreteAction::class)){
-            if ($ticket->lastAction::class instanceof Open && is_subclass_of($class, Repair::class))
-                return true;
-            if ($ticket->lastAction::class instanceof Repair && is_subclass_of($class, Closing::class))
-                return true;
-            if (is_subclass_of($ticket->lastAction, Closing::class)) return false;
+            if ($ticket->lastAction instanceof Open){
+                if (in_array($class, [Repair::class, Duplicate::class, NoProblem::class], true)){
+                    return true;
+                }
+            }
+            if ($ticket->lastAction instanceof Repair){
+                if (in_array($class, [Awaiting::class, Normal::class], true)){
+                    return true;
+                }
+            }
+            return false;
         }
         elseif (is_subclass_of($class, MetaAction::class)){
-            if (is_subclass_of($class, Recommendation::class)) 
+            if ($class === Recommendation::class) 
                 return true;
-            if (empty($ticket->discretion) && is_subclass_of($class, Discretion::class)) 
+            if (empty($ticket->discretion) && $class === Discretion::class) 
                 return true;
             return false;
         }

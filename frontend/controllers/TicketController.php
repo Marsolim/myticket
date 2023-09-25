@@ -7,9 +7,15 @@ use Yii;
 use common\models\tickets\Ticket;
 use common\models\actors\User;
 use common\models\actors\Store;
+use common\models\docs\Inquiry;
+use common\models\docs\Invoice;
+use common\models\docs\WorkOrder;
 use common\models\tickets\actions\Action;
 use common\models\tickets\actions\Assignment;
+use common\models\tickets\actions\closings\Awaiting;
+use common\models\tickets\actions\closings\Duplicate;
 use common\models\tickets\actions\closings\NoProblem;
+use common\models\tickets\actions\closings\Normal;
 use common\models\tickets\actions\Repair;
 use common\models\tickets\actions\Discretion;
 use common\models\tickets\actions\Recommendation;
@@ -270,7 +276,95 @@ class TicketController extends Controller
     }
 
     public function actionUploadInvoice($ticket){
+        $model = new Invoice();
+        $model->ticket_id = $ticket;
+        $model->owner_id = Yii::$app->user->id;
+        $ticket = Ticket::findOne(['id' => $ticket]);
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                $model->file = UploadedFile::getInstanceByName('file');
+                $model->store_id = $ticket->customer_id;
+                if ($model->validate() && $model->upload(false)) {
+                    $transaction->commit();                      
+                    return Json::encode([
+                        'target' => "#ts-$ticket->number",
+                        'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                    ]);
+                }
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
+            }
+        }
+        return $this->renderAjax('_action_upload_document', ['model' => $model,]);
+    }
 
+    public function actionUploadInquiry($ticket){
+        $model = new Inquiry();
+        $model->ticket_id = $ticket;
+        $model->owner_id = Yii::$app->user->id;
+        $ticket = Ticket::findOne(['id' => $ticket]);
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                $model->file = UploadedFile::getInstanceByName('file');
+                $model->store_id = $ticket->customer_id;
+                if ($model->validate() && $model->upload(false)) {
+                    $transaction->commit();                      
+                    return Json::encode([
+                        'target' => "#ts-$ticket->number",
+                        'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                    ]);
+                }
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
+            }
+        }
+        return $this->renderAjax('_action_upload_document', ['model' => $model,]);
+    }
+
+    public function actionUploadWorkOrder($ticket){
+        $model = new WorkOrder();
+        $model->ticket_id = $ticket;
+        $model->owner_id = Yii::$app->user->id;
+        $ticket = Ticket::findOne(['id' => $ticket]);
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                $model->file = UploadedFile::getInstance($model, 'file');
+                $model->store_id = $ticket->customer_id;
+                if ($model->validate() && $model->upload(false)) {
+                    $transaction->commit();                      
+                    return Json::encode([
+                        'target' => "#ts-$ticket->number",
+                        'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                    ]);
+                }
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => Json::encode($model->getErrors())));
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => $ex->getMessage()));
+            }
+        }
+        return $this->renderAjax('_action_upload_document', ['model' => $model,]);
+    }
+
+    public function actionDocumentValidate() {
+        $model = new Invoice();
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $model->owner_id = Yii::$app->user->id;
+            //$model->ticket_id = $ticket;
+            //$model->created_at = time();
+            \Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
     }
 
     /**
@@ -293,47 +387,114 @@ class TicketController extends Controller
         if (Yii::$app->request->isAjax)
         {
             $model->ticket_id = $ticket;
+            $ticket = $this->findModel($ticket);
             $model->user_id = Yii::$app->user->id;
-            if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
-            $transaction = \Yii::$app->db->beginTransaction();          
-            try {
-                if ($model->validate()) {
-                    $flag = $model->save(false);
-                    if ($flag == true) {
+            //if ($model->load(Yii::$app->request->post())) {
+                $transaction = \Yii::$app->db->beginTransaction();          
+                try {
+                    if ($model->validate() && $model->save(false)){
                         $transaction->commit();
-                        return Json::encode(array('status' => 'success', 'type' => 'success', 'message' => 'Recommendation created successfully.'));
-                    } else {
-                        $transaction->rollBack();
-                        return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Model error.'));
-                    }
-                } else {
+                        return Json::encode([
+                            'target' => "#ts-$ticket->number",
+                            'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                        ]);
+                    } 
+                    $transaction->rollBack();    
                     return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
+                } catch (Exception $ex) {
+                    $transaction->rollBack();
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
                 }
-            } catch (Exception $ex) {
-                $transaction->rollBack();
-
-                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
-            }
+            //}
         }
-        return $this->renderAjax('_action_visit', ['model' => $model,]);
-    }
-    throw new NotFoundHttpException("Should not try to call this.");
-    
+        throw new NotFoundHttpException("Should not try to call this.");
     }
 
     public function actionCloseNormal($ticket)
     {
-
+        $model = new Normal();
+        if (Yii::$app->request->isAjax)
+        {
+            $model->ticket_id = $ticket;
+            $ticket = $this->findModel($ticket);
+            $model->user_id = Yii::$app->user->id;
+            //if ($model->load(Yii::$app->request->post())) {
+                $transaction = \Yii::$app->db->beginTransaction();          
+                try {
+                    if ($model->validate() && $model->save(false)){
+                        $transaction->commit();
+                        return Json::encode([
+                            'target' => "#ts-$ticket->number",
+                            'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                        ]);
+                    } 
+                    $transaction->rollBack();    
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
+                } catch (Exception $ex) {
+                    $transaction->rollBack();
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
+                }
+            //}
+        }
+        throw new NotFoundHttpException("Should not try to call this.");
     }
 
     public function actionCloseWaiting($ticket)
     {
-
+        $model = new Awaiting();
+        if (Yii::$app->request->isAjax)
+        {
+            $model->ticket_id = $ticket;
+            $ticket = $this->findModel($ticket);
+            $model->user_id = Yii::$app->user->id;
+            //if ($model->load(Yii::$app->request->post())) {
+                $transaction = \Yii::$app->db->beginTransaction();          
+                try {
+                    if ($model->validate() && $model->save(false)){
+                        $transaction->commit();
+                        return Json::encode([
+                            'target' => "#ts-$ticket->number",
+                            'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                        ]);
+                    } 
+                    $transaction->rollBack();    
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
+                } catch (Exception $ex) {
+                    $transaction->rollBack();
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
+                }
+            //}
+        }
+        throw new NotFoundHttpException("Should not try to call this.");
     }
 
     public function actionCloseDuplicate($ticket)
     {
-
+        $model = new Duplicate();
+        if (Yii::$app->request->isAjax)
+        {
+            $model->ticket_id = $ticket;
+            $ticket = $this->findModel($ticket);
+            $model->user_id = Yii::$app->user->id;
+            //if ($model->load(Yii::$app->request->post())) {
+                $transaction = \Yii::$app->db->beginTransaction();          
+                try {
+                    if ($model->validate() && $model->save(false)){
+                        $transaction->commit();
+                        return Json::encode([
+                            'target' => "#ts-$ticket->number",
+                            'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                        ]);
+                    } 
+                    $transaction->rollBack();    
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
+                } catch (Exception $ex) {
+                    $transaction->rollBack();
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
+                }
+            //}
+        }
+        throw new NotFoundHttpException("Should not try to call this.");
     }
 
     /**
@@ -344,17 +505,8 @@ class TicketController extends Controller
     public function actionCreate()
     {
         $model = new Ticket();
-        
-        $engineers = UserHelper::findEngineers()->all();
-        $stores = Store::find();
 
         $model->number = AutoNumber::generate('TS.{Y.m}.????');
-
-        if (UserHelper::isStoreManager())
-        {
-            $user = User::findOne(['id' => Yii::$app->user->id]);
-            $stores->andWhere(['region_id' => $user->region_id]);
-        }
 
         if (Yii::$app->request->isAjax) {
             $model->issuer_id = Yii::$app->user->id;
@@ -362,17 +514,33 @@ class TicketController extends Controller
             if ($model->load($this->request->post()) && $model->save())
             {
                 //$model->notify();
-                return $this->redirect(['view', 'id' => $model->id]);
+                
+                return Json::encode([
+                    'pjax_refresh' => true,
+                    'target' => "#ts-$model->number",
+                    'refresh_link' => Url::to(['ticket/view', 'id' => $model->id, 'mode' => 'list-item']),
+                ]);
+                //return $this->redirect(['view', 'id' => $model->id]);
             }
         } else {
             $model->loadDefaultValues();
         }
 
-        return $this->renderAjax('create', [
-            'model' => $model,
-            'stores' => $stores->all(),
-            'engineers' => $engineers
-        ]);
+        if (Yii::$app->request->isAjax)
+            return $this->renderAjax('_create_ticket', ['model' => $model,]);
+        else
+            return $this->render('create', ['model' => $model,]);
+    }
+
+    public function actionValidateCreate() {
+        $model = new Ticket();
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            //$model->owner_id = Yii::$app->user->id;
+            //$model->ticket_id = $ticket;
+            //$model->created_at = time();
+            \Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
+        }
     }
 
     /**

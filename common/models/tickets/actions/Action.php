@@ -2,11 +2,8 @@
 
 namespace common\models\tickets\actions;
 
-use common\db\ActionQuery;
 use common\db\AuditedRecord;
 use Yii;
-use yii\behaviors\BlameableBehavior;
-use yii\behaviors\TimestampBehavior;
 use yii\helpers\ArrayHelper;
 
 /**

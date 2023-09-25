@@ -4,6 +4,7 @@ namespace common\models\tickets\actions;
 
 use common\db\ObjectQuery;
 use common\models\actors\Engineer;
+use common\models\actors\User;
 use common\models\Item;
 use yii\helpers\ArrayHelper;
 
