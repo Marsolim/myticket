@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log(calendarEl);
   var calendar = new FullCalendar.Calendar(calendarEl, {
       //initialView: 'dayGridMonth',
+      timeZone: 'Asia/Jakarta',
       initialDate: new Date(),
       //editable: true,
       firstDay: 1, //  1(Monday) this can be changed to 0(Sunday) for the USA system

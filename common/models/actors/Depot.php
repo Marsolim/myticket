@@ -3,6 +3,7 @@
 namespace common\models\actors;
 
 use common\db\CustomerQuery;
+use common\db\ObjectQuery;
 use common\models\actors\Customer;
 use common\models\actors\Company;
 use common\models\actors\Store;
@@ -69,8 +70,8 @@ class Depot extends Customer
 
     public static function find()
     {
-        $query = new CustomerQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
-        $query = $query->with('company', 'stores.depot.company');
+        $query = new ObjectQuery(get_called_class());
+        $query = $query->with('company');
         return $query;
     }
 
@@ -82,26 +83,5 @@ class Depot extends Customer
     public function getCompany()
     {
         return $this->hasOne(Company::class, ['id' => 'parent_id']);
-    }
-
-    /**
-     * Gets query for [[Stores]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStores()
-    {
-        return $this->hasMany(Store::class, ['parent_id' => 'id'])->inverseOf('depot');
-    }
-    
-    /**
-     * Gets query for [[Tickets]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getTickets()
-    {
-        return $this->hasMany(Ticket::class, ['customer_id' => 'id'])
-            ->via('stores');
     }
 }

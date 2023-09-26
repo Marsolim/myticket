@@ -68,7 +68,7 @@ AppAsset::register($this);
         
         if (UserHelper::isAdministrator() || UserHelper::isManager())
         {
-            $menuItems[] = ['label' => 'Store', 'url' => ['/store/index']];
+            $menuItems[] = ['label' => 'Store', 'url' => ['/customer/index']];
         }
 
         if (UserHelper::isAdministrator() || UserHelper::isEngineer())

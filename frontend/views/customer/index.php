@@ -1,7 +1,7 @@
 <?php
 
-use common\models\Store;
-use common\models\Depot;
+use common\models\actors\Store;
+use common\models\actors\Depot;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
@@ -32,7 +32,6 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'name',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    
                     return !empty($model->name) ? Html::a($model->name, ['customer/view/', 'id' => $model->id]) : ''; // your url here
                 },
             ],
@@ -43,8 +42,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => 'DC',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    
-                    return !empty($model->parent_id) ? Html::a($model->depot->name, ['customer/view/', 'id' => $model->parent_id]) : ''; // your url here
+                    return !empty($model->depot) ? Html::a($model->depot->name, ['customer/view/', 'id' => $model->parent_id]) : ''; // your url here
                 },
                 'filter'=>ArrayHelper::map(Depot::find()->asArray()->all(), 'id', 'name'),
             ],
@@ -58,7 +56,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
             //'status_id',
             [
-                'class' => ActionColumn::className(),
+                'class' => ActionColumn::class,
                 'urlCreator' => function ($action, Store $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'id' => $model->id]);
                  }

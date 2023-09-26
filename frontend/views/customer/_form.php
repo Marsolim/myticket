@@ -5,7 +5,7 @@ use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
 
 /** @var yii\web\View $this */
-/** @var common\models\Store $model */
+/** @var common\models\actors\Store $model */
 /** @var yii\widgets\ActiveForm $form */
 ?>
 

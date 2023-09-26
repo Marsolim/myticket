@@ -93,11 +93,17 @@ $(document).on('click', '.quick-action', function (event) {
                     type: 'post',
                     success: function(response){
                         console.log(response);
-                        if (response.pjax_refresh) 
-                            $.pjax.reload ({container:"#pjax_list_articles", async:false});
-                        else $(response.target).load(response.refresh_link);
+                        if (response.pjax_refresh){
+                            container.modal('hide');
+                            content.empty();
+                            $.pjax.reload({container:"#pjax_list_articles", async:false});
+                        }
+                        else {
+                            $(response.target).load(response.refresh_link);
+                        }
                     },
                     complete: function() {
+                        console.log('cleaning up');
                         container.modal('hide');
                         content.empty();
                     },
@@ -111,15 +117,6 @@ $(document).on('click', '.quick-action', function (event) {
         container.modal('show');
     }
 });
-//QUICK TICKET
-$(document).on('click', '.quick-ticket', function (event) {       
-    var href = $(this).attr('href');
-    //console.log(href);
-    $('#qa-container').modal('show').find('.modal-dialog').load(href);
-    //console.log($('#addQuickTicketFormModel'));
-    event.preventDefault();
-});
-
 JS;
 $this->registerJs($script);
 
@@ -172,8 +169,7 @@ $exportwidget = ExportMenu::widget([
             'options' => ['placeholder' => 'Select range...', 'onchange' => 'this.form.submit()']
         ])->label(false) ?>
     </div>
-<?php ActiveForm::end() ?>  
-
+<?php ActiveForm::end() ?>
 </div>
 
 <div class="listView_container position-relative mt-3">
@@ -201,11 +197,11 @@ $exportwidget = ExportMenu::widget([
 <?= Html::a('<i class="fas fa-plus"></i><span class="visually-hidden">Add Ticket</span>',
     ['ticket/create'],
     [
-        'class'=>"btn btn-success position-fixed bottom-0 end-0 mb-5 me-5 rounded-circle quick-ticket",
+        'class'=>"btn btn-success btn-floating position-fixed bottom-0 end-0 mb-5 me-5 quick-action quick-action-form",
         'title'=>'Tambah servis baru'
     ]
 ) ?>
-<!-- POPUP MODAL QUICK TICKET -->                            
+<!-- POPUP MODAL QUICK ACTION -->                            
 <div class="modal inmodal quick-action-modal" id="qa-container" role="dialog" data-keyboard="false" data-backdrop="static">
     <div class="modal-dialog modal-xl"></div>
 </div>

@@ -1,6 +1,9 @@
 <?php
 
-use common\models\Document;
+use common\models\docs\Document;
+use common\models\docs\Inquiry;
+use common\models\docs\Invoice;
+use common\models\docs\WorkOrder;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\ActionColumn;
@@ -13,15 +16,15 @@ use yii\grid\GridView;
 $this->title = 'Documents';
 $this->params['breadcrumbs'][] = $this->title;
 $invoicefilter = function($doc){
-    return $doc->category == Document::FILE_INVOICE;
+    return $doc instanceof Invoice;
 };
 $invoices = array_filter($model, $invoicefilter);
 $spkfilter = function($doc){
-    return $doc->category == Document::FILE_BAP_SPK;
+    return $doc instanceof Inquiry || $doc instanceof WorkOrder;
 };
 $spks = array_filter($model, $spkfilter);
 $othersfilter = function($doc){
-    return !in_array($doc->category, [Document::FILE_BAP_SPK, Document::FILE_INVOICE]);
+    return !$doc instanceof Invoice && !$doc instanceof Inquiry && !$doc instanceof WorkOrder;
 };
 $others = array_filter($model, $othersfilter);
 ?>
@@ -54,7 +57,7 @@ $others = array_filter($model, $othersfilter);
     <?php
         foreach($spks as $spk)
         {
-            echo Html::a($spk->uploadname, ['uploads/documents/'.$spk->filename]);
+            echo Html::a($spk->fileIcon.' '.$spk->uploadname, ['document/download/', 'id' => $spk->id], ['class' => 'btn btn-link text-decoration-none']);
             echo '<br/>';
         }
     }
@@ -68,7 +71,7 @@ $others = array_filter($model, $othersfilter);
     <?php
         foreach($others as $other)
         {
-            echo Html::a($other->uploadname, ['uploads/documents/'.$other->filename]);
+            echo Html::a($other->fileIcon.' '.$other->uploadname, ['document/download/', 'id' => $other->id], ['class' => 'btn btn-link text-decoration-none']);
             echo '<br/>';
         }
     }

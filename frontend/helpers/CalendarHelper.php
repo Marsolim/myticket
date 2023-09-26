@@ -57,17 +57,20 @@ class CalendarHelper
 
     public static function toTimeStamp($date)
     {
+        date_default_timezone_set("Asia/Jakarta");
         $date = new DateTime($date);
         $date = $date->getTimeStamp();
-        $date = $date - ($date % 84600);
+        $date = strtotime(date("Y-m-d", $date));
         return $date;
     }
 
     public static function toTimeStampDec($date)
     {
+        date_default_timezone_set("Asia/Jakarta");
         $date = new DateTime($date);
-        $date = $date->getTimeStamp() - 1;
-        $date = $date - ($date % 84600);
+        $date = $date->getTimeStamp();
+        $date = strtotime(date("Y-m-d", $date));
+        $date = $date - 1;
         return $date;
     }
 }

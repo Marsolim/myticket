@@ -3,6 +3,7 @@
 namespace common\models\actors;
 
 use common\db\CustomerQuery;
+use common\db\ObjectQuery;
 use common\models\actors\Customer;
 use common\models\actors\Company;
 use common\models\actors\Depot;
@@ -61,14 +62,13 @@ class Store extends Customer
 
     public function beforeSave($insert)
     {
-        
         $this->type = self::class;
         return parent::beforeSave($insert);
     }
 
     public static function find()
     {
-        $query = new CustomerQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = new ObjectQuery(get_called_class());
         $query = $query->with('depot.company');
         return $query;
     }
@@ -80,7 +80,7 @@ class Store extends Customer
      */
     public function getDepot()
     {
-        return $this->hasOne(Depot::class, ['id' => 'depot_id']);
+        return $this->hasOne(Depot::class, ['id' => 'parent_id']);
     }
 
     /**

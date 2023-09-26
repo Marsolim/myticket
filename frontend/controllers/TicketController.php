@@ -18,6 +18,7 @@ use common\models\tickets\actions\closings\NoProblem;
 use common\models\tickets\actions\closings\Normal;
 use common\models\tickets\actions\Repair;
 use common\models\tickets\actions\Discretion;
+use common\models\tickets\actions\Open;
 use common\models\tickets\actions\Recommendation;
 use Exception;
 use frontend\models\search\ActionSearch;
@@ -64,41 +65,6 @@ class TicketController extends Controller
             ]
         );
     }
-
-    // /**
-    //  * Lists all Ticket models.
-    //  *
-    //  * @return string
-    //  */
-    // public function actionIndex()
-    // {
-    //     $searchModel = new TicketSearch();
-    //     $query = $searchModel->searchQuery($this->request->queryParams);
-    //     if (!(UserHelper::isAdministrator() || UserHelper::isEngineer() || UserHelper::isGeneralManager()))
-    //     {
-    //         throw new UnauthorizedHttpException();
-    //     }
-    //     if (UserHelper::isEngineer())
-    //     {
-    //         $query->andWhere(['engineer_id' => Yii::$app->user->id]);
-    //     }
-    //     if (UserHelper::isGeneralManager())
-    //     {
-    //         $user = User::findOne(['id' => Yii::$app->user->id]);
-    //         $stores = Store::findAll(['region_id' => $user->region_id]);
-    //         $stores = ArrayHelper::getColumn($stores, 'id');
-    //         $query->andWhere(['store_id' => $stores]);
-    //     }
-
-    //     $dataProvider = $searchModel->search($query);
-
-    //     Url::remember();
-
-    //     return $this->render('index', [
-    //         'searchModel' => $searchModel,
-    //         'dataProvider' => $dataProvider,
-    //     ]);
-    // }
 
     public function actionIndex()
     {
@@ -147,7 +113,11 @@ class TicketController extends Controller
             try {
                 if ($model->validate() && $model->save(false)) {
                     $transaction->commit();                      
-                    return Json::encode(['target' => "#ts-$ticket->number", 'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode'=>'list-item'])]);
+                    return Json::encode([
+                        'pjax_refresh' => false,
+                        'target' => "#ts-$ticket->number",
+                        'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode'=>'list-item'])
+                    ]);
                 }
                 $transaction->rollBack();
                 return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Discretion not created.'));
@@ -180,7 +150,11 @@ class TicketController extends Controller
             try {
                 if ($model->validate() && $model->save(false)) {
                     $transaction->commit();
-                    return Json::encode(['target' => "#ts-$ticket->number", 'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode'=>'list-item'])]);
+                    return Json::encode([
+                        'pjax_refresh' => false,
+                        'target' => "#ts-$ticket->number",
+                        'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode'=>'list-item'])
+                    ]);
                 }
                 $transaction->rollBack();
                 return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => 'Recommendation not created.'));
@@ -211,8 +185,9 @@ class TicketController extends Controller
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
                 if ($model->validate() && $model->save(false)) {
-                        $transaction->commit();                      
+                        $transaction->commit();
                         return Json::encode([
+                            'pjax_refresh' => false,
                             'target' => "#ts-$ticket->number",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                         ]);
@@ -247,6 +222,7 @@ class TicketController extends Controller
                 if ($model->validate() && $model->save(false)) {
                         $transaction->commit();                      
                         return Json::encode([
+                            'pjax_refresh' => false,
                             'target' => "#ts-$ticket->number",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                         ]);
@@ -288,6 +264,7 @@ class TicketController extends Controller
                 if ($model->validate() && $model->upload(false)) {
                     $transaction->commit();                      
                     return Json::encode([
+                        'pjax_refresh' => false,
                         'target' => "#ts-$ticket->number",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                     ]);
@@ -315,6 +292,7 @@ class TicketController extends Controller
                 if ($model->validate() && $model->upload(false)) {
                     $transaction->commit();                      
                     return Json::encode([
+                        'pjax_refresh' => false,
                         'target' => "#ts-$ticket->number",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                     ]);
@@ -342,6 +320,7 @@ class TicketController extends Controller
                 if ($model->validate() && $model->upload(false)) {
                     $transaction->commit();                      
                     return Json::encode([
+                        'pjax_refresh' => false,
                         'target' => "#ts-$ticket->number",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                     ]);
@@ -395,6 +374,7 @@ class TicketController extends Controller
                     if ($model->validate() && $model->save(false)){
                         $transaction->commit();
                         return Json::encode([
+                            'pjax_refresh' => false,
                             'target' => "#ts-$ticket->number",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                         ]);
@@ -424,6 +404,7 @@ class TicketController extends Controller
                     if ($model->validate() && $model->save(false)){
                         $transaction->commit();
                         return Json::encode([
+                            'pjax_refresh' => false,
                             'target' => "#ts-$ticket->number",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                         ]);
@@ -453,6 +434,7 @@ class TicketController extends Controller
                     if ($model->validate() && $model->save(false)){
                         $transaction->commit();
                         return Json::encode([
+                            'pjax_refresh' => false,
                             'target' => "#ts-$ticket->number",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                         ]);
@@ -482,6 +464,7 @@ class TicketController extends Controller
                     if ($model->validate() && $model->save(false)){
                         $transaction->commit();
                         return Json::encode([
+                            'pjax_refresh' => false,
                             'target' => "#ts-$ticket->number",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                         ]);
@@ -506,21 +489,39 @@ class TicketController extends Controller
     {
         $model = new Ticket();
 
-        $model->number = AutoNumber::generate('TS.{Y.m}.????');
-
         if (Yii::$app->request->isAjax) {
             $model->issuer_id = Yii::$app->user->id;
-
-            if ($model->load($this->request->post()) && $model->save())
-            {
-                //$model->notify();
+            if ($model->load(Yii::$app->request->post())) {
+                if (is_null($model->number))
+                    $model->number = AutoNumber::generate('TS.{Y.m}.????');
                 
-                return Json::encode([
-                    'pjax_refresh' => true,
-                    'target' => "#ts-$model->number",
-                    'refresh_link' => Url::to(['ticket/view', 'id' => $model->id, 'mode' => 'list-item']),
-                ]);
-                //return $this->redirect(['view', 'id' => $model->id]);
+                $transaction = Yii::$app->db->beginTransaction();
+                try {
+                    if ($model->save(false))
+                    {
+                        $pk = $model->getPrimaryKey();
+                        $open = Open::findOne(['ticket_id' => $pk]);
+                        if (is_null($open)){
+                            $open = new Open();
+                            $open->ticket_id = $pk;
+                            $open->user_id = Yii::$app->user->id;
+                            $open->save(false);
+                        }
+                        $transaction->commit();
+                        return Json::encode([
+                            'pjax_refresh' => true,
+                            'target' => "#ts-$model->number",
+                            'refresh_link' => Url::to(['ticket/view', 'id' => $model->id, 'mode' => 'list-item']),
+                        ]);
+                        $transaction->rollBack();    
+                        return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
+                    }
+                }
+                catch (Exception $ex)
+                {
+                    $transaction->rollBack();
+                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
+                }
             }
         } else {
             $model->loadDefaultValues();

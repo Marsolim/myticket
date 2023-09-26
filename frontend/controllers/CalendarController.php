@@ -10,6 +10,7 @@ use yii\filters\AccessControl;
 use common\models\Holiday;
 use common\models\tickets\Ticket;
 use frontend\helpers\CalendarHelper;
+use frontend\helpers\DateTimeHelper;
 
 class CalendarController extends Controller
 {
@@ -95,8 +96,9 @@ class CalendarController extends Controller
     public function actionAddHoliday()
     {
         $model = Yii::$app->request->getBodyParams();
-        $start = CalendarHelper::toTimeStamp($model["start"]);
-        $end = CalendarHelper::toTimeStampDec($model["end"]);
+        date_default_timezone_set("Asia/Jakarta");
+        $start = strtotime($model['start']);
+        $end = strtotime($model['end']) - 1;
         Yii::$app->response->format = Response::FORMAT_JSON;
         if ($start >= $end) {
             $holi = new Holiday(['title' => $model["title"], 'start' => $start,]);
@@ -108,9 +110,9 @@ class CalendarController extends Controller
             $holis = [];
             while ($start <= $end){
                 $holi = new Holiday(['title' => $model["title"], 'start' => $start,]);
-                
-            if ($holi->validate() && $holi->save())
-                $holis[] = $holi;
+                if ($holi->validate() && $holi->save())
+                    $holis[] = $holi;
+                $start = $start + DateTimeHelper::DAY_IN_SECONDS;
             }
             return $this->asJSON(['holi' => $holis]);
         }

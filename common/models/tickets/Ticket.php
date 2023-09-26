@@ -91,10 +91,9 @@ class Ticket extends AuditedRecord
         if ($insert)
         {
             $this->addError('lastAction', $insert);
-            $open = new Open([
-                'ticket_id' => $this->primaryKey(),
-                'user_id' => Yii::$app->user->id,
-            ]);
+            $open = new Open();
+            $open->ticket_id = $this->primaryKey();
+            $open->user_id = Yii::$app->user->id;
             $open->save(false);
             $this->addError('lastAction', $open->getErrors());
         }

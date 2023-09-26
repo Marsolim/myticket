@@ -3,7 +3,7 @@
 use yii\helpers\Html;
 
 /** @var yii\web\View $this */
-/** @var common\models\Region $model */
+/** @var common\models\actors\Depot $model */
 
 $this->title = 'Update Region: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => 'Regions', 'url' => ['index']];

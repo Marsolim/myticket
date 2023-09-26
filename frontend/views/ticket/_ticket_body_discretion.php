@@ -25,18 +25,14 @@ $title = 'Alasan tidak tercover MC '.(empty($model->discretion) ? '<span class="
         ]) ?>
     </div>
 </div>
-<?php
-if (!empty($model->discretion)) {
-?>
+<?php if (!empty($model->discretion)) { ?>
 <figure class="card-text p-2 rounded" style="border-left: .25rem solid #a34e78;border-right: .25rem solid #a34e78;">
-  <blockquote class="blockquote">
-    <p><?= $model->discretion->summary ?></p>
-  </blockquote>
-  <figcaption class="blockquote-footer text-end">
-  <?= $model->discretion->assessor->full_name ?>
-  <cite title="at"><?= date('Y F d', $model->discretion->updated_at) ?></cite>
-  </figcaption>
+    <blockquote class="blockquote">
+        <?= $model->discretion->summary ?>
+    </blockquote>
+    <figcaption class="blockquote-footer text-end">
+        <?= $model->discretion->assessor->full_name ?>
+        <cite title="at"><?= date('Y F d', $model->discretion->updated_at) ?></cite>
+    </figcaption>
 </figure>
-<?php
-}
-?>
+<?php } ?>

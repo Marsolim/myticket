@@ -1,7 +1,6 @@
 <?php
 
-use common\models\User;
-use common\models\ManagedStore;
+use common\models\actors\User;
 use yii\helpers\Html;
 use yii\widgets\DetailView;
 use yii\widgets\ListView;
@@ -65,96 +64,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     return isset($model->status_id) ? Html::a($model->status->name, ['sla-status/view', 'id' => $model->status_id]) : '';
                 }
             ],
-            [
-                'attribute' => 'manager',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    if (Yii::$app->user->can('manageUser'))
-                    {
-                        $managers = User::findByRole(User::ROLE_STORE_MANAGER);
-                        $items = [];
-                        foreach($managers as $manager)
-                        {
-                            $items[] = [
-                                'label' => $manager->username, 
-                                'url' => ['store/assign/', 'store' => $model->id, 'mgr' => $manager['id']],
-                                'linkOptions' => ['data' => [
-                                    'confirm' => 'Assign '.$manager->username.' to '.$model->name.'?',
-                                    'method' => 'post',
-                                ]],
-                            ];
-                        }
-                        $mgs = ManagedStore::findOne(['store_id' => $model->id, 'active' => ManagedStore::STATUS_ACTIVE]);
-                        $cmanager = isset($mgs) ? $mgs->user : null;
-                        return ButtonDropdown::widget([
-                            'label' => isset($cmanager) ? $cmanager->username : 'Assign Manager',
-                            'dropdown' => [
-                                'items' => $items,
-                            ],
-                        ]);
-                    }
-                    else
-                    {
-                        return isset($model->manager) ? Html::a($model->manager->full_name, ['user/view', 'id' => $model->manager->id]) : '';
-                    }
-                }
-            ]
         ],
-    ]) ?>
-    </div>
-    <div class="tab-pane fade" id="ticket-history" role="tabpanel" aria-labelledby="ticket-history-tab">
-    <?= GridView::widget([
-        'dataProvider' => $ticketProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-            [
-                'attribute' => 'number',
-                //'label' => '',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    return isset($model->number) ? Html::a($model->number . ' - ' . $model->problem, ['ticket/view', 'id' => $model->id]) : ''; // your url here
-                }
-            ],
-            [
-                'attribute' => 'store_id',
-                //'label' => '',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    return isset($model->store_id) ? Html::a($model->store->code . ' - ' . $model->store->name, ['view', 'id' => $model->store->id]) : ''; // your url here
-                }
-            ],
-            [
-                'attribute' => 'issued_at',
-                //'label' => 'You Label Name ',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    return $model->issued_at ? date('d F Y', $model->issued_at) : ''; // your url here
-                }
-            ],
-            [
-                'attribute' => 'engineer_id',
-                //'label' => 'You Label Name ',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    return isset($model->engineer_id) ? Html::a($model->engineer->full_name, ['user/view/', 'id' => $model->engineer->id]) : ''; // your url here
-                }
-            ],
-            [
-                'attribute' => 'last_status_id',
-                'label' => 'Status terakhir',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    return nl2br($model->statusSummary);
-                }
-            ],
-        ],
-    ]); ?>
-    </div>
-    <div class="tab-pane fade" id="document" role="tabpanel" aria-labelledby="document-tab">
-    <?= ListView::widget([
-        'dataProvider' => $documentProvider,
-        'itemView' => '_document',
     ]) ?>
     </div>
 </div>

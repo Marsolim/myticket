@@ -29,13 +29,13 @@ $title = 'Rekomendasi '.(empty($model->recommendations) ? '<span class="small te
 foreach($model->recommendations as $rec) {
 ?>
 <figure class="card-text p-1 rounded" style="border-left: .25rem solid #a34e78;border-right: .25rem solid #a34e78;">
-  <blockquote class="blockquote">
-    <p><?= $rec->summary ?></p>
-  </blockquote>
-  <figcaption class="blockquote-footer text-end">
-  <?= $rec->evaluator->full_name ?>
-  <cite title="at"><?= date('Y F d', $rec->updated_at) ?></cite>
-  </figcaption>
+    <blockquote class="blockquote">
+        <?= $rec->summary ?>
+    </blockquote>
+    <figcaption class="blockquote-footer text-end">
+        <?= $rec->evaluator->full_name ?>
+        <cite title="at"><?= date('Y F d', $rec->updated_at) ?></cite>
+    </figcaption>
 </figure>
 <?php
 }

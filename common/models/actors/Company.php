@@ -7,6 +7,7 @@ use common\models\actors\Depot;
 use common\models\actors\Store;
 use common\models\tickets\Ticket;
 use common\db\CustomerQuery;
+use common\db\ObjectQuery;
 use Yii;
 use yii\helpers\ArrayHelper;
 
@@ -61,7 +62,7 @@ class Company extends Customer
     
     public static function find()
     {
-        $query = new CustomerQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = new ObjectQuery(get_called_class());
         //$query = $query->with('depots', 'stores');
         return $query;
     }

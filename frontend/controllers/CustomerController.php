@@ -52,15 +52,15 @@ class CustomerController extends Controller
     {
         $searchModel = new StoreSearch();
         $query = $searchModel->searchQuery($this->request->queryParams);
-        if (UserHelper::isGeneralManager())
-        {
-            $user = User::findOne(['id' => Yii::$app->user->id]);
-            $query->andWhere(['region_id' => $user->region_id]);
-        }
-        else if (!(UserHelper::isAdministrator() || UserHelper::isGeneralManager())) 
-        {
-            throw new UnauthorizedHttpException();
-        }
+        // if (UserHelper::isGeneralManager())
+        // {
+        //     $user = User::findOne(['id' => Yii::$app->user->id]);
+        //     $query->andWhere(['region_id' => $user->region_id]);
+        // }
+        // else if (!(UserHelper::isAdministrator() || UserHelper::isGeneralManager())) 
+        // {
+        //     throw new UnauthorizedHttpException();
+        // }
         $dataProvider = $searchModel->search($query);
 
         return $this->render('index', [

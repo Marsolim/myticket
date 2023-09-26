@@ -33,9 +33,11 @@ JS;
 ?>
 <div class="modal-content animated bounceInCenter" >
     <?php
-    $form = ActiveForm::begin(['id' => 'form-create-ticket', 
-    'enableAjaxValidation' => true, 
-    'validationUrl' => Yii::$app->urlManager->createUrl('ticket/validate-create')]);
+    $form = ActiveForm::begin([
+        'id' => 'qa-form', 
+        'enableAjaxValidation' => true, 
+        'validationUrl' => Yii::$app->urlManager->createUrl('ticket/validate-create')
+    ]);
     ?>
     <div class="modal-header">
         <h4 class="modal-title text-left">Ticket Service Baru</h4>
@@ -72,37 +74,3 @@ JS;
     </div>
     <?php ActiveForm::end(); ?>
 </div>
-
-<?php
-$script = <<< JS
-   $(document).ready(function () {
-        $("#form-create-ticket").on('beforeSubmit', function (event) {
-            event.preventDefault();
-            var form_data = new FormData($('#form-create-ticket')[0]);
-            $.ajax({
-                   url: $("#form-create-ticket").attr('action'),
-                   dataType: 'JSON',
-                   cache: false,
-                   contentType: false,
-                   processData: false,
-                   data: form_data, //$(this).serialize(),
-                   type: 'post',
-                   beforeSend: function() {
-                   },
-                   success: function(response){
-                       toastr.success("",response.message);
-                       $('#addQuickActionFormModel').modal('hide');
-                       $.pjax.reload({container: '#pjax_list_articles', async: false});
-                   },
-                   complete: function() {
-                   },
-                   error: function (data) {
-                      toastr.warning("","There may a error on uploading. Try again later");
-                   }
-                });
-            return false;
-        });
-    });
-JS;
-$this->registerJs($script);
-?>

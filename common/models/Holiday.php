@@ -4,6 +4,7 @@ namespace common\models;
 
 use common\db\AuditedRecord;
 use common\models\actors\Store;
+use frontend\helpers\DateTimeHelper;
 use yii\behaviors\TimestampBehavior;
 use yii\behaviors\BlameableBehavior;
 use Yii;
@@ -54,8 +55,8 @@ class Holiday extends AuditedRecord
 
     public function beforeSave($insert)
     {
-        $this->start = $this->start - ($this->start % 84600);
-        $this->end = $this->start + 84599;
+        $this->start = $this->start;
+        $this->end = $this->start + DateTimeHelper::DAY_IN_SECONDS - 1;
         return parent::beforeSave($insert);
     }
 

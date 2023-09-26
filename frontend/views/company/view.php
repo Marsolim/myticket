@@ -4,12 +4,14 @@ use yii\helpers\Html;
 use yii\widgets\DetailView;
 
 /** @var yii\web\View $this */
-/** @var common\models\Company $model */
+/** @var common\models\actors\Company $model */
 
 $this->title = $model->code.'-'.$model->name;
 $this->params['breadcrumbs'][] = ['label' => 'Companies', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
+
 \yii\web\YiiAsset::register($this);
+
 ?>
 <div class="company-view">
 

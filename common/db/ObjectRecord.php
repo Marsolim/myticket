@@ -3,6 +3,9 @@
 namespace common\db;
 
 use common\db\ObjectQuery;
+use ReflectionClass;
+use Yii;
+use yii\base\UnknownClassException;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\helpers\VarDumper;
@@ -48,7 +51,26 @@ abstract class ObjectRecord extends ActiveRecord
     public static function instantiate($row)
     {
         $type = $row['type'];
-        return new $type();
+        $rtype = new ReflectionClass($row['type']);
+        $type = self::getFirstNonAbstractChildClass($rtype);
+        if (!empty($type)) {
+            $type = $type->getName();
+            return new $type();
+        }
+        throw new UnknownClassException("Class of ".$row['type'].' is either not defined or registered in object class parameter.');
+    }
+
+    private static function getFirstNonAbstractChildClass(ReflectionClass $type)
+    {
+        if (!$type->isAbstract()) return $type;
+        $classes = Yii::$app->params['objectclasses'];
+        foreach ($classes as $class)
+        {
+            $class = new ReflectionClass($class);
+            if ($class->isSubclassOf($type))
+                return $class;
+        }
+        return null;
     }
 
     public static function find()
