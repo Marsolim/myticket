@@ -15,9 +15,7 @@ use yii\web\JsExpression;
 /** @var frontend\models\search\TicketSearch $model */
 /** @var yii\widgets\ActiveForm $form */
 
-$dataList = User::find()->andWhere(['id' => $model->user_id])->all();
-$dataList = ArrayHelper::merge($dataList, Engineer::find()->orderBy(['full_name' => SORT_ASC])->limit(10)->all());
-$data = ArrayHelper::map($dataList, 'id', 'full_name');
+$data = ArrayHelper::map(User::find()->andWhere(['id' => $model->user_id])->all(), 'id', 'full_name');
 
 $resultsJs = <<< JS
 function (data, params) {

@@ -23,19 +23,6 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
 </p>
 
-<ul class="nav nav-tabs" id="myTab" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="information-tab" data-bs-toggle="tab" data-bs-target="#information" type="button" role="tab" aria-controls="information" aria-selected="true">Informasi</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="ticket-history-tab" data-bs-toggle="tab" data-bs-target="#ticket-history" type="button" role="tab" aria-controls="ticket-history" aria-selected="false">History Servis</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="document-tab" data-bs-toggle="tab" data-bs-target="#document" type="button" role="tab" aria-controls="document" aria-selected="false">Dokumen</button>
-  </li>
-</ul>
-<div class="tab-content" id="myTabContent">
-    <div class="tab-pane fade show active" id="information" role="tabpanel" aria-labelledby="home-tab">
     <?= DetailView::widget([
         'model' => $model,
         'attributes' => [
@@ -51,24 +38,22 @@ $this->params['breadcrumbs'][] = $this->title;
             'phone',
             'email',
             [
-                'attribute' => 'region_id',
+                'attribute' => 'parent_id',
+                'label' => 'Distribution Center',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return isset($model->region_id) ? Html::a($model->region->name, ['region/view', 'id' => $model->region_id]) : '';
+                    return !empty($model->depot) ? Html::a($model->depot->name, ['region/view', 'id' => $model->parent_id]) : '';
                 }
             ],
             [
-                'attribute' => 'status_id',
+                'label' => 'SLA',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return isset($model->status_id) ? Html::a($model->status->name, ['sla-status/view', 'id' => $model->status_id]) : '';
+                    return !empty($model->contract) ? $model->contract->sla : '14';
                 }
             ],
         ],
     ]) ?>
-    </div>
-</div>
-
 
     
 

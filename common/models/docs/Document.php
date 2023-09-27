@@ -6,8 +6,7 @@ use common\db\AuditedRecord;
 use common\models\actors\Store;
 use common\models\tickets\Action;
 use common\models\tickets\Ticket;
-use yii\behaviors\TimestampBehavior;
-use yii\behaviors\BlameableBehavior;
+use yii\web\UploadedFile;
 use Yii;
 
 /**
@@ -25,17 +24,6 @@ abstract class Document extends AuditedRecord
      * @var UploadedFile
      */
     public $file;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::class,
-            BlameableBehavior::class,
-        ];
-    }
 
     /**
      * {@inheritdoc}
@@ -194,12 +182,12 @@ abstract class Document extends AuditedRecord
         }
     }
 
-    public function upload($runValidation = true, $attributeNames = null){
+    public function upload($runValidation = true, $attributeNames = null) {
         $filename = Yii::$app->security->generateRandomString() . '.' . $this->file->extension;
-        $filepath = 'uploads/documents/' . $filename;
+        $filepath = "uploads/documents/$filename";
         $this->file->saveAs($filepath);
         $this->filename = $filename;
-        $this->uploadname = $this->file->baseName;
+        $this->uploadname = $this->file->name;
         $this->file_size = $this->file->size;
         $this->file_type = $this->file->extension;
         return $this->save($runValidation, $attributeNames);

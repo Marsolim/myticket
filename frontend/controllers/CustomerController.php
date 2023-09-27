@@ -6,6 +6,7 @@ use common\models\actors\Company;
 use common\models\actors\Depot;
 use common\models\actors\User;
 use common\models\actors\Store;
+use common\models\Contract;
 use common\models\docs\Document;
 use frontend\models\search\StoreSearch;
 use frontend\models\search\TicketSearch;
@@ -17,6 +18,7 @@ use yii\helpers\Url;
 use frontend\helpers\UserHelper;
 use Yii;
 use yii\db\Query;
+use yii\helpers\ArrayHelper;
 use yii\web\UnauthorizedHttpException;
 
 /**
@@ -77,31 +79,9 @@ class CustomerController extends Controller
      */
     public function actionView($id)
     {
-        $searchModel = new TicketSearch();
-        $query = $searchModel->searchQuery($this->request->queryParams);
-        $query->andWhere(['store_id' => $id]);
-
-        $ticketProvider = $searchModel->search($query);
-
-        $docquery = Document::find();
-
-        $docquery->andWhere(['store_id' => $id]);
-        $documentProvider = new ActiveDataProvider([
-            'query' => $docquery,
-            'pagination' => [
-                'pageSize' => 20,
-            ],
-        ]);
-
         Url::remember();
 
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-            'status' => [['id'=> 1, 'name' => 'Garansi'], ['id'=> 2, 'name' => 'Non Garansi']],
-            'searchModel' => $searchModel,
-            'ticketProvider' => $ticketProvider,
-            'documentProvider' => $documentProvider,
-        ]);
+        return $this->render('view', [ 'model' => $this->findModel($id), ]);
     }
 
     /**
@@ -121,6 +101,14 @@ class CustomerController extends Controller
 
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->save()) {
+                $contract = $model->contract;
+                if (empty($contract)) {
+                    $contract = new Contract();
+                    $contract->customer_id = $model->id;
+                }
+                $contract->sla = ArrayHelper::getValue($this->request->post(), "Store.contract.sla");
+                $contract->status = Contract::STATUS_ACTIVE;
+                $contract->save(false);
                 return $this->redirect(['view', 'id' => $model->id]);
             }
         } else {
@@ -144,13 +132,15 @@ class CustomerController extends Controller
     {
         $model = $this->findModel($id);
         
-        if (UserHelper::isMemberOfRole(User::ROLE_STORE_MANAGER))
-        {
-            $user = User::findOne(['id' => Yii::$app->user->id]);
-            $model->region_id = $user->region_id;
-        }
-        
         if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
+            $contract = $model->contract;
+            if (empty($contract)) {
+                $contract = new Contract();
+                $contract->customer_id = $model->id;
+            }
+            $contract->sla = ArrayHelper::getValue($this->request->post(), "Store.contract.sla");
+            $contract->status = Contract::STATUS_ACTIVE;
+            $contract->save(false);
             return $this->redirect(['view', 'id' => $model->id]);
         }
 

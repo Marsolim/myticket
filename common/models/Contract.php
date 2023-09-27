@@ -64,9 +64,4 @@ class Contract extends AuditedRecord
     {
         return $this->hasOne(Store::class, ['id' => 'customer_id'])->inverseOf('contract');
     }
-
-    public function toString()
-    {
-        return implode('-', [$this->code, $this->name]);
-    }
 }

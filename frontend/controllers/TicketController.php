@@ -21,9 +21,7 @@ use common\models\tickets\actions\Discretion;
 use common\models\tickets\actions\Open;
 use common\models\tickets\actions\Recommendation;
 use Exception;
-use frontend\models\search\ActionSearch;
 use frontend\models\search\TicketSearch;
-use frontend\models\forms\DocumentUploadForm;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\UnauthorizedHttpException;
@@ -31,12 +29,9 @@ use yii\web\UploadedFile;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
 use yii\filters\VerbFilter;
-use frontend\helpers\UserHelper;
 use frontend\models\GeneralManager;
-use frontend\models\search\RepairActionSearch;
 use frontend\models\StoreManager;
 use mdm\autonumber\AutoNumber;
-use yii\base\Model;
 use yii\helpers\Json;
 use yii\web\Response;
 use yii\widgets\ActiveForm;
@@ -185,12 +180,13 @@ class TicketController extends Controller
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
                 if ($model->validate() && $model->save(false)) {
-                        $transaction->commit();
-                        return Json::encode([
-                            'pjax_refresh' => false,
-                            'target' => "#ts-$ticket->number",
-                            'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
-                        ]);
+                    $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
+                    $transaction->commit();
+                    return Json::encode([
+                        'pjax_refresh' => false,
+                        'target' => "#ts-$ticket->number",
+                        'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                    ]);
                 }
                 $transaction->rollBack();
                 return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
@@ -220,12 +216,12 @@ class TicketController extends Controller
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
                 if ($model->validate() && $model->save(false)) {
-                        $transaction->commit();                      
-                        return Json::encode([
-                            'pjax_refresh' => false,
-                            'target' => "#ts-$ticket->number",
-                            'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
-                        ]);
+                    $transaction->commit();                      
+                    return Json::encode([
+                        'pjax_refresh' => false,
+                        'target' => "#ts-$ticket->number",
+                        'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                    ]);
                 }
                 $transaction->rollBack();
                 return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
@@ -368,24 +364,24 @@ class TicketController extends Controller
             $model->ticket_id = $ticket;
             $ticket = $this->findModel($ticket);
             $model->user_id = Yii::$app->user->id;
-            //if ($model->load(Yii::$app->request->post())) {
-                $transaction = \Yii::$app->db->beginTransaction();          
-                try {
-                    if ($model->validate() && $model->save(false)){
-                        $transaction->commit();
-                        return Json::encode([
-                            'pjax_refresh' => false,
-                            'target' => "#ts-$ticket->number",
-                            'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
-                        ]);
-                    } 
-                    $transaction->rollBack();    
-                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
-                } catch (Exception $ex) {
-                    $transaction->rollBack();
-                    return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
-                }
-            //}
+            
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                if ($model->validate() && $model->save(false)){
+                    $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
+                    $transaction->commit();
+                    return Json::encode([
+                        'pjax_refresh' => false,
+                        'target' => "#ts-$ticket->number",
+                        'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                    ]);
+                } 
+                $transaction->rollBack();    
+                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $model->getErrors()));
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'warning', 'type' => 'warning', 'message' => $ex->getMessage()));
+            }
         }
         throw new NotFoundHttpException("Should not try to call this.");
     }
@@ -402,7 +398,8 @@ class TicketController extends Controller
                 $transaction = \Yii::$app->db->beginTransaction();          
                 try {
                     if ($model->validate() && $model->save(false)){
-                        $transaction->commit();
+                        $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
+                    $transaction->commit();
                         return Json::encode([
                             'pjax_refresh' => false,
                             'target' => "#ts-$ticket->number",
@@ -432,7 +429,8 @@ class TicketController extends Controller
                 $transaction = \Yii::$app->db->beginTransaction();          
                 try {
                     if ($model->validate() && $model->save(false)){
-                        $transaction->commit();
+                        $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
+                    $transaction->commit();
                         return Json::encode([
                             'pjax_refresh' => false,
                             'target' => "#ts-$ticket->number",
@@ -461,8 +459,9 @@ class TicketController extends Controller
             //if ($model->load(Yii::$app->request->post())) {
                 $transaction = \Yii::$app->db->beginTransaction();          
                 try {
-                    if ($model->validate() && $model->save(false)){
-                        $transaction->commit();
+                    if ($model->validate() && $model->save(false)) {
+                        $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
+                    $transaction->commit();
                         return Json::encode([
                             'pjax_refresh' => false,
                             'target' => "#ts-$ticket->number",
@@ -506,6 +505,7 @@ class TicketController extends Controller
                             $open->ticket_id = $pk;
                             $open->user_id = Yii::$app->user->id;
                             $open->save(false);
+                            $model->updateAttributes(['last_action_id' => $open->getPrimaryKey()]);
                         }
                         $transaction->commit();
                         return Json::encode([

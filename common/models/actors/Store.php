@@ -7,6 +7,7 @@ use common\db\ObjectQuery;
 use common\models\actors\Customer;
 use common\models\actors\Company;
 use common\models\actors\Depot;
+use common\models\Contract;
 use common\models\tickets\Ticket;
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -101,7 +102,7 @@ class Store extends Customer
      */
     public function getContract()
     {
-        return $this->hasOne(CustomerContract::class, ['customer_id' => 'id']);
+        return $this->hasOne(Contract::class, ['customer_id' => 'id'])->onCondition(['status' => Contract::STATUS_ACTIVE]);
     }
 
     /**

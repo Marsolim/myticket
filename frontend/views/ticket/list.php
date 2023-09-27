@@ -197,7 +197,7 @@ $exportwidget = ExportMenu::widget([
 <?= Html::a('<i class="fas fa-plus"></i><span class="visually-hidden">Add Ticket</span>',
     ['ticket/create'],
     [
-        'class'=>"btn btn-success btn-floating position-fixed bottom-0 end-0 mb-5 me-5 quick-action quick-action-form",
+        'class'=>"btn btn-success btn-floating rounded-circle position-fixed bottom-0 end-0 mb-5 me-5 quick-action quick-action-form",
         'title'=>'Tambah servis baru'
     ]
 ) ?>

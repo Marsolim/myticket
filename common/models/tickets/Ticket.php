@@ -90,12 +90,13 @@ class Ticket extends AuditedRecord
     {
         if ($insert)
         {
-            $this->addError('lastAction', $insert);
+            //$this->addError('lastAction', $insert);
             $open = new Open();
             $open->ticket_id = $this->primaryKey();
             $open->user_id = Yii::$app->user->id;
             $open->save(false);
-            $this->addError('lastAction', $open->getErrors());
+            $this->updateAttributes(['last_action_id' => $open->getPrimaryKey()]);
+            //$this->addError('lastAction', $open->getErrors());
         }
     }
 
@@ -236,7 +237,7 @@ class Ticket extends AuditedRecord
      */
     public function getLastAction()
     {
-        return $this->hasOne(ConcreteAction::class, ['ticket_id' => 'id'])->addOrderBy(['created_at' => SORT_DESC])->inverseOf('ticket');
+        return $this->hasOne(ConcreteAction::class, ['id' => 'last_action_id'])->inverseOf('ticket');
     }
 
     /**
