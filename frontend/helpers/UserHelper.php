@@ -1,17 +1,21 @@
 <?php
 namespace frontend\helpers;
 
+use common\models\actors\Administrator;
+use common\models\actors\Engineer;
 use common\models\actors\User;
+use frontend\models\GeneralManager;
+use frontend\models\StoreManager;
+use InvalidArgumentException;
 use yii\helpers\ArrayHelper;
 use Yii;
+use yii\web\IdentityInterface;
 
 class UserHelper
 {
     public static function getRole($user = null)
     {
-        if (!isset($user)) $user = Yii::$app->user->id;
-        
-        $user = self::parseParameter($user);
+        $user = self::findUser($user);
 
         $roles = Yii::$app->authManager->getRolesByUser($user);
         if (!$roles) {
@@ -25,31 +29,31 @@ class UserHelper
         return $role->name;
     }
 
-    private static function parseParameter($p)
+    private static function findUser($p)
     {
         if (is_string($p))
         {
             $ud = User::find()->where(['username' => $p])
             ->orWhere(['full_name' => $p])
             ->orWhere(['email' => $p])->one();
-            $p = isset($ud) ? $ud->id : null;
+            $p = isset($ud) ? $ud : null;
         }
-        else if (is_object($p))
+        else if (($p instanceof IdentityInterface && !($p instanceof User)) ||
+            is_int($p))
         {
-            $p = $p->id;
+            $p = User::findOne(['id' => is_int($p) ? $p : $p->id]);
         }
+        else if (is_null($p)) $p = User::findOne(['id' => Yii::$app->user->id]);
+        else throw new InvalidArgumentException();
         return $p;
-
     }
 
     public static function setRole($role, $user = null)
     {
-        if (!isset($user)) $user = Yii::$app->user->id;
-        $user = self::parseParameter($user);
+        $user = self::findUser($user);
 
         if (isset($user))
         {
-            $user = User::findOne(['id' => $user]);
             $auth = Yii::$app->authManager;
             $prevrole = $user->role;
             if ($prevrole == $role) return true;
@@ -67,8 +71,7 @@ class UserHelper
      */
     public static function isMemberOfRole($role, $user = null)
     {
-        $user = isset($user) ? $user : Yii::$app->user->id;
-        $user = self::parseParameter($user);
+        $user = self::findUser($user);
         $roles = Yii::$app->authManager->getRolesByUser($user);
         $rolenames = ArrayHelper::getColumn($roles, 'name');
         if (is_array($role))
@@ -85,45 +88,53 @@ class UserHelper
 
     public static function isAdministrator($user = null)
     {
-        return self::isMemberOfRole([User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR], $user);
+        $user = self::findUser($user);
+        return $user instanceof Administrator;
     }
     
     public static function isSystemAdmin($user = null)
     {
-        return self::isMemberOfRole(User::ROLE_SYS_ADMINISTRATOR, $user);
+        $user = self::findUser($user);
+        return $user instanceof Administrator;
     }
 
     public static function isEngineer($user = null)
     {
-        return self::isMemberOfRole(User::ROLE_ENGINEER, $user);
+        $user = self::findUser($user);
+        return $user instanceof Engineer;
     }
     
     public static function isManager($user = null)
     {
-        return self::isMemberOfRole([User::ROLE_STORE_MANAGER, User::ROLE_GENERAL_MANAGER], $user);
+        $user = self::findUser($user);
+        return $user instanceof GeneralManager || $user instanceof StoreManager;
     }
     
     public static function isStoreManager($user = null)
     {
-        return self::isMemberOfRole(User::ROLE_STORE_MANAGER, $user);
+        $user = self::findUser($user);
+        return $user instanceof StoreManager;
     }
     
     public static function isGeneralManager($user = null)
     {
-        return self::isMemberOfRole(User::ROLE_GENERAL_MANAGER, $user);
+        $user = self::findUser($user);
+        return $user instanceof GeneralManager;
     }
 
     public static function findEngineers()
     {
-        return User::find()
-            ->join('INNER JOIN',['a' => 'auth_assignment'], 'user.id = a.user_id')
-            ->where(['a.item_name' => User::ROLE_ENGINEER]);
+        return Engineer::find();
     }
 
     public static function isSelf($user)
     {
-        $user = self::parseParameter($user);
-        return Yii::$app->user->id == $user;
+        $user = self::findUser($user);
+        return Yii::$app->user->id == $user->id;
+    }
+
+    public static function renderUserCommands($user){
+        return '';
     }
 }
 

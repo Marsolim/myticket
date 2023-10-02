@@ -17,6 +17,7 @@ return [
         'common\\models\\Holiday',
         'common\\models\\Item',
         'common\\models\\actors\\User',
+        'common\\models\\actors\\Administrator',
         'common\\models\\actors\\Engineer',
         'common\\models\\actors\\Customer',
         'common\\models\\actors\\Company',

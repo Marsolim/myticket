@@ -2,10 +2,11 @@
 
 namespace frontend\controllers;
 
-use common\models\actors\Engineer;
 use Yii;
-use common\models\tickets\Ticket;
+use common\models\actors\Administrator;
+use common\models\actors\Engineer;
 use common\models\actors\User;
+use common\models\tickets\Ticket;
 use common\models\actors\Store;
 use common\models\docs\Inquiry;
 use common\models\docs\Invoice;
@@ -67,15 +68,15 @@ class TicketController extends Controller
         //$ticketSearch->customer_id = Yii::$app->request->post('customer_id', null);
         //$query = $ticketSearch->searchQuery(Yii::$app->request->post());
         $user = User::findOne(['id' => Yii::$app->user->id]);
-        if (!(ArrayHelper::isIn($user::class, [User::class, Engineer::class])))
+        if (!($user instanceof Administrator || $user instanceof Engineer))
         {
             throw new UnauthorizedHttpException();
         }
-        if ($user::class === Engineer::class)
+        if ($user instanceof Engineer)
         {
             //$query->andWhere(['engineer_id' => Yii::$app->user->id]);
         }
-        if (ArrayHelper::isIn($user::class, [StoreManager::class, GeneralManager::class]))
+        if ($user instanceof StoreManager || $user instanceof GeneralManager)
         {
             $stores = ArrayHelper::getColumn($user->stores, 'id');
             //$query->andWhere(['customer_id' => $stores]);

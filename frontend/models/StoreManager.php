@@ -2,6 +2,7 @@
 
 namespace frontend\models;
 
+use common\db\ObjectQuery;
 use common\db\UserQuery;
 use common\models\actors\Depot;
 use common\models\actors\Company;
@@ -42,14 +43,9 @@ class StoreManager extends User
         ];
     }
 
-    public function getRole()
-    {
-        return User::ROLE_STORE_MANAGER;
-    }
-    
     public function getStores()
     {
-        return $this->hasOne(Stores::class, ['parent_id' => 'id'])
+        return $this->hasMany(Stores::class, ['parent_id' => 'id'])
             ->via('depot');
     }
 
@@ -78,17 +74,8 @@ class StoreManager extends User
 
     public static function find()
     {
-        $query = new UserQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = new ObjectQuery(get_called_class());
         $query = $query->with('depot.company');
         return $query;
-    }
-
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-        if($insert)
-        {
-            Yii::$app->authManager->assign(User::ROLE_STORE_MANAGER, $this->getPrimaryKey());
-        }
     }
 }

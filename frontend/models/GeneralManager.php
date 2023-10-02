@@ -2,7 +2,7 @@
 
 namespace frontend\models;
 
-use common\db\UserQuery;
+use common\db\ObjectQuery;
 use common\models\actors\Depot;
 use common\models\actors\Company;
 use common\models\actors\User;
@@ -23,11 +23,6 @@ class GeneralManager extends User
             [['associate_id'], 'default', 'value' => null],
             [['associate_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['associate_id' => 'id']],
         ]);
-    }
-
-    public function getRole()
-    {
-        return User::ROLE_GENERAL_MANAGER;
     }
 
     public function getStores()
@@ -61,17 +56,8 @@ class GeneralManager extends User
 
     public static function find()
     {
-        $query = new UserQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
+        $query = new ObjectQuery(get_called_class());
         $query = $query->with('company', 'depots', 'stores');
         return $query;
-    }
-
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-        if($insert)
-        {
-            Yii::$app->authManager->assign(User::ROLE_GENERAL_MANAGER, $this->getPrimaryKey());
-        }
     }
 }

@@ -68,9 +68,9 @@ if (empty($expanded)) $expanded = false;
             <?= Html::tag('div', '<i class="text-warning fa fa-3x fa-ticket"></i>', [
                 'class' => 'd-flex flex-column ml-2 me-2 text-toggle',
                 'data-bs-toggle'=> 'collapse',
-                'href' => "#ts-.$model->number.-body",
+                'href' => "#ts-$model->number-body",
                 'aria-expanded' => $expanded ? 'true' : 'false',
-                'aria-controls' => "ts-.$model->number.-body"
+                'aria-controls' => "ts-$model->number-body"
             ]) ?>
                 <div class="vr"></div>
                 <div class="d-flex flex-column ms-2 ml-2">

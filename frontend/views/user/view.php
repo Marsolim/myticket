@@ -1,5 +1,7 @@
 <?php
 
+use common\models\actors\Administrator;
+use common\models\actors\Engineer;
 use common\models\actors\User;
 use common\models\actors\Store;
 use yii\web\JsExpression;
@@ -7,6 +9,8 @@ use yii\web\View;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use frontend\helpers\UserHelper;
+use frontend\models\GeneralManager;
+use frontend\models\StoreManager;
 use kartik\editable\Editable;
 use kartik\select2\Select2;
 use kartik\file\FileInput;
@@ -50,18 +54,11 @@ function (data, params) {
     return {
         results: data.results,
         pagination: {
-            more: (params.page * 30) < data.total_count
+            more: (params.page * 20) < data.total_count
         }
     };
 }
 JS;
-
-$roles = [
-    User::ROLE_ENGINEER => User::ROLE_ENGINEER,
-    User::ROLE_GENERAL_MANAGER => User::ROLE_GENERAL_MANAGER,
-];
-if (UserHelper::isAdministrator())
-    $roles[User::ROLE_ADMINISTRATOR] = User::ROLE_ADMINISTRATOR;
 
 $uploadevent = <<<JS
     $('#fi-user-avatar').on('filebatchselected', function(event) {
@@ -150,17 +147,12 @@ $this->registerJs($uploadevent, View::POS_READY);
     <?= Html::endTag('div') ?>
     <?= Html::beginTag('div', ['class'=>"col-6 mb-3"]) ?>
     <?= Html::tag('h6', 'Role') ?>
-    <?= !UserHelper::isAdministrator() ? 
-        Html::tag('p', $model->role, ['class'=>'text-mute']) : Editable::widget([
-        'model' => $model,
-        'attribute' => 'role',
-        'asPopover' => false,
-        'header' => 'Role',
-        'inputType' => Editable::INPUT_DROPDOWN_LIST,
-        'data' => $roles,
-        'buttonsTemplate'=>'{submit}',
-        'options' => ['class'=>'form-control-plaintext', 'prompt'=>'Select role...'],
-    ]) ?>
+    <?= Html::tag('p', match ($model::class) {
+        Administrator::class => 'Administrator',
+        Engineer::class => 'Engineer',
+        StoreManager::class => 'Store Manager',
+        GeneralManager::class => 'General Manager',
+    }, ['class'=>'text-mute']) ?>
     <?= Html::endTag('div') ?>
     <?= Html::endTag('div') ?>
     <?= Html::tag('h6', 'Information') ?>
@@ -236,16 +228,16 @@ $this->registerJs($uploadevent, View::POS_READY);
                 'allowClear' => true,
                 'minimumInputLength' => 1,
                 'ajax' => [
-                    'url' => Url::toRoute('region/list'),
+                    'url' => Url::toRoute('customer/depot-list'),
                     'dataType' => 'json',
                     'delay' => 250,
-                    'data' => new JsExpression('function(params) { return {q:params.term}; }'),
+                    'data' => new JsExpression('function(params) { return {q:params.term, page:params.page}; }'),
                     'processResults' => new JsExpression($resultsJs),
                     'cache' => true
                 ],
                 'escapeMarkup' => new JsExpression('function (markup) { return markup; }'),
-                'templateResult' => new JsExpression('formatRepo'),
-                'templateSelection' => new JsExpression('formatRepoSelection'),
+                'templateResult' => new JsExpression('function(depot) { return depot.text; }'),
+                'templateSelection' => new JsExpression('function (depot) { return depot.text; }'),
             ]
         ],
     ]) ?>
@@ -255,7 +247,7 @@ $this->registerJs($uploadevent, View::POS_READY);
     <?= Editable::widget([
         'model' => $model,
         'attribute' => 'company_id',
-        'displayValue' => isset($model->company_id) ? $model->company->toString() : null,
+        'displayValue' => isset($model->associate_id) ? $model->associate->company->toString() : null,
         'asPopover' => false,
         'header' => 'Company',
         'inputType' => Editable::INPUT_SELECT2,
@@ -263,23 +255,23 @@ $this->registerJs($uploadevent, View::POS_READY);
             'class'=>'form-control',
             'options' => [
                 'placeholder'=>'Select company...',
-                'value' => isset($model->company_id) ? $model->company->toString() : null,
+                'value' => isset($model->associate_id) ? $model->associate->company->toString() : null,
                 'initValueText' => 'kartik-v/yii2-widgets',
             ],
             'pluginOptions' => [
                 'allowClear' => true,
                 'minimumInputLength' => 1,
                 'ajax' => [
-                    'url' => Url::toRoute('company/list'),
+                    'url' => Url::toRoute('customer/company-list'),
                     'dataType' => 'json',
                     'delay' => 250,
-                    'data' => new JsExpression('function(params) { return {q:params.term}; }'),
+                    'data' => new JsExpression('function(params) { return {q:params.term, page:params.page}; }'),
                     'processResults' => new JsExpression($resultsJs),
                     'cache' => true
                 ],
                 'escapeMarkup' => new JsExpression('function (markup) { return markup; }'),
-                'templateResult' => new JsExpression('formatRepo'),
-                'templateSelection' => new JsExpression('formatRepoSelection'),
+                'templateResult' => new JsExpression('function(company) { return company.text; }'),
+                'templateSelection' => new JsExpression('function (company) { return company.text; }'),
             ]
         ],
     ]) ?>

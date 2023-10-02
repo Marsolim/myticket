@@ -93,10 +93,10 @@ class CustomerController extends Controller
     {
         $model = new Store();
 
-        if (UserHelper::isMemberOfRole(User::ROLE_STORE_MANAGER))
+        if (UserHelper::isStoreManager())
         {
             $user = User::findOne(['id' => Yii::$app->user->id]);
-            $model->region_id = $user->region_id;
+            $model->parent_id = $user->associate_id;
         }
 
         if ($this->request->isPost) {

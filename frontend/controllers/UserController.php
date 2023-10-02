@@ -2,6 +2,7 @@
 
 namespace frontend\controllers;
 
+use common\models\actors\Administrator;
 use common\models\actors\User;
 use frontend\models\forms\SignupForm;
 use frontend\models\forms\AvatarUploadForm;
@@ -11,6 +12,8 @@ use common\models\actors\Company;
 use common\models\actors\Engineer;
 use frontend\models\search\UserSearch;
 use frontend\helpers\UserHelper;
+use frontend\models\GeneralManager;
+use frontend\models\StoreManager;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\UploadedFile;
@@ -79,17 +82,25 @@ class UserController extends Controller
      */
     public function actionView($id)
     {
-        $model = Yii::$app->user->can('manageUser') ? $this->findModel($id) : $this->findModel(Yii::$app->user->id);
+        $model = UserHelper::isAdministrator() ? $this->findModel($id) : $this->findModel(Yii::$app->user->id);
         if (isset($_POST['hasEditable'])) 
         {
             // use Yii's response format to encode output as JSON
             \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-            
-            foreach ($_POST['User'] as $key => $value);
+
+            $mkey = match ($model::class) {
+                User::class => 'User',
+                Administrator::class => 'Administrator',
+                Engineer::class => 'Engineer',
+                StoreManager::class => 'StoreManager',
+                GeneralManager::class => 'GeneralManager',
+            };
+
+            foreach ($_POST[$mkey] as $key => $value);
 
             // store old value of the attribute
             $oldValue = $model->$key;
-            if ($key == 'region_id')
+            if ($key == 'associate_id')
             {
                 $region = Depot::findOne(['id' => $model->$key]);
                 if (isset($region)) $oldValue = $region->toString();
@@ -107,7 +118,7 @@ class UserController extends Controller
                     $value = $model->$key;
                 }
                 
-                if ($key == 'region_id')
+                if ($key == 'associate_id')
                 {
                     //$model->$key = $value + 0;
                     $region = Depot::findOne(['id' => $model->$key]);

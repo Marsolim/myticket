@@ -2,10 +2,11 @@
 
 namespace common\models;
 
+use common\models\actors\Store;
 use Yii;
 use yii\helpers\Html;
-use common\models\User;
-use common\models\TicketAction;
+use common\models\actors\User;
+use common\models\tickets\actions\Action;
 
 /**
  * This is the model class for table "ticket".

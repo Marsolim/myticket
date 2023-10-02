@@ -18,11 +18,6 @@ class Engineer extends User
         return ArrayHelper::merge($rules, []);
     }
 
-    public function getRole()
-    {
-        return User::ROLE_ENGINEER;
-    }
-
     public function init()
     {
         $this->type = self::class;
@@ -33,20 +28,5 @@ class Engineer extends User
     {
         $this->type = self::class;
         return parent::beforeSave($insert);
-    }
-
-    public static function find()
-    {
-        $query = new UserQuery(get_called_class(), ['type' => self::class, 'tableName' => self::tableName()]);
-        return $query;
-    }
-
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-        if($insert)
-        {
-            Yii::$app->authManager->assign(User::ROLE_ENGINEER, $this->getPrimaryKey());
-        }
     }
 }

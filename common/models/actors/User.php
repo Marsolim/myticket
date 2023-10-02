@@ -8,8 +8,8 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use yii\helpers\ArrayHelper;
-use common\models\actors\Customer;
-use common\db\UserQuery;
+use common\db\ObjectQuery;
+use common\db\ObjectRecord;
 
 /**
  * User model
@@ -26,17 +26,11 @@ use common\db\UserQuery;
  * @property integer $updated_at
  * @property string $password write-only password
  */
-class User extends ActiveRecord implements IdentityInterface
+class User extends ObjectRecord implements IdentityInterface
 {
     const STATUS_DELETED = 0;
     const STATUS_INACTIVE = 9;
     const STATUS_ACTIVE = 10;
-
-    const ROLE_SYS_ADMINISTRATOR = 'System Administrator';
-    const ROLE_ADMINISTRATOR = 'Administrator';
-    const ROLE_STORE_MANAGER = 'Store Manager';
-    const ROLE_ENGINEER = 'Engineer';
-    const ROLE_GENERAL_MANAGER = 'General Manager';
 
     /**
      * {@inheritdoc}
@@ -61,25 +55,18 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function rules()
     {
-        return [
+        $rules = parent::rules();
+        return ArrayHelper::merge($rules, [
             [['username', 'email', 'full_name', 'phone'], 'string', 'max' => 255],
             [['username', 'email', 'full_name', 'phone'], 'trim'],
             [['email'], 'email'],
             
-            [['type'], 'string', 'max' => 255],
-            [['type'], 'required'],
-
-            //['role', 'string'],
-            //['role', 'default', 'value' => self::ROLE_ENGINEER],
-            //['role', 'in', 'range' => [self::ROLE_SYSTEM_ADMINISTRATOR, self::ROLE_ADMINISTRATOR, self::ROLE_STORE_MANAGER, self::ROLE_GENERAL_MANAGER, self::ROLE_ENGINEER]],
-            
             [['associate_id'], 'integer'],
             [['associate_id'], 'default', 'value' => null],
-            [['associate_id'], 'exist', 'skipOnError' => true, 'targetClass' => Customer::class, 'targetAttribute' => ['associate_id' => 'id']],
             
             [['status'], 'default', 'value' => self::STATUS_INACTIVE],
             [['status'], 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE, self::STATUS_DELETED]],
-        ];
+        ]);
     }
 
     /**
@@ -100,27 +87,15 @@ class User extends ActiveRecord implements IdentityInterface
         ];
     }
 
-    public static function find()
-    {
-        return new UserQuery(get_called_class());
-    }
-
-    public function init()
-    {
-        $this->type = self::class;
-        parent::init();
-    }
-
-    public function beforeSave($insert)
-    {
-        $this->type = self::class;
-        parent::beforeSave($insert);
-    }
-
     public static function instantiate($row)
     {
         $type = $row['type'];
         return new $type();
+    }
+
+    public static function find()
+    {
+        return new ObjectQuery(get_called_class());
     }
 
     /**
@@ -128,7 +103,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findIdentity($id)
     {
-        return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
+        return self::find(['id' => $id, 'status' => self::STATUS_ACTIVE])->one();
     }
 
     /**
@@ -147,7 +122,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findByUsername($username)
     {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+        return self::find(['username' => $username, 'status' => self::STATUS_ACTIVE])->one();
     }
 
     /**
@@ -162,7 +137,7 @@ class User extends ActiveRecord implements IdentityInterface
             return null;
         }
 
-        return static::findOne([
+        return self::findOne([
             'password_reset_token' => $token,
             'status' => self::STATUS_ACTIVE,
         ]);
@@ -175,7 +150,7 @@ class User extends ActiveRecord implements IdentityInterface
      * @return static|null
      */
     public static function findByVerificationToken($token) {
-        return static::findOne([
+        return self::findOne([
             'verification_token' => $token,
             'status' => self::STATUS_INACTIVE
         ]);
@@ -267,61 +242,12 @@ class User extends ActiveRecord implements IdentityInterface
         $this->verification_token = Yii::$app->security->generateRandomString() . '_' . time();
     }
 
-    public function getWaphone()
-    {
-        return preg_replace('~^0~', '62', preg_replace('~(\d{3,4})[^\d]{0,7}(\d{3})[^\d]{0,7}(\d{4,7})~', '$1$2$3', $this->phone));
-    }
-
     /**
      * Removes password reset token
      */
     public function removePasswordResetToken()
     {
         $this->password_reset_token = null;
-    }
-
-    /**
-     * Returns user role name according to RBAC
-     * @return string
-     */
-    public function getRole()
-    {
-        $roles = Yii::$app->authManager->getRolesByUser($this->id);
-        if (!$roles) {
-            return null;
-        }
-
-        reset($roles);
-        /* @var $role \yii\rbac\Role */
-        $role = current($roles);
-
-        return $role->name;
-    }
-
-    public function setRole($role)
-    {
-        if (isset($this->id))
-        {
-            $auth = Yii::$app->authManager;
-            $prevrole = $this->role;
-            if ($prevrole == $role) return true;
-            if (isset($prevrole))
-                $auth->revoke($auth->getRole($prevrole), $this->id);
-            $auth->assign($auth->getRole($role), $this->id);
-            return true;
-        }
-        return false;
-    }
-
-    public function getAssociate()
-    {
-        return $this->hasOne(Customer::class, ['id' => 'associate_id']);
-    }
-
-    public function getCompany()
-    {
-        return $this->hasOne(Company::class, ['id' => 'parent_id'])
-            ->via('associate');
     }
 
     public function getProfileThumbnail()
@@ -332,43 +258,8 @@ class User extends ActiveRecord implements IdentityInterface
         return $filename;
     }
 
-    public static function getUserRoleName($user = null)
+    public function getAssociate()
     {
-        if (!isset($user)) $user = Yii::$app->user->id;
-        $roles = Yii::$app->authManager->getRolesByUser($user);
-        if (!$roles) {
-            return null;
-        }
-
-        reset($roles);
-        /* @var $role \yii\rbac\Role */
-        $role = current($roles);
-
-        return $role->name;
-    }
-
-    public static function getUserRole($user = null)
-    {
-        if (!isset($user)) $user = Yii::$app->user->id;
-        $roles = Yii::$app->authManager->getRolesByUser($user);
-        if (!$roles) {
-            return null;
-        }
-
-        reset($roles);
-        /* @var $role \yii\rbac\Role */
-        $role = current($roles);
-
-        return $role;
-    }
-
-    public static function findByRole($name)
-    {
-        $userids = Yii::$app->authManager->getUserIdsByRole($name);
-        if (!$userids)
-        {
-            return null;
-        }
-        return static::findAll($userids);
+        return $this->hasOne(Customer::class, ['id' => 'associate_id']);
     }
 }
