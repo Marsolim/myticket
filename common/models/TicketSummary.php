@@ -71,14 +71,13 @@ class TicketSummary extends \yii\db\ActiveRecord
             'till' => 'Hingga',
             'age' => 'Durasi',
             't_action_count' => 'Jumlah Kunjungan',
-            'opened' => 'O',
-            'suspended' => 'S',
-            'progress' => 'PR',
-            'resolved_no_issue' => 'RNI',
-            'resolved_wait_it' => 'RIT',
-            'closed_no_action' => 'CNA',
-            'closed_duplicate' => 'CDT',
-            'closed_resolved' => 'CRA',
+            'opened' => 'B',
+            'progress' => 'P',
+            'resolved_no_issue' => 'S',
+            'resolved_wait_it' => 'R',
+            'closed_no_action' => 'N',
+            'closed_duplicate' => 'D',
+            //'closed_resolved' => 'S',
         ];
     }
 

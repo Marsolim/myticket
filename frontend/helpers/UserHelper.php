@@ -29,7 +29,7 @@ class UserHelper
         return $role->name;
     }
 
-    private static function findUser($p)
+    public static function findUser($p)
     {
         if (is_string($p))
         {
@@ -113,13 +113,15 @@ class UserHelper
     public static function isStoreManager($user = null)
     {
         $user = self::findUser($user);
-        return $user instanceof StoreManager;
+        if ($user instanceof StoreManager) return $user;
+        return null;
     }
     
     public static function isGeneralManager($user = null)
     {
         $user = self::findUser($user);
-        return $user instanceof GeneralManager;
+        if ($user instanceof GeneralManager) return $user;
+        return null;
     }
 
     public static function findEngineers()

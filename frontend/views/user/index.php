@@ -77,7 +77,11 @@ $columns = [
 
     <h1><?= Html::encode($this->title) ?></h1>
     <p>
-        <?= Html::a('Create User Profile', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('<i class="fa-solid fa-user-gear"></i> Engineer <i class="fas fa-plus"></i>', ['create'], ['class' => 'btn btn-success']) ?>
+        
+        <?= Html::a('<i class="fas fa-user-tie"></i> Store Manager <i class="fas fa-plus"></i>', ['create'], ['class' => 'btn btn-success']) ?>
+        
+        <?= Html::a('<i class="fa-solid fa-person-dots-from-line"></i> General Manager <i class="fas fa-plus"></i>', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 

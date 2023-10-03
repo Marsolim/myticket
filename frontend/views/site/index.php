@@ -2,18 +2,21 @@
 
 /** @var yii\web\View $this */
 
-use yii\data\ArrayDataProvider;
-use yii\data\ActiveDataProvider;
 use yii\helpers\Html;
 use kartik\grid\GridView;
 use common\models\TicketSummary;
+use frontend\helpers\TicketHelper;
+use yii\data\ArrayDataProvider;
 
 $this->title = 'Rekap Servis Nasional';
 
 // An Array Data Provider
-$dataProvider = new ActiveDataProvider([
-    'query' => TicketSummary::find(),
+$dataProvider = new ArrayDataProvider([
+    'allModels' => TicketHelper::summary()->all(),
 ]);
+//$dataProvider = new ActiveDataProvider([
+//    'query' => TicketHelper::summary(),
+//]);
 /* 
 $dataProvider = new ArrayDataProvider(['allModels' => [    
     ['id' => 1, 'year' => 2017, 'month' => 'JAN', 'cat' => 'CAT-1', 'region' => 'IT-5', 'amount' => 1400],
@@ -35,7 +38,7 @@ $gfstore = function ($model, $key, $index, $widget) {
     return [
         'mergeColumns' => [[1, 2]], 
         'content' => [              // content to show in each summary cell
-            1 => 'Total per Toko (' . $model->store->name . ')',
+            1 => 'Total per Toko (' . $model['customer_name'] . ')',
             3 => GridView::F_SUM,
             4 => GridView::F_SUM,
             5 => GridView::F_SUM,
@@ -155,21 +158,20 @@ $gfRegion = function ($model, $key, $index, $widget) {
         // note that you MUST NOT have the first column as a grid group
         // to achieve that add a dummy hidden column like shown below
         ['class' => 'kartik\grid\SerialColumn'], 
-        ['attribute' => 'store.name', 'label' => 'Cabang', 'pageSummary' => 'Total Keseluruhan'],
-        ['attribute' => 'opened', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'suspended', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'progress', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'resolved_no_issue', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'resolved_wait_it', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'closed_no_action', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'closed_duplicate', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'closed_resolved', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
+        ['attribute' => 'customer_name', 'label' => 'Cabang', 'pageSummary' => 'Total Keseluruhan'],
+        ['attribute' => 'b', 'label' => 'B', 'value' => function ($model, $key, $index, $widget) { 
+            return Html::a($model['b'], ['ticket/index', ]);
+        }, 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
+        ['attribute' => 'p', 'label' => 'P', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
+        ['attribute' => 's', 'label' => 'S', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
+        ['attribute' => 'r', 'label' => 'R', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
+        ['attribute' => 'n', 'label' => 'N', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
+        ['attribute' => 'd', 'label' => 'D', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
         [
             'class' => 'kartik\grid\FormulaColumn',
             'header' => 'Total',
             'value' => function ($model, $key, $index, $widget) { 
-                $p = compact('model', 'key', 'index');
-                return $widget->col(2, $p) + $widget->col(3, $p)+ $widget->col(4, $p)+ $widget->col(5, $p)+ $widget->col(6, $p)+ $widget->col(7, $p)+ $widget->col(8, $p)+ $widget->col(9, $p);
+                return $model['b'] + $model['p']+ $model['s'] + $model['r'] + $model['n'] + $model['d'];
             },
             'mergeHeader' => true,
             'width' => '80px',

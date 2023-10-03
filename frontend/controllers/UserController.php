@@ -265,10 +265,10 @@ class UserController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
-    public function actionCreate()
+    public function actionCreate($role='usr')
     {
         $model = new SignupForm();
-
+        $model->role = $role;
         if ($this->request->isPost) {
             if ($model->load($this->request->post()) && $model->signup()) {
                 $user = User::findOne(['username' => $model->username]);

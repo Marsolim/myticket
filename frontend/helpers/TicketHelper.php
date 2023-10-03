@@ -2,6 +2,11 @@
 
 namespace frontend\helpers;
 
+use common\models\actors\Company;
+use common\models\actors\Depot;
+use common\models\actors\Engineer;
+use common\models\actors\Store;
+use common\models\tickets\actions\Assignment;
 use common\models\tickets\actions\closings\Awaiting;
 use common\models\tickets\actions\closings\Closing;
 use common\models\tickets\actions\closings\Duplicate;
@@ -14,7 +19,10 @@ use common\models\tickets\actions\Open;
 use common\models\tickets\actions\Recommendation;
 use common\models\tickets\actions\Repair;
 use common\models\tickets\Ticket;
+use frontend\models\GeneralManager;
+use frontend\models\StoreManager;
 use Yii;
+use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
 class TicketHelper 
@@ -80,5 +88,46 @@ class TicketHelper
             return false;
         }
         return false;
+    }
+
+    public static function summary(){
+        $query = new Query();
+        $columns = [
+            'b' => "sum(if((a.type = 'common\\\\models\\\\tickets\\\\actions\\\\Open'),1,0))",
+            'p' => "sum(if((a.type = 'common\\\\models\\\\tickets\\\\actions\\\\Repair'),1,0))",
+            's' => "sum(if((a.type = 'common\\\\models\\\\tickets\\\\actions\\\\closings\\\\Normal'),1,0))",
+            'r' => "sum(if((a.type = 'common\\\\models\\\\tickets\\\\actions\\\\closings\\\\Awaiting'),1,0))",
+            'n' => "sum(if((a.type = 'common\\\\models\\\\tickets\\\\actions\\\\closings\\\\NoProblem'),1,0))",
+            'd' => "sum(if((a.type = 'common\\\\models\\\\tickets\\\\actions\\\\closings\\\\Duplicate'),1,0))",
+        ];
+        $user = UserHelper::findUser(null);
+        if ($user instanceof StoreManager){
+            $columns['customer_id'] = 'c.id';
+            $columns['customer_name'] = "CONCAT(c.code, ' - ', c.name)";
+        }
+        else if ($user instanceof GeneralManager){
+            $columns['customer_id'] = 'd.id';
+            $columns['customer_name'] = "CONCAT(d.code, ' - ', d.name)";
+        }
+        else{
+            $columns['customer_id'] = 'd.id';
+            $columns['customer_name'] = "CONCAT(d.code, ' - ', d.name)";
+        }
+        $query->select($columns)
+            ->from(['t' => 'ticket'])
+            ->leftJoin(['a' => 'action'], 't.last_action_id = a.id')
+            ->leftJoin(['c' => 'customer'], ['AND', 't.customer_id = c.id', ['c.type' => Store::class]])
+            ->leftJoin(['d' => 'customer'], ['AND', 'c.parent_id = d.id', ['d.type' => Depot::class]])
+            ->leftJoin(['cp' => 'customer'], ['AND', 'd.parent_id = cp.id', ['cp.type' => Company::class]]);
+        if ($user instanceof StoreManager)
+            $query->where(['d.id' => $user->depot->id])->groupBy(['c.id']);
+        else if ($user instanceof GeneralManager)
+            $query->where(['cp.id' => $user->company->id])->groupBy(['d.id']);
+        else if ($user instanceof Engineer)
+            $query
+                ->leftJoin(['as' => 'action'], ['AND', 't.id = as.ticket_id', ['as.type' => Assignment::class]])
+                ->where(['as.user_id' => $user->id])->groupBy(['d.id']);
+        else $query->groupBy(['d.id']);
+        return $query;
     }
 }

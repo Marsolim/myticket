@@ -2,11 +2,17 @@
 
 namespace frontend\models\forms;
 
+use common\models\actors\Administrator;
 use Yii;
 use yii\base\Model;
 use common\models\actors\User;
 use common\models\actors\Depot;
 use common\models\actors\Company;
+use common\models\actors\Customer;
+use common\models\actors\Engineer;
+use common\models\actors\Store;
+use frontend\models\GeneralManager;
+use frontend\models\StoreManager;
 use yii\imagine\Image;
 
 /**
@@ -19,7 +25,7 @@ class SignupForm extends Model
     public $full_name;
     public $phone;
     public $role;
-    public $region_id;
+    public $depot_id;
     public $company_id;
     public $avatar;
     private $iid;
@@ -34,7 +40,7 @@ class SignupForm extends Model
             
             ['username', 'trim'],
             ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
+            ['username', 'unique', 'targetClass' => User::class, 'message' => 'This username has already been taken.'],
             ['username', 'string', 'min' => 2, 'max' => 255],
 
             ['full_name', 'trim'],
@@ -45,7 +51,7 @@ class SignupForm extends Model
             ['email', 'required'],
             ['email', 'email'],
             ['email', 'string', 'max' => 255],
-            ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This email address has already been taken.'],
+            ['email', 'unique', 'targetClass' => User::class, 'message' => 'This email address has already been taken.'],
             
             ['phone', 'trim'],
             ['phone', 'string', 'max' => 255],
@@ -53,24 +59,14 @@ class SignupForm extends Model
             ['role', 'trim'],
             ['role', 'required'],
             ['role', 'string'],
-            ['role', 'default', 'value' => User::ROLE_ENGINEER],
-            ['role', 'in', 'range' => [User::ROLE_SYS_ADMINISTRATOR, User::ROLE_ADMINISTRATOR, User::ROLE_STORE_MANAGER, User::ROLE_GENERAL_MANAGER, User::ROLE_ENGINEER]],
+            ['role', 'default', 'value' => 'usr'],
+            ['role', 'in', 'range' => ['usr', 'adm', 'sys', 'smg', 'gmg', 'eng']],
 
-            ['region_id', 'required', 'when' => function($model) {
-                    return in_array($model->role, [User::ROLE_STORE_MANAGER, User::ROLE_GENERAL_MANAGER]);
-                },
-                'whenClient' => "function (attribute, value) {
-                    return $('#signupform-role').value == 'Store Manager' || $('#signupform-role').value == 'General Manager';
-                }",
-            ],
-            [['region_id'], 'exist', 'skipOnError' => true, 'targetClass' => Region::class, 'targetAttribute' => ['region_id' => 'id']],
+            ['depot_id', 'required', 'when' => function($model) { return in_array($model->role, ['smg']); },],
+            ['depot_id', 'exist', 'skipOnError' => true, 'targetClass' => Depot::class, 'targetAttribute' => ['depot_id' => 'id']],
             
-            ['company_id', 'required', 'when' => function($model) {
-                return in_array($model->role, [User::ROLE_STORE_MANAGER, User::ROLE_GENERAL_MANAGER]);
-            }, 'whenClient' => "function (attribute, value) {
-                return $('#signupform-role').value == 'Store Manager' || $('#signupform-role').value == 'General Manager';
-            }",],
-            [['company_id'], 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['company_id' => 'id']],
+            ['company_id', 'required', 'when' => function($model) { return in_array($model->role, ['gmg']); }, ],
+            ['company_id', 'exist', 'skipOnError' => true, 'targetClass' => Company::class, 'targetAttribute' => ['company_id' => 'id']],
         ];
     }
 
@@ -91,7 +87,14 @@ class SignupForm extends Model
             return $validate;
         }
         
-        $user = new User();
+        $user = match ($this->role) {
+            'usr' => new User(),
+            'eng' => new Engineer(),
+            'smg' => new StoreManager(),
+            'gmg' => new GeneralManager(),
+            'adm' => new Administrator(),
+        };
+
         $user->username = $this->username;
         $user->email = $this->email;
         $user->full_name = $this->full_name;
@@ -99,14 +102,10 @@ class SignupForm extends Model
         $user->setPassword("hardcode123");
         $user->generateAuthKey();
         $user->status = User::STATUS_ACTIVE;
-        $user->company_id = $this->company_id;
-        $user->region_id = $this->region_id;
-        //$user->generateEmailVerificationToken();
-        if ($this->role == User::ROLE_STORE_MANAGER || $this->role == User::ROLE_GENERAL_MANAGER)
-        {
-            $user->region_id = $this->region_id;
-            $user->company_id = $this->company_id;
-        }
+        $user->associate_id = match ($user::class) {
+            StoreManager::class => $this->depot_id,
+            GeneralManager::class => $this->company_id,
+        };
 
         $filename = 'default_profile.jpg';
         if ($this->avatar) 
@@ -122,7 +121,7 @@ class SignupForm extends Model
         if ($result)
         {
             $user->refresh();
-            $user->role = $this->role;
+            //$user->role = $this->role;
             $this->iid == $user->id;
         }
         return $result;
