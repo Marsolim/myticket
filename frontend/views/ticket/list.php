@@ -148,6 +148,8 @@ $exportwidget = ExportMenu::widget([
     'enableClientValidation'=>false,
     'options' => ['class' => 'form-horizontal'], 
 ]); ?>
+    <?= $form->field($articleSearch , 'cust')->hiddenInput()->label(false) ?>
+    <?= $form->field($articleSearch , 'status')->hiddenInput()->label(false) ?>
     <div class='mb-2'>
     <?= $form->field($articleSearch , 'searchstring')
             ->textInput([
@@ -177,7 +179,7 @@ $exportwidget = ExportMenu::widget([
     </div>
     <?= 
         ListView::widget([
-            'dataProvider' => $articleDataProvider ,
+            'dataProvider' => $articleDataProvider,
             'layout' => "<div class='d-flex flex-row'>{pager}<div class='ms-auto'>$exportwidget</div></div><div class='row'>{items}</div>",
             'itemView' => function ($model, $key, $index, $widget) {
                 return $this->render('_ticket',['model' => $model]);
@@ -201,6 +203,7 @@ $exportwidget = ExportMenu::widget([
         'title'=>'Tambah servis baru'
     ]
 ) ?>
+
 <!-- POPUP MODAL QUICK ACTION -->                            
 <div class="modal inmodal quick-action-modal" id="qa-container" role="dialog" data-keyboard="false" data-backdrop="static">
     <div class="modal-dialog modal-xl"></div>

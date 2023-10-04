@@ -7,6 +7,7 @@ use kartik\grid\GridView;
 use common\models\TicketSummary;
 use frontend\helpers\TicketHelper;
 use yii\data\ArrayDataProvider;
+use yii\helpers\ArrayHelper;
 
 $this->title = 'Rekap Servis Nasional';
 
@@ -137,6 +138,26 @@ $gfRegion = function ($model, $key, $index, $widget) {
     ];
 }; 
 */
+$valuerenderer = function ($model, $key, $index, $widget) { 
+    return $model[$widget->attribute] > 0 ? 
+        Html::a($model[$widget->attribute], ['ticket/index'], [ 'data-method' => 'POST', '
+            data-params' => [
+                'status' => $widget->attribute, 
+                'cust' => $model['customer_id'], 
+            ],
+        ]) : 
+        '-';
+};
+
+$summaryrenderer = function ($summary, $data, $widget) {
+    $domdata = implode('', $data);
+    $dom = new DOMDocument();
+    $dom->loadHTML($domdata);
+    $xpath = new DOMXPath($dom);
+    $tags = $xpath->query('//a');
+    return Html::a(array_sum(ArrayHelper::getColumn($tags, 'nodeValue')), ['ticket/index'], [ 'data-method' => 'POST', 'data-params' => [ 'status' => $widget->attribute, ], ]);
+};
+
 ?>
 <div class="ticket-index">
 
@@ -159,14 +180,42 @@ $gfRegion = function ($model, $key, $index, $widget) {
         // to achieve that add a dummy hidden column like shown below
         ['class' => 'kartik\grid\SerialColumn'], 
         ['attribute' => 'customer_name', 'label' => 'Cabang', 'pageSummary' => 'Total Keseluruhan'],
-        ['attribute' => 'b', 'label' => 'B', 'value' => function ($model, $key, $index, $widget) { 
-            return Html::a($model['b'], ['ticket/index', ]);
-        }, 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'p', 'label' => 'P', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 's', 'label' => 'S', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'r', 'label' => 'R', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'n', 'label' => 'N', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
-        ['attribute' => 'd', 'label' => 'D', 'hAlign' => 'center', 'width' => '80px', 'pageSummary' => true],
+        [
+            'attribute' => 'b', 'label' => 'B', 'format' => 'raw',
+            'value' => $valuerenderer, 'vAlign' => 'middle',
+            'hAlign' => 'center', 'width' => '80px',
+            'pageSummary' => $summaryrenderer
+        ],
+        [
+            'attribute' => 'p', 'label' => 'P', 'format' => 'raw',
+            'value' => $valuerenderer, 'vAlign' => 'middle',
+            'hAlign' => 'center', 'width' => '80px',
+            'pageSummary' => $summaryrenderer
+        ],
+        [
+            'attribute' => 's', 'label' => 'S', 'format' => 'raw',
+            'value' => $valuerenderer, 'vAlign' => 'middle',
+            'hAlign' => 'center', 'width' => '80px',
+            'pageSummary' => $summaryrenderer
+        ],
+        [
+            'attribute' => 'r', 'label' => 'R', 'format' => 'raw',
+            'value' => $valuerenderer, 'vAlign' => 'middle',
+            'hAlign' => 'center', 'width' => '80px',
+            'pageSummary' => $summaryrenderer
+        ],
+        [
+            'attribute' => 'n', 'label' => 'N', 'format' => 'raw',
+            'value' => $valuerenderer, 'vAlign' => 'middle',
+            'hAlign' => 'center', 'width' => '80px',
+            'pageSummary' => $summaryrenderer
+        ],
+        [
+            'attribute' => 'd', 'label' => 'D', 'format' => 'raw',
+            'value' => $valuerenderer, 'vAlign' => 'middle',
+            'hAlign' => 'center', 'width' => '80px',
+            'pageSummary' => $summaryrenderer
+        ],
         [
             'class' => 'kartik\grid\FormulaColumn',
             'header' => 'Total',

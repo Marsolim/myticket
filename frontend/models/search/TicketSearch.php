@@ -3,18 +3,30 @@
 namespace frontend\models\search;
 
 use common\db\ObjectQuery;
+use common\models\tickets\actions\closings\Awaiting;
+use common\models\tickets\actions\closings\Duplicate;
+use common\models\tickets\actions\closings\NoProblem;
+use common\models\tickets\actions\closings\Normal;
+use common\models\tickets\actions\Open;
+use common\models\tickets\actions\Repair;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use common\models\tickets\Ticket;
 
 /**
- * TicketSearch represents the model behind the search form of `frontend\models\Ticket`.
+ * TicketSearch represents the model behind the search form of `common\models\tickets\Ticket`.
  */
-class TicketSearch extends Ticket
+class TicketSearch extends Model
 {
+    //public $id;
+
     public $searchstring;
 
     public $date_range;
+
+    public $cust;
+
+    public $status;
 
     /**
      * {@inheritdoc}
@@ -22,9 +34,8 @@ class TicketSearch extends Ticket
     public function rules()
     {
         return [
-            [['id', 'customer_id'], 'integer'],
-            [['number', 'problem'], 'safe'],
-            [['searchstring', 'date_range'], 'safe'],
+            //[['id'], 'integer'],
+            [['searchstring', 'date_range', 'status', 'cust'], 'safe'],
         ];
     }
 
@@ -71,6 +82,7 @@ class TicketSearch extends Ticket
         // I do not make any other configuration like aliases or whatever, feel free
         // to investigate that your self
         $query->joinWith(['store']);
+        $query->joinWith(['lastAction']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -94,19 +106,52 @@ class TicketSearch extends Ticket
         //     'desc' => ['tbl_country.name' => SORT_DESC],
         // ];
         // No search? Then return data Provider
-        if (!($this->load($params) && $this->validate())) {
+        //if (!($this->load($params) && $this->validate())) {
+        //    return $dataProvider;
+        //}
+        $this->load($params);
+        if (!($this->validate())) {
             return $dataProvider;
         }
-        $rdate = explode(' - ', $this->date_range);
-        // We have to do some search... Lets do some magic
-        $query->andFilterWhere(
-            ['between', 'ticket.created_at', strtotime($rdate[0]), strtotime($rdate[1])])
+
+        if (!empty($this->date_range)){
+            $rdate = explode(' - ', $this->date_range);
+            // We have to do some search... Lets do some magic
+            $query->andFilterWhere(
+                ['between', 'ticket.created_at', strtotime($rdate[0]), strtotime($rdate[1])]
+            );
+        }
         // Here we search the attributes of our relations using our previously configured
         // ones in "TourSearch"
-        ->orFilterWhere(['like', 'customer.name', $this->searchstring])
-        ->orFilterWhere(['like', 'ticket.number', $this->searchstring])
-        ->orFilterWhere(['like', 'ticket.external_number', $this->searchstring])
-        ->orFilterWhere(['like', 'ticket.problem', $this->searchstring]);
+        
+        if (!empty($this->cust)){
+            $query->andFilterWhere(
+                ['OR', ['ticket.customer_id' => $this->cust], ['customer.parent_id' => $this->cust]]
+            );
+        }
+        
+        if (!empty($this->status)){
+            $type = match ($this->status) {
+                'b' => Open::class,
+                'p' => Repair::class,
+                's' => Normal::class,
+                'r' => Awaiting::class,
+                'n' => NoProblem::class,
+                'd' => Duplicate::class,
+            };
+            $query->andFilterWhere(['action.type' => $type]);
+        }
+
+        if (!empty($this->searchstring)){
+            $query->andFilterWhere(
+                ['OR', 
+                    ['like', 'customer.name', $this->searchstring],
+                    ['like', 'ticket.number', $this->searchstring],
+                    ['like', 'ticket.external_number', $this->searchstring],
+                    ['like', 'ticket.problem', $this->searchstring]
+                ]
+            );
+        }
 
         return $dataProvider;
     }

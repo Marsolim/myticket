@@ -65,7 +65,8 @@ class TicketController extends Controller
     public function actionIndex()
     {
         $ticketSearch = new TicketSearch();
-        //$ticketSearch->customer_id = Yii::$app->request->post('customer_id', null);
+        $ticketSearch->cust = Yii::$app->request->post('cust', null);
+        $ticketSearch->status = Yii::$app->request->post('status', null);
         //$query = $ticketSearch->searchQuery(Yii::$app->request->post());
         $user = User::findOne(['id' => Yii::$app->user->id]);
         if (!($user instanceof Administrator || $user instanceof Engineer))
