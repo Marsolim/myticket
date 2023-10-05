@@ -3,6 +3,8 @@
 namespace frontend\models\search;
 
 use common\db\ObjectQuery;
+use common\models\actors\Engineer;
+use common\models\actors\User;
 use common\models\tickets\actions\closings\Awaiting;
 use common\models\tickets\actions\closings\Duplicate;
 use common\models\tickets\actions\closings\NoProblem;
@@ -12,6 +14,10 @@ use common\models\tickets\actions\Repair;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use common\models\tickets\Ticket;
+use frontend\helpers\UserHelper;
+use frontend\models\GeneralManager;
+use frontend\models\StoreManager;
+use Yii;
 
 /**
  * TicketSearch represents the model behind the search form of `common\models\tickets\Ticket`.
@@ -77,12 +83,26 @@ class TicketSearch extends Model
     public function search($params)
     {
         // create ActiveQuery
-        $query = Ticket::find();
+        $query = new ObjectQuery(Ticket::class);
         // Important: lets join the query with our previously mentioned relations
         // I do not make any other configuration like aliases or whatever, feel free
         // to investigate that your self
-        $query->joinWith(['store']);
-        $query->joinWith(['lastAction']);
+        $query->joinWith(['store s'], false);
+        
+        $user = User::findOne(['id' => Yii::$app->user->id]);
+        if (!empty($user) && $user instanceof Engineer){
+            $query->joinWith(['assignments ass'], false);
+            $query->andFilterWhere(['ass.user_id' => $user->id]);
+        }
+
+        if (!empty($user) && $user instanceof StoreManager){
+            $query->andFilterWhere(['s.parent_id' => $user->associate_id]);
+        }
+
+        if (!empty($user) && $user instanceof GeneralManager){
+            $query->joinWith(['store.depot dc'], false);
+            $query->andFilterWhere(['dc.parent_id' => $user->associate_id]);
+        }
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -118,7 +138,7 @@ class TicketSearch extends Model
             $rdate = explode(' - ', $this->date_range);
             // We have to do some search... Lets do some magic
             $query->andFilterWhere(
-                ['between', 'ticket.created_at', strtotime($rdate[0]), strtotime($rdate[1])]
+                ['BETWEEN', 'ticket.created_at', strtotime($rdate[0]), strtotime($rdate[1])]
             );
         }
         // Here we search the attributes of our relations using our previously configured
@@ -126,7 +146,7 @@ class TicketSearch extends Model
         
         if (!empty($this->cust)){
             $query->andFilterWhere(
-                ['OR', ['ticket.customer_id' => $this->cust], ['customer.parent_id' => $this->cust]]
+                ['OR', ['ticket.customer_id' => $this->cust], ['s.parent_id' => $this->cust]]
             );
         }
         
@@ -139,57 +159,21 @@ class TicketSearch extends Model
                 'n' => NoProblem::class,
                 'd' => Duplicate::class,
             };
-            $query->andFilterWhere(['action.type' => $type]);
+            $query->joinWith(['lastAction la'], false);
+            $query->andFilterWhere(['la.type' => $type]);
         }
 
         if (!empty($this->searchstring)){
             $query->andFilterWhere(
                 ['OR', 
-                    ['like', 'customer.name', $this->searchstring],
-                    ['like', 'ticket.number', $this->searchstring],
-                    ['like', 'ticket.external_number', $this->searchstring],
-                    ['like', 'ticket.problem', $this->searchstring]
+                    ['LIKE', 's.name', $this->searchstring],
+                    ['LIKE', 'ticket.number', $this->searchstring],
+                    ['LIKE', 'ticket.external_number', $this->searchstring],
+                    ['LIKE', 'ticket.problem', $this->searchstring]
                 ]
             );
         }
 
         return $dataProvider;
     }
-
-    // /**
-    //  * Creates data provider instance with search query applied
-    //  *
-    //  * @param array $params
-    //  *
-    //  * @return ActiveQuery
-    //  */
-    // public function searchQuery($params)
-    // {
-    //     $query = new ObjectQuery(Ticket::class);
-    //     $query->innerJoin()->groupBy(['ticket.number', 'action.summary', 'customer.name', 'customer.code'])
-    //     // add conditions that should always apply here
-
-    //     //$dataProvider = new ActiveDataProvider([
-    //     //    'query' => $query,
-    //     //]);
-        
-    //     $this->load($params);
-
-    //     if (!$this->validate()) {
-    //         // uncomment the following line if you do not want to return any records when validation fails
-    //         $query->andWhere('0=1');
-    //         return $query;
-    //     }
-
-    //     // grid filtering conditions
-    //     $query->andFilterWhere([
-    //         'id' => $this->id,
-    //         'customer_id' => $this->customer_id,
-    //     ]);
-
-    //     $query->orFilterWhere(['like', 'number', $this->searchstring])
-    //         ->orFilterWhere(['like', 'problem', $this->searchstring]);
-
-    //     return $query;
-    // }
 }

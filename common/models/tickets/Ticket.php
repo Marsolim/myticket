@@ -21,6 +21,8 @@ use common\models\tickets\actions\Recommendation;
 use common\models\tickets\actions\MetaAction;
 use common\models\tickets\actions\Open;
 use common\models\tickets\actions\Repair;
+use frontend\helpers\DateTimeHelper;
+use frontend\helpers\TicketHelper;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -97,6 +99,7 @@ class Ticket extends AuditedRecord
             $open->save(false);
             $this->updateAttributes(['last_action_id' => $open->getPrimaryKey()]);
             //$this->addError('lastAction', $open->getErrors());
+            $this->updateAttributes(['sla_due' => DateTimeHelper::due($open->created_at, 14)]);
         }
     }
 

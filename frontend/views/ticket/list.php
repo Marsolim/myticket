@@ -2,6 +2,13 @@
 
 use common\models\ticket\Ticket;
 use common\models\actors\Store;
+use common\models\tickets\actions\closings\Awaiting;
+use common\models\tickets\actions\closings\Closing;
+use common\models\tickets\actions\closings\Duplicate;
+use common\models\tickets\actions\closings\NoProblem;
+use common\models\tickets\actions\closings\Normal;
+use common\models\tickets\actions\Open;
+use common\models\tickets\actions\Repair;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
@@ -30,28 +37,72 @@ SummernoteBs5Asset::register($this);
 
 $gridColumns = [
     ['class' => 'kartik\grid\SerialColumn'],
-    'id',
-    'name',
+    'number',
+    'problem',
     [
-        'attribute'=>'author_id',
-        'label'=>'Author',
+        'attribute'=>'customer_id',
+        'label'=>'Store',
         'vAlign'=>'middle',
         'width'=>'190px',
         'value'=>function ($model, $key, $index, $widget) { 
-            return Html::a($model->author->name, '#', []);
+            return $model->store->name;
         },
         'format'=>'raw'
     ],
-    'color',
-    'publish_date',
-    'status',
-    ['attribute'=>'buy_amount','format'=>['decimal',2], 'hAlign'=>'right', 'width'=>'110px'],
-    ['attribute'=>'sell_amount','format'=>['decimal',2], 'hAlign'=>'right', 'width'=>'110px'],
-    ['class' => 'kartik\grid\ActionColumn', 'urlCreator'=>function(){return '#';}]
+    [
+        'label'=>'Status',
+        'vAlign'=>'middle',
+        'width'=>'190px',
+        'value'=>function ($model, $key, $index, $widget) { 
+            $statuses = [];
+            $statuses[] = match ($model->lastAction::class) {
+                Open::class => 'Belum dikunjungi',
+                Repair::class => 'Pending',
+                NoProblem::class => 'No Problem',
+                Normal::class => 'Selesai',
+                Duplicate::class => 'Double input AHO',
+                Awaiting::class => 'Selesai menunggu remote IT',
+            };
+            
+            if (!empty($model->discretion)){
+                $statuses[] = 'Tidak tercover MC';
+            }
+
+            if ($model->lastAction instanceof Closing && $model->sla_due < $model->lastAction->created_at){
+                $statuses[] = 'SLA tidak tercapai.';
+            }
+            return implode('#', $statuses);
+        },
+        'format'=>'raw'
+    ],
+    [
+        'label'=>'Tgl. Tiket',
+        'vAlign'=>'middle',
+        'width'=>'190px',
+        'value'=>function ($model, $key, $index, $widget) { 
+            return date('d-F-Y', $model->created_at);
+        },
+        'format'=>'raw'
+    ],
+    [
+        'label'=>'Pekerjaan',
+        'vAlign'=>'middle',
+        'width'=>'190px',
+        'value'=>function ($model, $key, $index, $widget) { 
+            $pekerjaan = [];
+            foreach($model->repairs as $repair){
+                $data = [];
+                $data[] = $repair->summary;
+                if (!empty($repair->item)) $data[] = $repair->item->name;
+                $pekerjaan[] = implode('|', $data);
+            }
+            return implode('#', $pekerjaan);
+        },
+        'format'=>'raw'
+    ],
 ];
 
 $script = <<< JS
-//QUICK ACTION
 $(document).on('click', '.quick-action', function (event) {
     var href = $(this).attr('href');
     event.preventDefault();
@@ -175,8 +226,6 @@ $exportwidget = ExportMenu::widget([
 </div>
 
 <div class="listView_container position-relative mt-3">
-    <div class="position-absolute top-0 end-0">
-    </div>
     <?= 
         ListView::widget([
             'dataProvider' => $articleDataProvider,
@@ -186,7 +235,10 @@ $exportwidget = ExportMenu::widget([
             },
             'emptyText' => "<div class='d-flex flex-row'><div></div><div class='ms-auto'>$exportwidget</div></div>No Services...",
             'pager' => [
-                'linkOptions' => ['class'=>'page-link'],
+                'linkOptions' => ['class'=>'page-link', 'data-method' => 'POST', 'data-params' => [
+                    'cust' => $articleSearch->cust, 
+                    'status' => $articleSearch->status,
+                ]],
                 'linkContainerOptions' => ['class' =>'page-item'],
                 'disabledListItemSubTagOptions' => ['tag' => 'div', 'class' => 'page-link disabled-div'],
                 'nextPageLabel' => 'Next',

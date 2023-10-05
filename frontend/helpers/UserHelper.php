@@ -101,7 +101,8 @@ class UserHelper
     public static function isEngineer($user = null)
     {
         $user = self::findUser($user);
-        return $user instanceof Engineer;
+        if ($user instanceof Engineer) return $user;
+        return null;
     }
     
     public static function isManager($user = null)

@@ -155,8 +155,21 @@ $summaryrenderer = function ($summary, $data, $widget) {
     $dom->loadHTML($domdata);
     $xpath = new DOMXPath($dom);
     $tags = $xpath->query('//a');
-    return Html::a(array_sum(ArrayHelper::getColumn($tags, 'nodeValue')), ['ticket/index'], [ 'data-method' => 'POST', 'data-params' => [ 'status' => $widget->attribute, ], ]);
+    $post_option = ['data-method' => 'POST'];
+    if (!empty($widget->attribute)) $post_option['data-params'] = ['status' => $widget->attribute];
+    return Html::a(array_sum(ArrayHelper::getColumn($tags, 'nodeValue')), ['ticket/index'], $post_option);
 };
+
+$totalrenderer = function ($model, $key, $index, $widget) { 
+    $total = $model['b'] + $model['p']+ $model['s'] + $model['r'] + $model['n'] + $model['d'];
+    return $total > 0 ? 
+        Html::a($total, ['ticket/index'], [ 'data-method' => 'POST', 
+            'data-params' => [
+                'cust' => $model['customer_id'], 
+            ],
+        ]) : 
+        '-';
+}
 
 ?>
 <div class="ticket-index">
@@ -218,15 +231,12 @@ $summaryrenderer = function ($summary, $data, $widget) {
         ],
         [
             'class' => 'kartik\grid\FormulaColumn',
-            'header' => 'Total',
-            'value' => function ($model, $key, $index, $widget) { 
-                return $model['b'] + $model['p']+ $model['s'] + $model['r'] + $model['n'] + $model['d'];
-            },
+            'header' => 'Total', 'format' => 'raw',
+            'value' => $totalrenderer,
             'mergeHeader' => true,
             'width' => '80px',
             'hAlign' => 'center',
-            'format' => ['decimal', 0],
-            'pageSummary' => true
+            'pageSummary' => $summaryrenderer
         ],
     ],
 
