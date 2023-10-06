@@ -21,6 +21,7 @@ use common\models\tickets\actions\Repair;
 use common\models\tickets\Ticket;
 use frontend\models\GeneralManager;
 use frontend\models\StoreManager;
+use kartik\helpers\Enum;
 use Yii;
 use yii\db\Query;
 use yii\helpers\ArrayHelper;
@@ -29,23 +30,30 @@ class TicketHelper
 {
     public static function getSLAStatus(Ticket $ticket) {
         //$due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, $ticket->contract->sla);
-        $due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, 14);
+        if (!isset($ticket->sla_due)){
+            $ticket->sla_due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, $ticket->store->contract->sla)['due'];
+            $ticket->save();
+        } 
+        //$due = DateTimeHelper::due(empty($ticket->created_at) ? time() : $ticket->created_at, 14);
+        $status = 'SLA exp. '.(date('d-m-Y', $ticket->sla_due));
         if (!empty($ticket->lastAction) && is_subclass_of($ticket->lastAction, Closing::class))
         {
-            $days = floor(($due['due'] - $ticket->lastAction->created_at)/DateTimeHelper::DAY_IN_SECONDS) - $due['ndays'];
-            if ($due['due'] < $ticket->lastAction->created_at)
+            //$days = floor(($due['due'] - $ticket->lastAction->created_at)/DateTimeHelper::DAY_IN_SECONDS) - $due['ndays'];
+            if ($ticket->sla_due < $ticket->lastAction->created_at)
             {
-                return ['id' => 9, 'status' => 'SLA lewat '.(abs($days)).' hari', 'color' => 'bg-danger', 'description' => 'SLA tidak tercapai'];
+                return ['id' => 9, 'status' => $status, 'color' => 'bg-danger', 'description' => 'SLA tidak tercapai'];
             }
-            else return ['id' => 10, 'status' => 'SLA '.$days.' hari', 'color' => 'bg-success', 'description' => 'SLA tercapai'];
+            else return ['id' => 10, 'status' => $status, 'color' => 'bg-success', 'description' => 'SLA tercapai'];
         }
         else
         {
-            $days = floor(($due['due'] - time())/DateTimeHelper::DAY_IN_SECONDS);
-            if ($days >= 0)
-                return ['id' => 11, 'status' => 'SLA sisa '.$days.' hari', 'color' => 'bg-primary', 'description' => 'SLA sisa '.$days.' hari'];
+            //$days = floor(($due['due'] - time())/DateTimeHelper::DAY_IN_SECONDS);
+            if ($ticket->sla_due >= time()){
+                $days = floor(($ticket->sla_due - time())/DateTimeHelper::DAY_IN_SECONDS);
+                return ['id' => 11, 'status' => $status, 'color' => 'bg-primary', 'description' => "SLA will exp. in $days days"];
+            }
             else
-                return ['id' => 12, 'status' => 'SLA lewat '.(abs($days)).' hari', 'color' => 'bg-warning', 'description' => 'SLA terlewat '.$days.' hari'];
+                return ['id' => 12, 'status' => $status, 'color' => 'bg-warning', 'description' => 'SLA was exp. '.Enum::timeElapsed(date(DATE_ATOM, $ticket->sla_due))];
         }
     }
 

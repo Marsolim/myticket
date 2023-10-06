@@ -9,7 +9,7 @@ use frontend\helpers\TicketHelper;
 use kartik\helpers\Enum;
 
 /** @var yii\web\View $this */
-/** @var frontend\models\search\TicketSearch $model */
+/** @var common\models\tickets\Ticket $model */
 /** @var yii\widgets\ActiveForm $form */
 
 $css = <<<CSS
@@ -102,7 +102,7 @@ if (empty($expanded)) $expanded = false;
                             <?= Html::beginTag('span') ?>
                             <?= Html::a($model->issuer->full_name, ['user/view', 'id' => $model->issuer->id]) ?>
                             <?= Html::endTag('span') ?>
-                            <?= Html::tag('span', date('Y F d H:m.s', $model->created_at), ['class' => 'date date-at']) ?>
+                            <?= Html::tag('span', date('Y-m-d H:i.s', $model->created_at), ['class' => 'date date-at']) ?>
                         </small>
                 </div>
             </div>

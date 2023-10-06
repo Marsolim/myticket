@@ -179,6 +179,13 @@ $exportwidget = ExportMenu::widget([
         ExportMenu::FORMAT_PDF => false,
         ExportMenu::FORMAT_HTML => false,
     ],
+    'exportFormHiddenInputs' => [
+        'TicketSearch[cust]' => ['value' => $articleSearch->cust],
+        'TicketSearch[status]' => ['value' => $articleSearch->status],
+        'TicketSearch[date_range]' => ['value' => $articleSearch->date_range],
+        'TicketSearch[searchstring]' => ['value' => $articleSearch->searchstring],
+    ],
+    'filename' => 'TICKET EXPORT '.date('dmYHis', time()),
     'options' => [
         'class' => 'py-2 item-aligment-end'
     ]

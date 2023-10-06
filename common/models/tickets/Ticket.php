@@ -58,8 +58,8 @@ class Ticket extends AuditedRecord
     public function rules()
     {
         return [
-            [['customer_id', 'number', 'status'], 'required'],
-            [['customer_id', 'status', 'status_closed', 'status_contract'], 'integer'],
+            [['customer_id', 'number'], 'required'],
+            [['customer_id'], 'integer'],
             [['number', 'external_number'], 'string', 'max' => 20],
             [['problem'], 'string', 'max' => 255],
             [['number'], 'unique'],
@@ -99,7 +99,7 @@ class Ticket extends AuditedRecord
             $open->save(false);
             $this->updateAttributes(['last_action_id' => $open->getPrimaryKey()]);
             //$this->addError('lastAction', $open->getErrors());
-            $this->updateAttributes(['sla_due' => DateTimeHelper::due($open->created_at, 14)]);
+            $this->updateAttributes(['sla_due' => DateTimeHelper::due($open->created_at, $this->store->contract->sla)]);
         }
     }
 
