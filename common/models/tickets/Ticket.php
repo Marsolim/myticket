@@ -99,7 +99,7 @@ class Ticket extends AuditedRecord
             $open->save(false);
             $this->updateAttributes(['last_action_id' => $open->getPrimaryKey()]);
             //$this->addError('lastAction', $open->getErrors());
-            $this->updateAttributes(['sla_due' => DateTimeHelper::due($open->created_at, $this->store->contract->sla)]);
+            $this->updateAttributes(['sla_due' => DateTimeHelper::due($open->created_at, $this->store->contract->sla)['due']]);
         }
     }
 

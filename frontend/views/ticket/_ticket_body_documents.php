@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
 use common\models\actors\Store;
+use common\models\docs\Image;
 use common\models\docs\Inquiry;
 use common\models\docs\Invoice;
 use common\models\docs\WorkOrder;
@@ -47,6 +48,8 @@ foreach($model->documents as $doc) {
         Invoice::class => 'Invoice',
         Inquiry::class => 'BAP',
         WorkOrder::class => 'SPK',
+        Image::class => 'Image',
+        default => 'DOC'
     };
 ?>
 <?= Html::a($doc->fileIcon.' '.$type.' - '.$doc->uploadname, ['document/download', 'id' => $doc->id], ['class' => 'btn btn-link']) ?>
