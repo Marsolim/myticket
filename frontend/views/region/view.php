@@ -39,6 +39,15 @@ $this->params['breadcrumbs'][] = $this->title;
                 'value' => function ($model) {
                     return isset($model->address) ? nl2br($model->address) : '';
                 }
+            ],
+            [
+                'attribute' => 'parent_id',
+                'label' => 'Company',
+                'format' => 'raw',
+                'value' => function ($model) {
+                    $company = $model->company;
+                    return isset($company) ? "$company->code - $company->name" : '';
+                }
             ]
         ],
     ]) ?>

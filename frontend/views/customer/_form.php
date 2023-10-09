@@ -47,7 +47,7 @@ JS;
 
     <?= $form->field($model, 'parent_id')->widget(Select2::class, [
             'data' => $data,
-            'options' => ['placeholder' => 'Search for Engineer ...'],
+            'options' => ['placeholder' => 'Search for Distribution Center ...'],
             'addon' => [
                 'append' => [
                     'content' => Html::button('<i class="fas fa-file-circle-plus"></i>', [
