@@ -8,6 +8,7 @@ use common\models\actors\Engineer;
 use common\models\actors\User;
 use common\models\tickets\Ticket;
 use common\models\actors\Store;
+use common\models\docs\Image;
 use common\models\docs\Inquiry;
 use common\models\docs\Invoice;
 use common\models\docs\WorkOrder;
@@ -310,6 +311,35 @@ class TicketController extends Controller
 
     public function actionUploadWorkOrder($ticket){
         $model = new WorkOrder();
+        $model->ticket_id = $ticket;
+        $model->owner_id = Yii::$app->user->id;
+        $ticket = Ticket::findOne(['id' => $ticket]);
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            $transaction = \Yii::$app->db->beginTransaction();          
+            try {
+                $model->file = UploadedFile::getInstance($model, 'file');
+                $model->store_id = $ticket->customer_id;
+                if ($model->validate() && $model->upload(false)) {
+                    $transaction->commit();
+                    $ticketid = md5($ticket->number);
+                    return Json::encode([
+                        'pjax_refresh' => false,
+                        'target' => "#ts-$ticketid",
+                        'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
+                    ]);
+                }
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => Json::encode($model->getErrors())));
+            } catch (Exception $ex) {
+                $transaction->rollBack();
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => $ex->getMessage()));
+            }
+        }
+        return $this->renderAjax('_action_upload_document', ['model' => $model,]);
+    }
+
+    public function actionUploadImage($ticket){
+        $model = new Image();
         $model->ticket_id = $ticket;
         $model->owner_id = Yii::$app->user->id;
         $ticket = Ticket::findOne(['id' => $ticket]);
