@@ -10,11 +10,13 @@ use kartik\helpers\Enum;
 use yii\helpers\Url;
 
 /** @var yii\web\View $this */
-/** @var frontend\models\search\TicketSearch $model */
+/** @var common\models\tickets\Ticket $model */
 /** @var yii\widgets\ActiveForm $form */
 
+$ticketid = md5($model->number);
+
 ?>
-<?= Html::beginTag('div', ['class' => ['card-body', $expanded ? 'show' : 'collapse'], 'id' => "ts-$model->number-body",]) ?>
+<?= Html::beginTag('div', ['class' => ['card-body', $expanded ? 'show' : 'collapse'], 'id' => "ts-$ticketid-body",]) ?>
 <div class="text-justify">
     <ul class="list-group list-group-flush">
         <li class="list-group-item">

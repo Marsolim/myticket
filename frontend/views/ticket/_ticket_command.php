@@ -14,29 +14,27 @@ use kartik\helpers\Enum;
 use yii\helpers\Url;
 
 /** @var yii\web\View $this */
-/** @var frontend\models\search\TicketSearch $model */
+/** @var common\models\tickets\Ticket $model */
 /** @var yii\widgets\ActiveForm $form */
 
+$ticketid = md5($model->number);
+
 ?>
-<?= Html::beginTag('span', ['class'=>"d-flex ticket ticket-command", 'id' => "ts-$model->number-command"]) ?>
-<?= TicketHelper::can($model, Awaiting::class) ? Html::a('<i class="fa fa-hourglass"></i>', ['ticket/close-awaiting', 'ticket' => $model->id], [
+<?= Html::beginTag('span', ['class'=>"d-flex ticket ticket-command", 'id' => "ts-$ticketid-command"]) ?>
+<?= TicketHelper::can($model, Awaiting::class) ? Html::a('<i class="fa fa-hourglass"></i>', ['ticket/close-waiting', 'ticket' => $model->id], [
             'class' => "btn btn-link text-info text-decoration-none quick-action quick-action-link",
             'title' => "Awaiting"
         ]) : '' ?>
 <?= TicketHelper::can($model, NoProblem::class) ? Html::a('<i class="fa fa-circle-question"></i>', ['ticket/close-no-problem', 'ticket' => $model->id], [
             'class' => "btn btn-link text-warning text-decoration-none quick-action quick-action-link",
-            'title' => "Awaiting"
+            'title' => "No Problem"
         ]) : '' ?>
 <?= TicketHelper::can($model, Normal::class) ? Html::a('<i class="fa fa-circle-check"></i>', ['ticket/close-normal', 'ticket' => $model->id], [
             'class' => "btn btn-link text-success text-decoration-none quick-action quick-action-link",
-            'title' => "Awaiting"
+            'title' => "Selesai"
         ]) : '' ?>
 <?= TicketHelper::can($model, Duplicate::class) ? Html::a('<i class="fa fa-bugs"></i>', ['ticket/close-duplicate', 'ticket' => $model->id], [
             'class' => "btn btn-link text-danger text-decoration-none quick-action quick-action-link",
-            'title' => "Awaiting"
+            'title' => "Double AHO"
         ]) : '' ?>
-<?= Html::a('<i class="fa fa-bell"></i>', ['ticket/notify', 'ticket' => $model->id], [
-            'class' => "btn btn-link text-primary text-decoration-none quick-action quick-action-link",
-            'title' => "Notify"
-        ]) ?>
 <?= Html::endTag('span') ?>

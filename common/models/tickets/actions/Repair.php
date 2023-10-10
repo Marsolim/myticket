@@ -15,7 +15,6 @@ class Repair extends ConcreteAction
         $rules = parent::rules();
         return ArrayHelper::merge($rules, [
             [['action'], 'required'],
-            [['item_id'], 'required'],
             [['item_id'], 'exist', 'skipOnError' => true, 'targetClass' => Item::class, 'targetAttribute' => ['item_id' => 'id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => Engineer::class, 'targetAttribute' => ['user_id' => 'id']]
         ]);

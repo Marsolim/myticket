@@ -58,9 +58,12 @@ CSS;
 
 $this->registerCss($css);
 if (empty($expanded)) $expanded = false;
+
+$ticketid = md5($model->number);
+
 ?>
 
-<?= Html::beginTag('div', ['class' => 'ticket-view text-toggle', 'id'=>"ts-$model->number"]) ?>
+<?= Html::beginTag('div', ['class' => 'ticket-view text-toggle', 'id'=>"ts-$ticketid"]) ?>
     <div class="ticket-view card position-relative text-primary mt-3 mb-2">
     	<div class="card-header">
         <?= Html::beginTag('div', ['class' => 'd-flex justify-content-between p-2',]) ?>
@@ -68,9 +71,9 @@ if (empty($expanded)) $expanded = false;
             <?= Html::tag('div', '<i class="text-warning fa fa-3x fa-ticket"></i>', [
                 'class' => 'd-flex flex-column ml-2 me-2 text-toggle',
                 'data-bs-toggle'=> 'collapse',
-                'href' => "#ts-$model->number-body",
+                'href' => "#ts-$ticketid-body",
                 'aria-expanded' => $expanded ? 'true' : 'false',
-                'aria-controls' => "ts-$model->number-body"
+                'aria-controls' => "ts-$ticketid-body"
             ]) ?>
                 <div class="vr"></div>
                 <div class="d-flex flex-column ms-2 ml-2">

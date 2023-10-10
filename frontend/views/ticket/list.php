@@ -144,9 +144,9 @@ $(document).on('click', '.quick-action', function (event) {
                     type: 'post',
                     success: function(response){
                         console.log(response);
+                        container.modal('hide');
+                        content.empty();
                         if (response.pjax_refresh){
-                            container.modal('hide');
-                            content.empty();
                             $.pjax.reload({container:"#pjax_list_articles", async:false});
                         }
                         else {

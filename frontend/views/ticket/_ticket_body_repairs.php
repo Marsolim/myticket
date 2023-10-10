@@ -7,27 +7,30 @@ use common\models\actors\Store;
 use common\models\docs\Inquiry;
 use common\models\docs\Invoice;
 use common\models\docs\WorkOrder;
+use common\models\tickets\actions\Repair;
 use common\models\tickets\Ticket;
 use frontend\helpers\TicketHelper;
 use kartik\helpers\Enum;
 use yii\helpers\Url;
 
 /** @var yii\web\View $this */
-/** @var frontend\models\search\TicketSearch $model */
+/** @var common\models\tickets\Ticket $model */
 /** @var yii\widgets\ActiveForm $form */
 $title = ['Pekerjaan'];
 if (empty($model->repairs)) $title[] = '<span class="small text-danger">(Tidak Ada)</span>';
 $title = implode(' ', $title);
 
+$cmdclass = ['ms-auto'];
+if (!TicketHelper::can($model, Repair::class)) $cmdclass[] = 'visually-hidden';
 ?>
 <div class="d-flex">
     <div class="h6 my-1 align-self-stretch text-align-center"><?= $title ?></div>
-    <div class="ms-auto">
+    <?= Html::beginTag('div', ['class' => $cmdclass]) ?>
         <?= Html::a('<i class="fa fa-screwdriver-wrench"></i>', ['ticket/repair', 'ticket' => $model->id], [
             'class' => "btn py-1 btn-link text-decoration-none quick-action quick-action-form",
-            'title' => "Invoice"
+            'title' => "Pekerjaan"
         ]) ?>
-    </div>
+    <?= Html::endTag('div') ?>
 </div>
 <?php
 if (!empty($model->repairs)) {

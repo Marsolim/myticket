@@ -64,7 +64,7 @@ JS;
                 'templateResult' => new JsExpression('function(engineer) { return engineer.text; }'),
                 'templateSelection' => new JsExpression('function (engineer) { return engineer.text; }'),
             ],
-        ]) ?>
+        ])->label('Engineer') ?>
         <div class="view-btn mt-2 text-left"> 
             <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-primary' : 'btn btn-success']) ?>
         </div>

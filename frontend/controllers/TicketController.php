@@ -109,10 +109,11 @@ class TicketController extends Controller
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
                 if ($model->validate() && $model->save(false)) {
-                    $transaction->commit();                      
+                    $transaction->commit();
+                    $ticketid = md5($ticket->number);
                     return Json::encode([
                         'pjax_refresh' => false,
-                        'target' => "#ts-$ticket->number",
+                        'target' => "#ts-$ticketid",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode'=>'list-item'])
                     ]);
                 }
@@ -142,14 +143,16 @@ class TicketController extends Controller
         $model = new Recommendation();
         $model->ticket_id = $ticket;
         $model->user_id = Yii::$app->user->id;
+        $ticket = Ticket::findOne(['id' => $ticket]);
         if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
-            $transaction = \Yii::$app->db->beginTransaction();          
+            $transaction = \Yii::$app->db->beginTransaction();
             try {
                 if ($model->validate() && $model->save(false)) {
                     $transaction->commit();
+                    $ticketid = md5($ticket->number);
                     return Json::encode([
                         'pjax_refresh' => false,
-                        'target' => "#ts-$ticket->number",
+                        'target' => "#ts-$ticketid",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode'=>'list-item'])
                     ]);
                 }
@@ -184,9 +187,10 @@ class TicketController extends Controller
                 if ($model->validate() && $model->save(false)) {
                     $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
                     $transaction->commit();
+                    $ticketid = md5($ticket->number);
                     return Json::encode([
                         'pjax_refresh' => false,
-                        'target' => "#ts-$ticket->number",
+                        'target' => "#ts-$ticketid",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                     ]);
                 }
@@ -218,10 +222,11 @@ class TicketController extends Controller
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
                 if ($model->validate() && $model->save(false)) {
-                    $transaction->commit();                      
+                    $transaction->commit();
+                    $ticketid = md5($ticket->number);
                     return Json::encode([
                         'pjax_refresh' => false,
-                        'target' => "#ts-$ticket->number",
+                        'target' => "#ts-$ticketid",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                     ]);
                 }
@@ -245,10 +250,6 @@ class TicketController extends Controller
         }
     }
 
-    public function actionWaiting($ticket) {
-
-    }
-
     public function actionUploadInvoice($ticket){
         $model = new Invoice();
         $model->ticket_id = $ticket;
@@ -257,18 +258,19 @@ class TicketController extends Controller
         if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
-                $model->file = UploadedFile::getInstanceByName('file');
+                $model->file = UploadedFile::getInstance($model, 'file');
                 $model->store_id = $ticket->customer_id;
                 if ($model->validate() && $model->upload(false)) {
-                    $transaction->commit();                      
+                    $transaction->commit();
+                    $ticketid = md5($ticket->number);
                     return Json::encode([
                         'pjax_refresh' => false,
-                        'target' => "#ts-$ticket->number",
+                        'target' => "#ts-$ticketid",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                     ]);
                 }
                 $transaction->rollBack();
-                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
+                return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => $model->getErrors()));
             } catch (Exception $ex) {
                 $transaction->rollBack();
                 return Json::encode(array('status' => 'error', 'type' => 'error', 'message' => 'Repair not created.'));
@@ -285,13 +287,14 @@ class TicketController extends Controller
         if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
             $transaction = \Yii::$app->db->beginTransaction();          
             try {
-                $model->file = UploadedFile::getInstanceByName('file');
+                $model->file = UploadedFile::getInstance($model, 'file');
                 $model->store_id = $ticket->customer_id;
                 if ($model->validate() && $model->upload(false)) {
-                    $transaction->commit();                      
+                    $transaction->commit();
+                    $ticketid = md5($ticket->number);
                     return Json::encode([
                         'pjax_refresh' => false,
-                        'target' => "#ts-$ticket->number",
+                        'target' => "#ts-$ticketid",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                     ]);
                 }
@@ -316,10 +319,11 @@ class TicketController extends Controller
                 $model->file = UploadedFile::getInstance($model, 'file');
                 $model->store_id = $ticket->customer_id;
                 if ($model->validate() && $model->upload(false)) {
-                    $transaction->commit();                      
+                    $transaction->commit();
+                    $ticketid = md5($ticket->number);
                     return Json::encode([
                         'pjax_refresh' => false,
-                        'target' => "#ts-$ticket->number",
+                        'target' => "#ts-$ticketid",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                     ]);
                 }
@@ -372,9 +376,10 @@ class TicketController extends Controller
                 if ($model->validate() && $model->save(false)){
                     $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
                     $transaction->commit();
+                    $ticketid = md5($ticket->number);
                     return Json::encode([
                         'pjax_refresh' => false,
-                        'target' => "#ts-$ticket->number",
+                        'target' => "#ts-$ticketid",
                         'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                     ]);
                 } 
@@ -401,10 +406,11 @@ class TicketController extends Controller
                 try {
                     if ($model->validate() && $model->save(false)){
                         $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
-                    $transaction->commit();
+                        $transaction->commit();
+                        $ticketid = md5($ticket->number);
                         return Json::encode([
                             'pjax_refresh' => false,
-                            'target' => "#ts-$ticket->number",
+                            'target' => "#ts-$ticketid",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                         ]);
                     } 
@@ -432,10 +438,11 @@ class TicketController extends Controller
                 try {
                     if ($model->validate() && $model->save(false)){
                         $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
-                    $transaction->commit();
+                        $transaction->commit();
+                        $ticketid = md5($ticket->number);
                         return Json::encode([
                             'pjax_refresh' => false,
-                            'target' => "#ts-$ticket->number",
+                            'target' => "#ts-$ticketid",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                         ]);
                     } 
@@ -463,10 +470,11 @@ class TicketController extends Controller
                 try {
                     if ($model->validate() && $model->save(false)) {
                         $ticket->updateAttributes(['last_action_id' => $model->getPrimaryKey()]);
-                    $transaction->commit();
+                        $transaction->commit();
+                        $ticketid = md5($ticket->number);
                         return Json::encode([
                             'pjax_refresh' => false,
-                            'target' => "#ts-$ticket->number",
+                            'target' => "#ts-$ticketid",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $ticket->id, 'mode' => 'list-item']),
                         ]);
                     } 
@@ -491,7 +499,7 @@ class TicketController extends Controller
         $model = new Ticket();
 
         if (Yii::$app->request->isAjax) {
-            $model->issuer_id = Yii::$app->user->id;
+            //$model->issuer_id = Yii::$app->user->id;
             if ($model->load(Yii::$app->request->post())) {
                 if (is_null($model->number))
                     $model->number = AutoNumber::generate('TS.{Y.m}.????');
@@ -510,9 +518,10 @@ class TicketController extends Controller
                             $model->updateAttributes(['last_action_id' => $open->getPrimaryKey()]);
                         }
                         $transaction->commit();
+                        $ticketid = md5($model->number);
                         return Json::encode([
                             'pjax_refresh' => true,
-                            'target' => "#ts-$model->number",
+                            'target' => "#ts-$ticketid",
                             'refresh_link' => Url::to(['ticket/view', 'id' => $model->id, 'mode' => 'list-item']),
                         ]);
                         $transaction->rollBack();    

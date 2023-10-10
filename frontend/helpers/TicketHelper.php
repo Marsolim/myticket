@@ -82,14 +82,16 @@ class TicketHelper
                 }
             }
             if ($ticket->lastAction instanceof Repair){
-                if (in_array($class, [Awaiting::class, Normal::class], true)){
+                if (in_array($class, [Awaiting::class, Normal::class, Repair::class], true)){
                     return true;
                 }
             }
             return false;
         }
-        elseif (is_subclass_of($class, MetaAction::class)){
+        elseif (is_subclass_of($class, MetaAction::class) && !is_subclass_of($ticket->lastAction, Closing::class)){
             if ($class === Recommendation::class) 
+                return true;
+            if ($class === Assignment::class) 
                 return true;
             if (empty($ticket->discretion) && $class === Discretion::class) 
                 return true;

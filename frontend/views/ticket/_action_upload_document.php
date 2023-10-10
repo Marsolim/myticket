@@ -35,7 +35,7 @@ $title = match ($model::class) {
         <h4 class="modal-title text-left"><?= $title ?></h4>
     </div>
     <div class="modal-body">       
-        <?= $form->field($model, 'number')->textarea()->label("Nomor Dokumen") ?>
+        <?= $form->field($model, 'number')->textInput()->label("Nomor Dokumen") ?>
         <?= $form->field($model, 'file')->fileInput()->label("File") ?>
         <div class="view-btn mt-2 text-left">
             <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-primary' : 'btn btn-success']) ?>

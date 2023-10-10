@@ -76,7 +76,7 @@ JS;
                 'templateResult' => new JsExpression('function(engineer) { return engineer.text; }'),
                 'templateSelection' => new JsExpression('function (engineer) { return engineer.text; }'),
             ],
-        ]) ?>
+        ])->label('Operator') ?>
         <?= $form->field($model, 'action')->textInput() ?>
         <?= $form->field($model, 'item_id')->widget(Select2::class, [
             'data' => $items,
