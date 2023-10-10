@@ -35,15 +35,15 @@ if (!TicketHelper::can($model, Repair::class)) $cmdclass[] = 'visually-hidden';
 <?php
 if (!empty($model->repairs)) {
 ?>
-<div class="d-flex flex-row align-items-center">
+<div class="align-items-center">
 <?php
 foreach($model->repairs as $doc) {
 ?>
 <div class="row small card-text">
-    <div class="col-2"><?= date('Y F d H:m.s', $doc->created_at) ?></div>
-    <div class="col-4"><?= $doc->action ?></div>
-    <div class="col-4"><?= empty($doc->item) ? '' : $doc->item->name ?></div>
-    <div class="col-2"><?= $doc->serial ?></div>
+    <div class="col col-2"><?= date('Y-m-d H:i.s', $doc->created_at) ?></div>
+    <div class="col col-4"><?= $doc->action ?></div>
+    <div class="col col-4"><?= empty($doc->item) ? '' : $doc->item->name ?></div>
+    <div class="col col-2"><?= $doc->serial ?></div>
 </div>
 <?php
 }
