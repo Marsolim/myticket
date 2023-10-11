@@ -104,7 +104,7 @@ class TicketHelper
             'd' => "sum(if((a.type = 'common\\\\models\\\\tickets\\\\actions\\\\closings\\\\Duplicate'),1,0))",
         ];
         $user = UserHelper::findUser(null);
-        if ($user instanceof StoreManager){
+        if ($user instanceof StoreManager || $user instanceof Engineer){
             $columns['customer_id'] = 'c.id';
             $columns['customer_name'] = "CONCAT(c.code, ' - ', c.name)";
         }
